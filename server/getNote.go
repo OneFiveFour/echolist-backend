@@ -1,0 +1,35 @@
+package server
+
+import (
+	"context"
+	"os"
+	"path/filepath"
+
+	pb "notes-backend/gen/notes"
+)
+
+func (s *NotesServer) GetNote(
+	ctx context.Context,
+	req *pb.GetNoteRequest,
+) (*pb.GetNoteResponse, error) {
+
+	fullPath := filepath.Join(DataDir, req.FilePath)
+
+	info, err := os.Stat(fullPath)
+	if err != nil {
+		return nil, err
+	}
+
+	content, err := os.ReadFile(fullPath)
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb.GetNoteResponse{
+		FilePath:  req.FilePath,
+		Title:     info.Name()[:len(info.Name())-3],
+		Content:   string(content),
+		UpdatedAt: info.ModTime().UnixMilli(),
+	}, nil
+}
+
