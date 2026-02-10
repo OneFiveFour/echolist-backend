@@ -1,0 +1,36 @@
+package server
+
+import (
+	"context"
+	"os"
+	"path/filepath"
+	"testing"
+
+	pb "notes-backend/gen/notes"
+)
+
+func TestGetNote(t *testing.T) {
+	tmp := t.TempDir()
+	s := NewNotesServer(tmp)
+
+	if err := os.WriteFile(filepath.Join(tmp, "note.md"), []byte("abc"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	resp, err := s.GetNote(context.Background(), &pb.GetNoteRequest{FilePath: "note.md"})
+	if err != nil {
+		t.Fatalf("GetNote failed: %v", err)
+	}
+	if resp.FilePath != "note.md" {
+		t.Fatalf("unexpected FilePath: %s", resp.FilePath)
+	}
+	if resp.Title != "note" {
+		t.Fatalf("unexpected Title: %s", resp.Title)
+	}
+	if resp.Content != "abc" {
+		t.Fatalf("unexpected Content: %s", resp.Content)
+	}
+	if resp.UpdatedAt <= 0 {
+		t.Fatalf("invalid UpdatedAt: %d", resp.UpdatedAt)
+	}
+}
