@@ -13,7 +13,7 @@ func (s *NotesServer) DeleteNote(
 	req *pb.DeleteNoteRequest,
 ) (*pb.DeleteNoteResponse, error) {
 
-	fullPath := filepath.Join(DataDir, req.FilePath)
+	fullPath := filepath.Join(s.dataDir, req.FilePath)
 
 	if err := os.Remove(fullPath); err != nil {
 		return nil, err
@@ -21,4 +21,3 @@ func (s *NotesServer) DeleteNote(
 
 	return &pb.DeleteNoteResponse{}, nil
 }
-

@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 	"fmt"
-	"os"
 	"path/filepath"
 	"time"
 
@@ -15,7 +14,7 @@ func (s *NotesServer) UpdateNote(
 	req *pb.UpdateNoteRequest,
 ) (*pb.UpdateNoteResponse, error) {
 
-	fullPath := filepath.Join(DataDir, req.FilePath)
+	fullPath := filepath.Join(s.dataDir, req.FilePath)
 
 	err := atomicWriteFile(fullPath, []byte(req.Content))
 	if err != nil {
@@ -26,4 +25,3 @@ func (s *NotesServer) UpdateNote(
 		UpdatedAt: time.Now().UnixMilli(),
 	}, nil
 }
-

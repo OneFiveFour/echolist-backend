@@ -16,9 +16,9 @@ func (s *NotesServer) ListNotes(
 
 	var notes []*pb.Note
 
-	root := DataDir
+	root := s.dataDir
 	if req.Path != "" {
-		root = filepath.Join(DataDir, req.Path)
+		root = filepath.Join(s.dataDir, req.Path)
 	}
 
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
@@ -33,7 +33,7 @@ func (s *NotesServer) ListNotes(
 			return nil
 		}
 
-		relPath, _ := filepath.Rel(DataDir, path)
+		relPath, _ := filepath.Rel(s.dataDir, path)
 		content, err := os.ReadFile(path)
 		if err != nil {
 			return fmt.Errorf("failed to read %s: %w", path, err)

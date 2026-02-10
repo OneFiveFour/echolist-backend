@@ -13,7 +13,7 @@ func (s *NotesServer) GetNote(
 	req *pb.GetNoteRequest,
 ) (*pb.GetNoteResponse, error) {
 
-	fullPath := filepath.Join(DataDir, req.FilePath)
+	fullPath := filepath.Join(s.dataDir, req.FilePath)
 
 	info, err := os.Stat(fullPath)
 	if err != nil {
@@ -32,4 +32,3 @@ func (s *NotesServer) GetNote(
 		UpdatedAt: info.ModTime().UnixMilli(),
 	}, nil
 }
-

@@ -20,7 +20,7 @@ func main() {
 	grpcServer := grpc.NewServer()
 	pb.RegisterNotesServiceServer(
 		grpcServer,
-		&server.NotesServer{},
+		server.NewNotesServer("./data"),
 	)
 	reflection.Register(grpcServer)
 
