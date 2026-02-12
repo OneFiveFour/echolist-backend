@@ -1,11 +1,11 @@
 package server
 
 import (
-	pb "notes-backend/gen/notes"
+	notesv1connect "notes-backend/proto/gen/notes/v1/notesv1connect"
 )
 
 type NotesServer struct {
-	pb.UnimplementedNotesServiceServer
+	notesv1connect.UnimplementedNotesServiceHandler
 	dataDir string
 }
 

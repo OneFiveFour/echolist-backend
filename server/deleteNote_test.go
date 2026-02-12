@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	pb "notes-backend/gen/notes"
+	pb "notes-backend/proto/gen/notes/v1"
 )
 
 func TestDeleteNote(t *testing.T) {

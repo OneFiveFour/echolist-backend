@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"notes-backend/gen/notes"
+	pb "notes-backend/proto/gen/notes/v1"
 )
 
 func TestCreateNote_CreatesMarkdownFile(t *testing.T) {
@@ -16,7 +16,7 @@ func TestCreateNote_CreatesMarkdownFile(t *testing.T) {
 		dataDir: dataDir,
 	}
 
-	req := &notes.CreateNoteRequest{
+	req := &pb.CreateNoteRequest{
 		Path:    "Work/2026",
 		Title:   "Meeting",
 		Content: "# Meeting\n\nHello World",

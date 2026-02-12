@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"time"
 
-	pb "notes-backend/gen/notes"
+	pb "notes-backend/proto/gen/notes/v1"
 )
 
 func (s *NotesServer) CreateNote(

@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	pb "notes-backend/gen/notes"
+	pb "notes-backend/proto/gen/notes/v1"
 )
 
 func (s *NotesServer) DeleteNote(
