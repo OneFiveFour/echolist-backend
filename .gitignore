@@ -33,3 +33,6 @@ go.work.sum
 
 # compiled binaries
 notes-backend
+
+# generated proto files
+proto/gen/
