@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 
 	"notes-backend/server"
 	notesv1connect "notes-backend/proto/gen/notes/v1/notesv1connect"
@@ -14,8 +15,14 @@ import (
 func main() {
 	mux := http.NewServeMux()
 
+	// Get data directory from environment variable, default to "./data"
+	dataDir := os.Getenv("DATA_DIR")
+	if dataDir == "" {
+		dataDir = "./data"
+	}
+
 	path, handler := notesv1connect.NewNotesServiceHandler(
-		server.NewNotesServer("./data"),
+		server.NewNotesServer(dataDir),
 	)
 	mux.Handle(path, handler)
 
