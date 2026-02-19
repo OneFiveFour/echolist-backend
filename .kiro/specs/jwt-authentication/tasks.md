@@ -53,15 +53,15 @@ Add JWT-based authentication to the ConnectRPC notes backend. Implementation pro
 - [x] 4. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 5. Implement Auth Interceptor
-  - [ ] 5.1 Create `auth/interceptor.go` with NewAuthInterceptor function and publicProcedures map
+- [x] 5. Implement Auth Interceptor
+  - [x] 5.1 Create `auth/interceptor.go` with NewAuthInterceptor function and publicProcedures map
     - Check procedure against publicProcedures allowlist
     - Extract and validate Bearer token from Authorization header
     - Return codes.InvalidArgument for malformed header, codes.Unauthenticated for missing/invalid/expired tokens
     - Inject username into context on success
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6_
 
-  - [ ]* 5.2 Write property tests for Auth Interceptor (interceptor_test.go)
+  - [x] 5.2 Write property tests for Auth Interceptor (interceptor_test.go)
     - **Property 5: Valid token passes interceptor with correct context**
     - **Validates: Requirements 3.1, 3.6**
     - **Property 6: Invalid tokens rejected by interceptor**
@@ -69,7 +69,7 @@ Add JWT-based authentication to the ConnectRPC notes backend. Implementation pro
     - **Property 7: Public endpoints bypass authentication**
     - **Validates: Requirements 3.5**
 
-  - [ ]* 5.3 Write unit tests for Auth Interceptor edge cases
+  - [x] 5.3 Write unit tests for Auth Interceptor edge cases
     - Test missing Authorization header returns Unauthenticated
     - Test malformed header (no "Bearer " prefix) returns InvalidArgument
     - Test expired token returns Unauthenticated
