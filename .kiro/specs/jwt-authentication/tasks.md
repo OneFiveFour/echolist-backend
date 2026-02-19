@@ -34,7 +34,7 @@ Add JWT-based authentication to the ConnectRPC notes backend. Implementation pro
     - Test getUser with non-existent username returns not-found error
     - _Requirements: 1.3, 1.5_
 
-- [ ] 3. Implement TokenService
+- [x] 3. Implement TokenService
   - [x] 3.1 Create `auth/token_service.go` with TokenClaims struct, TokenService struct, NewTokenService, GenerateAccessToken, GenerateRefreshToken, and ValidateToken methods
     - Use golang-jwt/jwt/v5 with HS256 signing
     - Include username, sub, iat, exp claims
@@ -50,7 +50,7 @@ Add JWT-based authentication to the ConnectRPC notes backend. Implementation pro
     - Test token signed with wrong secret returns error
     - _Requirements: 3.2, 3.3_
 
-- [ ] 4. Checkpoint - Ensure all tests pass
+- [x] 4. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 5. Implement Auth Interceptor
