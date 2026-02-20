@@ -75,20 +75,20 @@ Add JWT-based authentication to the ConnectRPC notes backend. Implementation pro
     - Test expired token returns Unauthenticated
     - _Requirements: 3.2, 3.3, 3.4_
 
-- [ ] 6. Implement AuthServer RPC handlers
-  - [ ] 6.1 Create `auth/auth_server.go` with AuthServer struct, NewAuthServer, Login, and RefreshToken handler methods
+- [x] 6. Implement AuthServer RPC handlers
+  - [x] 6.1 Create `auth/auth_server.go` with AuthServer struct, NewAuthServer, Login, and RefreshToken handler methods
     - Login: validate credentials via UserStore.Authenticate, generate access + refresh tokens via TokenService
     - RefreshToken: validate refresh token via TokenService.ValidateToken, generate new access token
     - Return generic "invalid credentials" error for both bad username and bad password
     - _Requirements: 2.1, 2.2, 2.3, 4.1, 4.2, 4.3_
 
-  - [ ]* 6.2 Write property tests for AuthServer (auth_server_test.go)
+  - [x] 6.2 Write property tests for AuthServer (auth_server_test.go)
     - **Property 4: Valid credentials produce valid tokens**
     - **Validates: Requirements 2.1**
     - **Property 8: Valid refresh token produces new access token**
     - **Validates: Requirements 4.1**
 
-  - [ ]* 6.3 Write unit tests for AuthServer edge cases
+  - [x] 6.3 Write unit tests for AuthServer edge cases
     - Test Login with invalid username returns Unauthenticated
     - Test Login with wrong password returns Unauthenticated
     - Test Login error messages are identical for bad username vs bad password
@@ -96,7 +96,7 @@ Add JWT-based authentication to the ConnectRPC notes backend. Implementation pro
     - Test RefreshToken with malformed token returns Unauthenticated
     - _Requirements: 2.2, 2.3, 4.2, 4.3_
 
-- [ ] 7. Checkpoint - Ensure all tests pass
+- [x] 7. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 8. Wire everything together in main.go
