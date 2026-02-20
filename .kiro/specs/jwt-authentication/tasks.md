@@ -99,8 +99,8 @@ Add JWT-based authentication to the ConnectRPC notes backend. Implementation pro
 - [x] 7. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 8. Wire everything together in main.go
-  - [ ] 8.1 Update `main.go` to initialize auth components and register handlers
+- [x] 8. Wire everything together in main.go
+  - [x] 8.1 Update `main.go` to initialize auth components and register handlers
     - Add JWT_SECRET validation (fatal if empty)
     - Parse ACCESS_TOKEN_EXPIRY_MINUTES and REFRESH_TOKEN_EXPIRY_MINUTES with defaults
     - Initialize UserStore with LoadOrInitialize using AUTH_DEFAULT_USER and AUTH_DEFAULT_PASSWORD
@@ -111,7 +111,7 @@ Add JWT-based authentication to the ConnectRPC notes backend. Implementation pro
     - Log authentication status and token TTLs on startup
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 6.2, 6.3_
 
-  - [ ] 8.2 Add helper functions `parseDurationMinutesEnv` and `envOrDefault` in main.go
+  - [x] 8.2 Add helper functions `parseDurationMinutesEnv` and `envOrDefault` in main.go
     - _Requirements: 5.3, 5.4, 5.5_
 
 - [ ] 9. Update Docker configuration
