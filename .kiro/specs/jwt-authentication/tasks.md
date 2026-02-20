@@ -114,14 +114,14 @@ Add JWT-based authentication to the ConnectRPC notes backend. Implementation pro
   - [x] 8.2 Add helper functions `parseDurationMinutesEnv` and `envOrDefault` in main.go
     - _Requirements: 5.3, 5.4, 5.5_
 
-- [ ] 9. Update Docker configuration
-  - [ ] 9.1 Update `docker-compose.yml` to include JWT_SECRET, AUTH_DEFAULT_USER, AUTH_DEFAULT_PASSWORD, ACCESS_TOKEN_EXPIRY_MINUTES, and REFRESH_TOKEN_EXPIRY_MINUTES environment variables
+- [x] 9. Update Docker configuration
+  - [x] 9.1 Update `docker-compose.yml` to include JWT_SECRET, AUTH_DEFAULT_USER, AUTH_DEFAULT_PASSWORD, ACCESS_TOKEN_EXPIRY_MINUTES, and REFRESH_TOKEN_EXPIRY_MINUTES environment variables
     - _Requirements: 7.1_
 
-  - [ ] 9.2 Update `go.mod` with new dependencies (`golang-jwt/jwt/v5`, `golang.org/x/crypto`, `pgregory.net/rapid`)
+  - [x] 9.2 Update `go.mod` with new dependencies (`golang-jwt/jwt/v5`, `golang.org/x/crypto`, `pgregory.net/rapid`)
     - _Requirements: 7.2_
 
-- [ ] 10. Final checkpoint - Ensure all tests pass
+- [x] 10. Final checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes
