@@ -14,7 +14,9 @@ import (
 	"golang.org/x/net/http2/h2c"
 
 	"notes-backend/auth"
+	"notes-backend/folder"
 	authv1connect "notes-backend/proto/gen/auth/v1/authv1connect"
+	folderv1connect "notes-backend/proto/gen/folder/v1/folderv1connect"
 	notesv1connect "notes-backend/proto/gen/notes/v1/notesv1connect"
 	"notes-backend/server"
 )
@@ -89,10 +91,17 @@ func main() {
 	)
 	mux.Handle(authPath, authHandler)
 
+	folderPath, folderHandler := folderv1connect.NewFolderServiceHandler(
+		folder.NewFolderServer(dataDir),
+		interceptors,
+	)
+	mux.Handle(folderPath, folderHandler)
+
 	// Enable gRPC reflection for tools like grpcurl
 	reflector := grpcreflect.NewStaticReflector(
 		"notes.v1.NotesService",
 		"auth.v1.AuthService",
+		"folder.v1.FolderService",
 	)
 	mux.Handle(grpcreflect.NewHandlerV1(reflector))
 	mux.Handle(grpcreflect.NewHandlerV1Alpha(reflector))

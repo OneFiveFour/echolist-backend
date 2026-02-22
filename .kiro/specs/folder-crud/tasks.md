@@ -6,26 +6,26 @@ Implement a standalone FolderService with Create, Rename, and Delete RPCs, plus 
 
 ## Tasks
 
-- [-] 1. Define proto and generate code
-  - [ ] 1.1 Create `proto/folder/v1/folder.proto` with FolderService definition (CreateFolder, RenameFolder, DeleteFolder RPCs and all request/response messages including DirectoryEntry)
+- [x] 1. Define proto and generate code
+  - [x] 1.1 Create `proto/folder/v1/folder.proto` with FolderService definition (CreateFolder, RenameFolder, DeleteFolder RPCs and all request/response messages including DirectoryEntry)
     - _Requirements: 1.1, 2.1, 3.1_
-  - [ ] 1.2 Update `proto/notes/v1/notes.proto` to add `repeated string entries` field to `ListNotesResponse`
+  - [x] 1.2 Update `proto/notes/v1/notes.proto` to add `repeated string entries` field to `ListNotesResponse`
     - _Requirements: 4.1, 4.2_
-  - [ ] 1.3 Run `buf generate` to regenerate Go code from proto definitions
+  - [x] 1.3 Run `buf generate` to regenerate Go code from proto definitions
     - _Requirements: 1.1, 2.1, 3.1, 4.1_
 
-- [ ] 2. Implement FolderServer core and helpers
-  - [ ] 2.1 Create `folder/folder_server.go` with FolderServer struct, constructor, path validation helper (`isSubPath`), name validation helper, and `listDirectory` helper that reads immediate children and returns DirectoryEntry slices
+- [x] 2. Implement FolderServer core and helpers
+  - [x] 2.1 Create `folder/folder_server.go` with FolderServer struct, constructor, path validation helper (`isSubPath`), name validation helper, and `listDirectory` helper that reads immediate children and returns DirectoryEntry slices
     - _Requirements: 1.1, 1.3, 1.4, 1.5_
-  - [ ] 2.2 Implement `CreateFolder` in `folder/create_folder.go` — validate name, resolve paths, check case-insensitive duplicates via `os.ReadDir` + `strings.EqualFold`, create directory with `os.Mkdir`, return parent listing
+  - [x] 2.2 Implement `CreateFolder` in `folder/create_folder.go` — validate name, resolve paths, check case-insensitive duplicates via `os.ReadDir` + `strings.EqualFold`, create directory with `os.Mkdir`, return parent listing
     - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5_
-  - [ ] 2.3 Write property test for CreateFolder round-trip
+  - [x] 2.3 Write property test for CreateFolder round-trip
     - **Property 1: Create folder round-trip**
     - **Validates: Requirements 1.1, 1.4**
-  - [ ] 2.4 Write property test for case-insensitive duplicate rejection on create
+  - [x] 2.4 Write property test for case-insensitive duplicate rejection on create
     - **Property 2: Case-insensitive duplicate rejection on create**
     - **Validates: Requirements 1.2**
-  - [ ] 2.5 Write property test for invalid name rejection
+  - [x] 2.5 Write property test for invalid name rejection
     - **Property 3: Invalid name rejection**
     - **Validates: Requirements 1.3, 2.4**
 
@@ -49,7 +49,7 @@ Implement a standalone FolderService with Create, Rename, and Delete RPCs, plus 
 - [x] 4. Checkpoint - Ensure all FolderService tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 5. Update ListNotes to shallow listing with folders
+- [x] 5. Update ListNotes to shallow listing with folders
   - [x] 5.1 Refactor `server/listNotes.go` — replace `filepath.Walk` with `os.ReadDir` for shallow listing, populate both `notes` (Note objects for .md files) and `entries` (unified path strings with trailing `/` for folders)
     - _Requirements: 4.1, 4.2, 4.3_
   - [x] 5.2 Update `server/listNotes_test.go` to reflect new shallow listing behavior and verify folder entries
@@ -61,11 +61,11 @@ Implement a standalone FolderService with Create, Rename, and Delete RPCs, plus 
     - **Property 8: ListNotes shallow listing**
     - **Validates: Requirements 4.3**
 
-- [ ] 6. Wire FolderService into main.go
-  - [ ] 6.1 Register FolderService handler in `main.go` — import generated connect package, create FolderServer with dataDir, register on mux with auth interceptor, add to gRPC reflector
+- [x] 6. Wire FolderService into main.go
+  - [x] 6.1 Register FolderService handler in `main.go` — import generated connect package, create FolderServer with dataDir, register on mux with auth interceptor, add to gRPC reflector
     - _Requirements: 1.1, 2.1, 3.1_
 
-- [ ] 7. Final checkpoint - Ensure all tests pass
+- [x] 7. Final checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes
