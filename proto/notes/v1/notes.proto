@@ -38,6 +38,7 @@ message Note {
 
 message ListNotesResponse {
   repeated Note notes = 1;
+  repeated string entries = 2; // immediate children: folder paths end with "/", note paths don't
 }
 
 message GetNoteRequest {

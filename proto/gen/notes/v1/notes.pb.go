@@ -264,6 +264,7 @@ func (x *Note) GetUpdatedAt() int64 {
 type ListNotesResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Notes         []*Note                `protobuf:"bytes,1,rep,name=notes,proto3" json:"notes,omitempty"`
+	Entries       []string               `protobuf:"bytes,2,rep,name=entries,proto3" json:"entries,omitempty"` // immediate children: folder paths end with "/", note paths don't
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -301,6 +302,13 @@ func (*ListNotesResponse) Descriptor() ([]byte, []int) {
 func (x *ListNotesResponse) GetNotes() []*Note {
 	if x != nil {
 		return x.Notes
+	}
+	return nil
+}
+
+func (x *ListNotesResponse) GetEntries() []string {
+	if x != nil {
+		return x.Entries
 	}
 	return nil
 }
@@ -615,9 +623,10 @@ const file_notes_v1_notes_proto_rawDesc = "" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12\x18\n" +
 	"\acontent\x18\x03 \x01(\tR\acontent\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\x04 \x01(\x03R\tupdatedAt\"9\n" +
+	"updated_at\x18\x04 \x01(\x03R\tupdatedAt\"S\n" +
 	"\x11ListNotesResponse\x12$\n" +
-	"\x05notes\x18\x01 \x03(\v2\x0e.notes.v1.NoteR\x05notes\"-\n" +
+	"\x05notes\x18\x01 \x03(\v2\x0e.notes.v1.NoteR\x05notes\x12\x18\n" +
+	"\aentries\x18\x02 \x03(\tR\aentries\"-\n" +
 	"\x0eGetNoteRequest\x12\x1b\n" +
 	"\tfile_path\x18\x01 \x01(\tR\bfilePath\"}\n" +
 	"\x0fGetNoteResponse\x12\x1b\n" +

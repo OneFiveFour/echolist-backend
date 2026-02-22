@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package folder.v1;
+
+option go_package = "gen/folder;folder";
+
+service FolderService {
+  rpc CreateFolder (CreateFolderRequest) returns (CreateFolderResponse);
+  rpc RenameFolder (RenameFolderRequest) returns (RenameFolderResponse);
+  rpc DeleteFolder (DeleteFolderRequest) returns (DeleteFolderResponse);
+}
+
+message CreateFolderRequest {
+  string domain = 1;      // domain root, e.g. "notes" or "tasks"
+  string parent_path = 2; // relative path within root, empty = root
+  string name = 3;        // new folder name
+}
+
+message DirectoryEntry {
+  string path = 1; // relative path; folders end with "/"
+}
+
+message CreateFolderResponse {
+  repeated DirectoryEntry entries = 1;
+}
+
+message RenameFolderRequest {
+  string domain = 1;
+  string folder_path = 2; // relative path to existing folder
+  string new_name = 3;
+}
+
+message RenameFolderResponse {
+  repeated DirectoryEntry entries = 1;
+}
+
+message DeleteFolderRequest {
+  string domain = 1;
+  string folder_path = 2;
+}
+
+message DeleteFolderResponse {
+  repeated DirectoryEntry entries = 1;
+}
