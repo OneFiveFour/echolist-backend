@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"connectrpc.com/connect"
-	authv1 "notes-backend/proto/gen/auth/v1"
+	authv1 "echolist-backend/proto/gen/auth/v1"
 	"pgregory.net/rapid"
 )
 

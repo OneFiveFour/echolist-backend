@@ -13,7 +13,7 @@ managed:
   enabled: true
   override:
     - file_option: go_package_prefix
-      value: notes-backend/proto/gen
+      value: echolist-backend/proto/gen
   disable:
     - file_option: go_package
       module: buf.build/bufbuild/protovalidate

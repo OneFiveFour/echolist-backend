@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	pb "notes-backend/proto/gen/notes/v1"
+	pb "echolist-backend/proto/gen/notes/v1"
 )
 
 func TestGetNote(t *testing.T) {

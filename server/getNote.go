@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	pb "notes-backend/proto/gen/notes/v1"
+	pb "echolist-backend/proto/gen/notes/v1"
 )
 
 func (s *NotesServer) GetNote(

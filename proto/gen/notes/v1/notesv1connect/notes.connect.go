@@ -7,9 +7,9 @@ package notesv1connect
 import (
 	connect "connectrpc.com/connect"
 	context "context"
+	v1 "echolist-backend/proto/gen/notes/v1"
 	errors "errors"
 	http "net/http"
-	v1 "notes-backend/proto/gen/notes/v1"
 	strings "strings"
 )
 

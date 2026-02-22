@@ -1,7 +1,7 @@
 package server
 
 import (
-	notesv1connect "notes-backend/proto/gen/notes/v1/notesv1connect"
+	notesv1connect "echolist-backend/proto/gen/notes/v1/notesv1connect"
 )
 
 type NotesServer struct {

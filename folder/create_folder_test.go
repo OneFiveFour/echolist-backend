@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	folderv1 "notes-backend/proto/gen/folder/v1"
+	folderv1 "echolist-backend/proto/gen/folder/v1"
 	"pgregory.net/rapid"
 )
 

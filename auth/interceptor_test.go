@@ -8,10 +8,10 @@ import (
 	"time"
 
 	"connectrpc.com/connect"
-	notesv1 "notes-backend/proto/gen/notes/v1"
-	"notes-backend/proto/gen/notes/v1/notesv1connect"
-	authv1 "notes-backend/proto/gen/auth/v1"
-	"notes-backend/proto/gen/auth/v1/authv1connect"
+	notesv1 "echolist-backend/proto/gen/notes/v1"
+	"echolist-backend/proto/gen/notes/v1/notesv1connect"
+	authv1 "echolist-backend/proto/gen/auth/v1"
+	"echolist-backend/proto/gen/auth/v1/authv1connect"
 	"pgregory.net/rapid"
 )
 

@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"time"
 
-	pb "notes-backend/proto/gen/notes/v1"
+	pb "echolist-backend/proto/gen/notes/v1"
 )
 
 func (s *NotesServer) UpdateNote(

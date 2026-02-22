@@ -32,7 +32,7 @@ go.work.sum
 # .vscode/
 
 # compiled binaries
-notes-backend
+echolist-backend
 
 # generated proto files
 proto/gen/

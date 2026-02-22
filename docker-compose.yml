@@ -1,6 +1,6 @@
 services:
-  notes-backend:
-    image: onefivefour/notes-backend:latest  # Replace with your actual Docker Hub username
+  echolist-backend:
+    image: onefivefour/echolist-backend:latest  # Replace with your actual Docker Hub username
     ports:
       - "9090:8080"  # Change the first port to expose on different host port (e.g., "9090:8080")
     volumes:

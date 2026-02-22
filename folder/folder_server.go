@@ -8,8 +8,8 @@ import (
 
 	"connectrpc.com/connect"
 
-	folderv1 "notes-backend/proto/gen/folder/v1"
-	"notes-backend/proto/gen/folder/v1/folderv1connect"
+	folderv1 "echolist-backend/proto/gen/folder/v1"
+	"echolist-backend/proto/gen/folder/v1/folderv1connect"
 )
 
 // FolderServer implements the FolderService RPC interface.

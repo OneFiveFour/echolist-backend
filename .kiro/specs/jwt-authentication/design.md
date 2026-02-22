@@ -36,7 +36,7 @@ graph TD
 ### Package Structure
 
 ```
-notes-backend/
+echolist-backend/
 ├── main.go                          # Updated: wire auth components
 ├── auth/
 │   ├── auth_server.go               # AuthServer struct, Login + RefreshToken handlers

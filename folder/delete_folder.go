@@ -8,7 +8,7 @@ import (
 
 	"connectrpc.com/connect"
 
-	folderv1 "notes-backend/proto/gen/folder/v1"
+	folderv1 "echolist-backend/proto/gen/folder/v1"
 )
 
 func (s *FolderServer) DeleteFolder(

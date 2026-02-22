@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	pb "notes-backend/proto/gen/notes/v1"
+	pb "echolist-backend/proto/gen/notes/v1"
 )
 
 func (s *NotesServer) ListNotes(

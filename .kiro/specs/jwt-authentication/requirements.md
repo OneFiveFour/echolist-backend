@@ -96,6 +96,6 @@ This feature adds JWT-based authentication to the existing Go ConnectRPC notes b
 
 #### Acceptance Criteria
 
-1. THE docker-compose.yml SHALL include the JWT_SECRET, AUTH_DEFAULT_USER, and AUTH_DEFAULT_PASSWORD as environment variables for the notes-backend service
+1. THE docker-compose.yml SHALL include the JWT_SECRET, AUTH_DEFAULT_USER, and AUTH_DEFAULT_PASSWORD as environment variables for the echolist-backend service
 2. THE Dockerfile SHALL continue to produce a single binary that includes the authentication functionality without additional runtime dependencies
 3. WHEN the container starts with AUTH_DEFAULT_PASSWORD set, THE Auth_Service SHALL create the default admin user on first run if the User_Store file does not already exist

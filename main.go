@@ -13,12 +13,12 @@ import (
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 
-	"notes-backend/auth"
-	"notes-backend/folder"
-	authv1connect "notes-backend/proto/gen/auth/v1/authv1connect"
-	folderv1connect "notes-backend/proto/gen/folder/v1/folderv1connect"
-	notesv1connect "notes-backend/proto/gen/notes/v1/notesv1connect"
-	"notes-backend/server"
+	"echolist-backend/auth"
+	"echolist-backend/folder"
+	authv1connect "echolist-backend/proto/gen/auth/v1/authv1connect"
+	folderv1connect "echolist-backend/proto/gen/folder/v1/folderv1connect"
+	notesv1connect "echolist-backend/proto/gen/notes/v1/notesv1connect"
+	"echolist-backend/server"
 )
 
 // envOrDefault returns the value of the environment variable named by key,

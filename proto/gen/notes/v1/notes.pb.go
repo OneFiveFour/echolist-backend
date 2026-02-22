@@ -652,9 +652,9 @@ const file_notes_v1_notes_proto_rawDesc = "" +
 	"\n" +
 	"UpdateNote\x12\x1b.notes.v1.UpdateNoteRequest\x1a\x1c.notes.v1.UpdateNoteResponse\x12G\n" +
 	"\n" +
-	"DeleteNote\x12\x1b.notes.v1.DeleteNoteRequest\x1a\x1c.notes.v1.DeleteNoteResponseB\x85\x01\n" +
+	"DeleteNote\x12\x1b.notes.v1.DeleteNoteRequest\x1a\x1c.notes.v1.DeleteNoteResponseB\x88\x01\n" +
 	"\fcom.notes.v1B\n" +
-	"NotesProtoP\x01Z(notes-backend/proto/gen/notes/v1;notesv1\xa2\x02\x03NXX\xaa\x02\bNotes.V1\xca\x02\bNotes\\V1\xe2\x02\x14Notes\\V1\\GPBMetadata\xea\x02\tNotes::V1b\x06proto3"
+	"NotesProtoP\x01Z+echolist-backend/proto/gen/notes/v1;notesv1\xa2\x02\x03NXX\xaa\x02\bNotes.V1\xca\x02\bNotes\\V1\xe2\x02\x14Notes\\V1\\GPBMetadata\xea\x02\tNotes::V1b\x06proto3"
 
 var (
 	file_notes_v1_notes_proto_rawDescOnce sync.Once

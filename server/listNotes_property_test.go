@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	pb "notes-backend/proto/gen/notes/v1"
+	pb "echolist-backend/proto/gen/notes/v1"
 	"pgregory.net/rapid"
 )
 

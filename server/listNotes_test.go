@@ -7,7 +7,7 @@ import (
 	"sort"
 	"testing"
 
-	pb "notes-backend/proto/gen/notes/v1"
+	pb "echolist-backend/proto/gen/notes/v1"
 )
 
 func TestListNotes_ShallowListing(t *testing.T) {
