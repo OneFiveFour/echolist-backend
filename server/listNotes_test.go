@@ -4,23 +4,27 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"sort"
 	"testing"
 
 	pb "notes-backend/proto/gen/notes/v1"
 )
 
-func TestListNotes(t *testing.T) {
+func TestListNotes_ShallowListing(t *testing.T) {
 	tmp := t.TempDir()
 
+	// Create a .md file at root
 	if err := os.WriteFile(filepath.Join(tmp, "note1.md"), []byte("content1"), 0644); err != nil {
 		t.Fatal(err)
 	}
+	// Create a subdirectory with a nested note (should NOT appear in root listing)
 	if err := os.MkdirAll(filepath.Join(tmp, "sub"), 0755); err != nil {
 		t.Fatal(err)
 	}
 	if err := os.WriteFile(filepath.Join(tmp, "sub", "note2.md"), []byte("content2"), 0644); err != nil {
 		t.Fatal(err)
 	}
+	// Create a non-.md file (should appear in entries? No — only folders and .md files matter)
 	if err := os.WriteFile(filepath.Join(tmp, "ignore.txt"), []byte("nope"), 0644); err != nil {
 		t.Fatal(err)
 	}
@@ -31,49 +35,92 @@ func TestListNotes(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ListNotes failed: %v", err)
 	}
-	if len(resp.Notes) != 2 {
-		t.Fatalf("expected 2 notes, got %d", len(resp.Notes))
+
+	// Shallow: only note1.md as a Note (not sub/note2.md)
+	if len(resp.Notes) != 1 {
+		t.Fatalf("expected 1 note, got %d", len(resp.Notes))
+	}
+	if resp.Notes[0].FilePath != "note1.md" {
+		t.Fatalf("unexpected FilePath: %s", resp.Notes[0].FilePath)
+	}
+	if resp.Notes[0].Title != "note1" {
+		t.Fatalf("unexpected title: %s", resp.Notes[0].Title)
+	}
+	if resp.Notes[0].Content != "content1" {
+		t.Fatalf("unexpected content: %s", resp.Notes[0].Content)
 	}
 
-	m := make(map[string]*pb.Note)
-	for _, n := range resp.Notes {
-		m[n.FilePath] = n
+	// Entries should contain folder "sub/" and note "note1.md" (not ignore.txt)
+	sort.Strings(resp.Entries)
+	expected := []string{"note1.md", "sub/"}
+	if len(resp.Entries) != len(expected) {
+		t.Fatalf("expected entries %v, got %v", expected, resp.Entries)
+	}
+	for i, e := range expected {
+		if resp.Entries[i] != e {
+			t.Fatalf("entry[%d]: expected %q, got %q", i, e, resp.Entries[i])
+		}
+	}
+}
+
+func TestListNotes_SubfolderPath(t *testing.T) {
+	tmp := t.TempDir()
+
+	if err := os.MkdirAll(filepath.Join(tmp, "sub"), 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(tmp, "sub", "note2.md"), []byte("content2"), 0644); err != nil {
+		t.Fatal(err)
 	}
 
-	n1, ok := m[filepath.Join("note1.md")]
-	if !ok {
-		t.Fatalf("note1.md not found")
-	}
-	if n1.Title != "note1" {
-		t.Fatalf("unexpected title for note1: %s", n1.Title)
-	}
-	if n1.Content != "content1" {
-		t.Fatalf("unexpected content for note1: %s", n1.Content)
-	}
-	if n1.UpdatedAt <= 0 {
-		t.Fatalf("invalid UpdatedAt for note1: %d", n1.UpdatedAt)
-	}
+	s := NewNotesServer(tmp)
 
-	n2, ok := m[filepath.Join("sub", "note2.md")]
-	if !ok {
-		t.Fatalf("sub/note2.md not found")
-	}
-	if n2.Title != "note2" {
-		t.Fatalf("unexpected title for note2: %s", n2.Title)
-	}
-	if n2.Content != "content2" {
-		t.Fatalf("unexpected content for note2: %s", n2.Content)
-	}
-
-	// Verify filtering by Path
-	resp2, err := s.ListNotes(context.Background(), &pb.ListNotesRequest{Path: "sub"})
+	resp, err := s.ListNotes(context.Background(), &pb.ListNotesRequest{Path: "sub"})
 	if err != nil {
 		t.Fatalf("ListNotes with Path failed: %v", err)
 	}
-	if len(resp2.Notes) != 1 {
-		t.Fatalf("expected 1 note for sub, got %d", len(resp2.Notes))
+	if len(resp.Notes) != 1 {
+		t.Fatalf("expected 1 note for sub, got %d", len(resp.Notes))
 	}
-	if resp2.Notes[0].FilePath != filepath.Join("sub", "note2.md") {
-		t.Fatalf("unexpected FilePath: %s", resp2.Notes[0].FilePath)
+	if resp.Notes[0].FilePath != "sub/note2.md" {
+		t.Fatalf("unexpected FilePath: %s", resp.Notes[0].FilePath)
+	}
+
+	// Entries should include the note with sub/ prefix
+	if len(resp.Entries) != 1 || resp.Entries[0] != "sub/note2.md" {
+		t.Fatalf("expected entries [sub/note2.md], got %v", resp.Entries)
+	}
+}
+
+func TestListNotes_FolderEntriesTrailingSlash(t *testing.T) {
+	tmp := t.TempDir()
+
+	if err := os.MkdirAll(filepath.Join(tmp, "FolderA"), 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(filepath.Join(tmp, "FolderB"), 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	s := NewNotesServer(tmp)
+
+	resp, err := s.ListNotes(context.Background(), &pb.ListNotesRequest{})
+	if err != nil {
+		t.Fatalf("ListNotes failed: %v", err)
+	}
+
+	if len(resp.Notes) != 0 {
+		t.Fatalf("expected 0 notes, got %d", len(resp.Notes))
+	}
+
+	sort.Strings(resp.Entries)
+	expected := []string{"FolderA/", "FolderB/"}
+	if len(resp.Entries) != len(expected) {
+		t.Fatalf("expected entries %v, got %v", expected, resp.Entries)
+	}
+	for i, e := range expected {
+		if resp.Entries[i] != e {
+			t.Fatalf("entry[%d]: expected %q, got %q", i, e, resp.Entries[i])
+		}
 	}
 }

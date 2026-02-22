@@ -46,18 +46,18 @@ Implement a standalone FolderService with Create, Rename, and Delete RPCs, plus 
   - [x] 3.6 Write unit tests for error conditions (non-existent folder, deleting root, path traversal)
     - _Requirements: 1.5, 2.3, 3.2, 3.3_
 
-- [ ] 4. Checkpoint - Ensure all FolderService tests pass
+- [x] 4. Checkpoint - Ensure all FolderService tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 5. Update ListNotes to shallow listing with folders
-  - [ ] 5.1 Refactor `server/listNotes.go` — replace `filepath.Walk` with `os.ReadDir` for shallow listing, populate both `notes` (Note objects for .md files) and `entries` (unified path strings with trailing `/` for folders)
+  - [x] 5.1 Refactor `server/listNotes.go` — replace `filepath.Walk` with `os.ReadDir` for shallow listing, populate both `notes` (Note objects for .md files) and `entries` (unified path strings with trailing `/` for folders)
     - _Requirements: 4.1, 4.2, 4.3_
-  - [ ] 5.2 Update `server/listNotes_test.go` to reflect new shallow listing behavior and verify folder entries
+  - [x] 5.2 Update `server/listNotes_test.go` to reflect new shallow listing behavior and verify folder entries
     - _Requirements: 4.1, 4.2, 4.3_
-  - [ ] 5.3 Write property test for ListNotes returns all immediate children with correct formatting
+  - [x] 5.3 Write property test for ListNotes returns all immediate children with correct formatting
     - **Property 7: ListNotes returns all immediate children with correct formatting**
     - **Validates: Requirements 4.1, 4.2**
-  - [ ] 5.4 Write property test for ListNotes shallow listing
+  - [x] 5.4 Write property test for ListNotes shallow listing
     - **Property 8: ListNotes shallow listing**
     - **Validates: Requirements 4.3**
 

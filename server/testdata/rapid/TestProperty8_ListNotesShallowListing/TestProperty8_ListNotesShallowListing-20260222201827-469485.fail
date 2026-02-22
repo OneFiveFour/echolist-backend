@@ -1,0 +1,18 @@
+# 2026/02/22 20:18:27.671733 [TestProperty8_ListNotesShallowListing] [rapid] draw folderName: "A"
+# 2026/02/22 20:18:27.671742 [TestProperty8_ListNotesShallowListing] [rapid] draw nestedNoteName: "B"
+# 2026/02/22 20:18:27.671745 [TestProperty8_ListNotesShallowListing] [rapid] draw rootNoteName: "B"
+# 2026/02/22 20:18:27.671901 [TestProperty8_ListNotesShallowListing] nested note name "B" should not appear in root entries: [A/ B.md]
+# 
+v0.4.8#10567655656296331958
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x1
+0x0
+0x0
+0x0
+0x1
+0x0
