@@ -29,21 +29,21 @@ Implement a standalone FolderService with Create, Rename, and Delete RPCs, plus 
     - **Property 3: Invalid name rejection**
     - **Validates: Requirements 1.3, 2.4**
 
-- [ ] 3. Implement RenameFolder and DeleteFolder
-  - [ ] 3.1 Implement `RenameFolder` in `folder/rename_folder.go` — validate new name, check folder exists, check case-insensitive sibling duplicates, rename with `os.Rename`, return parent listing
+- [x] 3. Implement RenameFolder and DeleteFolder
+  - [x] 3.1 Implement `RenameFolder` in `folder/rename_folder.go` — validate new name, check folder exists, check case-insensitive sibling duplicates, rename with `os.Rename`, return parent listing
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5_
-  - [ ] 3.2 Implement `DeleteFolder` in `folder/delete_folder.go` — validate non-empty path, check folder exists, remove with `os.RemoveAll`, return parent listing
+  - [x] 3.2 Implement `DeleteFolder` in `folder/delete_folder.go` — validate non-empty path, check folder exists, remove with `os.RemoveAll`, return parent listing
     - _Requirements: 3.1, 3.2, 3.3, 3.4_
-  - [ ] 3.3 Write property test for rename preserves contents
+  - [x] 3.3 Write property test for rename preserves contents
     - **Property 4: Rename preserves contents**
     - **Validates: Requirements 2.1, 2.5**
-  - [ ] 3.4 Write property test for case-insensitive duplicate rejection on rename
+  - [x] 3.4 Write property test for case-insensitive duplicate rejection on rename
     - **Property 5: Case-insensitive duplicate rejection on rename**
     - **Validates: Requirements 2.2**
-  - [ ] 3.5 Write property test for delete removes folder and contents
+  - [x] 3.5 Write property test for delete removes folder and contents
     - **Property 6: Delete removes folder and contents**
     - **Validates: Requirements 3.1, 3.4**
-  - [ ] 3.6 Write unit tests for error conditions (non-existent folder, deleting root, path traversal)
+  - [x] 3.6 Write unit tests for error conditions (non-existent folder, deleting root, path traversal)
     - _Requirements: 1.5, 2.3, 3.2, 3.3_
 
 - [ ] 4. Checkpoint - Ensure all FolderService tests pass
