@@ -52,20 +52,20 @@ func validateName(name string) error {
 }
 
 // listDirectory reads the immediate children of dir and returns them as
-// DirectoryEntry slices. Folders get a trailing "/".
-func listDirectory(dir string) ([]*folderv1.DirectoryEntry, error) {
+// FolderEntry slices. Folders get a trailing "/".
+func listDirectory(dir string) ([]*folderv1.FolderEntry, error) {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read directory: %w", err)
 	}
 
-	result := make([]*folderv1.DirectoryEntry, 0, len(entries))
+	result := make([]*folderv1.FolderEntry, 0, len(entries))
 	for _, e := range entries {
 		name := e.Name()
 		if e.IsDir() {
 			name += "/"
 		}
-		result = append(result, &folderv1.DirectoryEntry{Path: name})
+		result = append(result, &folderv1.FolderEntry{Path: name})
 	}
 	return result, nil
 }

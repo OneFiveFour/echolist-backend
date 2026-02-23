@@ -16,12 +16,12 @@ message CreateFolderRequest {
   string name = 3;        // new folder name
 }
 
-message DirectoryEntry {
+message FolderEntry {
   string path = 1; // relative path; folders end with "/"
 }
 
 message CreateFolderResponse {
-  repeated DirectoryEntry entries = 1;
+  repeated FolderEntry entries = 1;
 }
 
 message RenameFolderRequest {
@@ -31,7 +31,7 @@ message RenameFolderRequest {
 }
 
 message RenameFolderResponse {
-  repeated DirectoryEntry entries = 1;
+  repeated FolderEntry entries = 1;
 }
 
 message DeleteFolderRequest {
@@ -40,5 +40,5 @@ message DeleteFolderRequest {
 }
 
 message DeleteFolderResponse {
-  repeated DirectoryEntry entries = 1;
+  repeated FolderEntry entries = 1;
 }
