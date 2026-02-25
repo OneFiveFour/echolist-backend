@@ -73,36 +73,36 @@ Add task management to echolist-backend. The implementation proceeds bottom-up: 
     - Ensure the generated `proto/gen/tasks/v1/` and `proto/gen/tasks/v1/tasksv1connect/` packages are created
     - _Requirements: 10.1_
 
-- [ ] 7. Implement task file parser and printer
-  - [ ] 7.1 Create `tasks/types.go` with `MainTask` and `Subtask` Go domain types
+- [x] 7. Implement task file parser and printer
+  - [x] 7.1 Create `tasks/types.go` with `MainTask` and `Subtask` Go domain types
     - Define `MainTask` struct with `Description`, `Done`, `DueDate`, `Recurrence`, `Subtasks` fields
     - Define `Subtask` struct with `Description`, `Done` fields
     - _Requirements: 4.1, 5.1_
-  - [ ] 7.2 Create `tasks/printer.go` with `PrintTaskFile(tasks []MainTask) []byte`
+  - [x] 7.2 Create `tasks/printer.go` with `PrintTaskFile(tasks []MainTask) []byte`
     - Main tasks: `- [ ] Description` or `- [x] Description`
     - Deadline tasks append `| due:YYYY-MM-DD`
     - Recurring tasks append `| due:YYYY-MM-DD | recurrence:RRULE_STRING`
     - Subtasks: 2-space indent `  - [ ] Description`
     - _Requirements: 7.2, 7.3, 7.4_
-  - [ ] 7.3 Create `tasks/parser.go` with `ParseTaskFile(data []byte) ([]MainTask, error)`
+  - [x] 7.3 Create `tasks/parser.go` with `ParseTaskFile(data []byte) ([]MainTask, error)`
     - Parse main tasks at column 0 with `- [ ] ` or `- [x] ` prefix
     - Parse subtasks at 2-space indent with `  - [ ] ` or `  - [x] ` prefix
     - Parse optional metadata after `|` delimiter: `due:YYYY-MM-DD`, `recurrence:RRULE_STRING`
     - Return descriptive parse error with line number on malformed input
     - Ignore blank lines
     - _Requirements: 7.5, 7.6_
-  - [ ] 7.4 Write property test for parse/print round-trip (`tasks/parser_property_test.go`)
+  - [x] 7.4 Write property test for parse/print round-trip (`tasks/parser_property_test.go`)
     - **Property 1: Task file parse/print round-trip**
     - Create `mainTaskGen()`, `subtaskGen()`, `taskListGen()` rapid generators
     - For any valid `[]MainTask`, `ParseTaskFile(PrintTaskFile(tasks))` must produce identical tasks
     - Printing the parsed result must produce byte-identical output
     - **Validates: Requirements 7.2, 7.3, 7.4, 7.5, 7.7**
-  - [ ] 7.5 Write property test for malformed input parse errors (`tasks/parser_property_test.go`)
+  - [x] 7.5 Write property test for malformed input parse errors (`tasks/parser_property_test.go`)
     - **Property 14: Malformed task file produces parse error with line number**
     - Generate byte sequences that are not valid task files
     - `ParseTaskFile` must return an error containing the line number
     - **Validates: Requirements 7.6**
-  - [ ] 7.6 Write unit tests for parser edge cases (`tasks/parser_test.go`)
+  - [x] 7.6 Write unit tests for parser edge cases (`tasks/parser_test.go`)
     - Test empty file, single task, task with subtasks, all three modes, metadata parsing
     - Test specific known file content against expected parsed output
     - _Requirements: 7.2, 7.3, 7.4, 7.5, 7.6_
