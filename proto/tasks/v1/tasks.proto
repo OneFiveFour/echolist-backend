@@ -1,0 +1,83 @@
+syntax = "proto3";
+
+package tasks.v1;
+
+option go_package = "gen/tasks;tasks";
+
+service TasksService {
+  rpc CreateTaskList (CreateTaskListRequest) returns (CreateTaskListResponse);
+  rpc GetTaskList (GetTaskListRequest) returns (GetTaskListResponse);
+  rpc ListTaskLists (ListTaskListsRequest) returns (ListTaskListsResponse);
+  rpc UpdateTaskList (UpdateTaskListRequest) returns (UpdateTaskListResponse);
+  rpc DeleteTaskList (DeleteTaskListRequest) returns (DeleteTaskListResponse);
+}
+
+message Subtask {
+  string description = 1;
+  bool done = 2;
+}
+
+message MainTask {
+  string description = 1;
+  bool done = 2;
+  string due_date = 3;
+  string recurrence = 4;
+  repeated Subtask subtasks = 5;
+}
+
+message CreateTaskListRequest {
+  string name = 1;
+  string path = 2;
+  repeated MainTask tasks = 3;
+}
+
+message CreateTaskListResponse {
+  string file_path = 1;
+  string name = 2;
+  repeated MainTask tasks = 3;
+  int64 updated_at = 4;
+}
+
+message GetTaskListRequest {
+  string file_path = 1;
+}
+
+message GetTaskListResponse {
+  string file_path = 1;
+  string name = 2;
+  repeated MainTask tasks = 3;
+  int64 updated_at = 4;
+}
+
+message ListTaskListsRequest {
+  string path = 1;
+}
+
+message TaskListEntry {
+  string file_path = 1;
+  string name = 2;
+  int64 updated_at = 3;
+}
+
+message ListTaskListsResponse {
+  repeated TaskListEntry task_lists = 1;
+  repeated string entries = 2;
+}
+
+message UpdateTaskListRequest {
+  string file_path = 1;
+  repeated MainTask tasks = 2;
+}
+
+message UpdateTaskListResponse {
+  string file_path = 1;
+  string name = 2;
+  repeated MainTask tasks = 3;
+  int64 updated_at = 4;
+}
+
+message DeleteTaskListRequest {
+  string file_path = 1;
+}
+
+message DeleteTaskListResponse {}

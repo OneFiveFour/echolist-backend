@@ -63,13 +63,13 @@ Add task management to echolist-backend. The implementation proceeds bottom-up: 
 - [x] 5. Checkpoint — notes adaptation
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 6. Define tasks proto and generate Go code
-  - [ ] 6.1 Create `proto/tasks/v1/tasks.proto` with the `TasksService` definition
+- [x] 6. Define tasks proto and generate Go code
+  - [x] 6.1 Create `proto/tasks/v1/tasks.proto` with the `TasksService` definition
     - Define `TasksService` with `CreateTaskList`, `GetTaskList`, `ListTaskLists`, `UpdateTaskList`, `DeleteTaskList` RPCs
     - Define messages: `Subtask`, `MainTask`, `CreateTaskListRequest/Response`, `GetTaskListRequest/Response`, `ListTaskListsRequest/Response`, `TaskListEntry`, `UpdateTaskListRequest/Response`, `DeleteTaskListRequest/Response`
     - Use `package tasks.v1` and `option go_package = "gen/tasks;tasks"`
     - _Requirements: 10.1, 10.2, 10.3_
-  - [ ] 6.2 Update `proto/buf.yaml` if needed and run `buf generate` to produce Go code
+  - [x] 6.2 Update `proto/buf.yaml` if needed and run `buf generate` to produce Go code
     - Ensure the generated `proto/gen/tasks/v1/` and `proto/gen/tasks/v1/tasksv1connect/` packages are created
     - _Requirements: 10.1_
 
