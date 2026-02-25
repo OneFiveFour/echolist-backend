@@ -13,18 +13,18 @@ import (
 func TestListNotes_ShallowListing(t *testing.T) {
 	tmp := t.TempDir()
 
-	// Create a .md file at root
-	if err := os.WriteFile(filepath.Join(tmp, "note1.md"), []byte("content1"), 0644); err != nil {
+	// Create a note_ prefixed .md file at root
+	if err := os.WriteFile(filepath.Join(tmp, "note_note1.md"), []byte("content1"), 0644); err != nil {
 		t.Fatal(err)
 	}
 	// Create a subdirectory with a nested note (should NOT appear in root listing)
 	if err := os.MkdirAll(filepath.Join(tmp, "sub"), 0755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(tmp, "sub", "note2.md"), []byte("content2"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmp, "sub", "note_note2.md"), []byte("content2"), 0644); err != nil {
 		t.Fatal(err)
 	}
-	// Create a non-.md file (should appear in entries? No — only folders and .md files matter)
+	// Create a non-.md file (should not appear in entries)
 	if err := os.WriteFile(filepath.Join(tmp, "ignore.txt"), []byte("nope"), 0644); err != nil {
 		t.Fatal(err)
 	}
@@ -36,11 +36,11 @@ func TestListNotes_ShallowListing(t *testing.T) {
 		t.Fatalf("ListNotes failed: %v", err)
 	}
 
-	// Shallow: only note1.md as a Note (not sub/note2.md)
+	// Shallow: only note_note1.md as a Note (not sub/note_note2.md)
 	if len(resp.Notes) != 1 {
 		t.Fatalf("expected 1 note, got %d", len(resp.Notes))
 	}
-	if resp.Notes[0].FilePath != "note1.md" {
+	if resp.Notes[0].FilePath != "note_note1.md" {
 		t.Fatalf("unexpected FilePath: %s", resp.Notes[0].FilePath)
 	}
 	if resp.Notes[0].Title != "note1" {
@@ -50,9 +50,9 @@ func TestListNotes_ShallowListing(t *testing.T) {
 		t.Fatalf("unexpected content: %s", resp.Notes[0].Content)
 	}
 
-	// Entries should contain folder "sub/" and note "note1.md" (not ignore.txt)
+	// Entries should contain folder "sub/" and note "note_note1.md" (not ignore.txt)
 	sort.Strings(resp.Entries)
-	expected := []string{"note1.md", "sub/"}
+	expected := []string{"note_note1.md", "sub/"}
 	if len(resp.Entries) != len(expected) {
 		t.Fatalf("expected entries %v, got %v", expected, resp.Entries)
 	}
@@ -69,7 +69,7 @@ func TestListNotes_SubfolderPath(t *testing.T) {
 	if err := os.MkdirAll(filepath.Join(tmp, "sub"), 0755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(tmp, "sub", "note2.md"), []byte("content2"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmp, "sub", "note_note2.md"), []byte("content2"), 0644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -82,13 +82,13 @@ func TestListNotes_SubfolderPath(t *testing.T) {
 	if len(resp.Notes) != 1 {
 		t.Fatalf("expected 1 note for sub, got %d", len(resp.Notes))
 	}
-	if resp.Notes[0].FilePath != "sub/note2.md" {
+	if resp.Notes[0].FilePath != "sub/note_note2.md" {
 		t.Fatalf("unexpected FilePath: %s", resp.Notes[0].FilePath)
 	}
 
 	// Entries should include the note with sub/ prefix
-	if len(resp.Entries) != 1 || resp.Entries[0] != "sub/note2.md" {
-		t.Fatalf("expected entries [sub/note2.md], got %v", resp.Entries)
+	if len(resp.Entries) != 1 || resp.Entries[0] != "sub/note_note2.md" {
+		t.Fatalf("expected entries [sub/note_note2.md], got %v", resp.Entries)
 	}
 }
 

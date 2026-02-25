@@ -41,7 +41,7 @@ func (s *NotesServer) ListNotes(
 			continue
 		}
 
-		if filepath.Ext(name) != ".md" {
+		if filepath.Ext(name) != ".md" || !strings.HasPrefix(name, "note_") {
 			continue
 		}
 
@@ -61,7 +61,7 @@ func (s *NotesServer) ListNotes(
 
 		notes = append(notes, &pb.Note{
 			FilePath:  entryPath,
-			Title:     strings.TrimSuffix(name, ".md"),
+			Title:     strings.TrimPrefix(strings.TrimSuffix(name, ".md"), "note_"),
 			Content:   string(content),
 			UpdatedAt: info.ModTime().UnixMilli(),
 		})

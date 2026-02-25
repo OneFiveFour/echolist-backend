@@ -48,7 +48,7 @@ func TestProperty7_ListNotesImmediateChildrenFormatting(t *testing.T) {
 				continue
 			}
 			noteNames[name] = true
-			if err := os.WriteFile(filepath.Join(tmp, name+".md"), []byte("content"), 0644); err != nil {
+			if err := os.WriteFile(filepath.Join(tmp, "note_"+name+".md"), []byte("content"), 0644); err != nil {
 				rt.Fatal(err)
 			}
 		}
@@ -74,8 +74,8 @@ func TestProperty7_ListNotesImmediateChildrenFormatting(t *testing.T) {
 
 		// Every note must appear without trailing "/"
 		for name := range noteNames {
-			if !entrySet[name+".md"] {
-				rt.Fatalf("note %q missing from entries (expected %q)", name, name+".md")
+			if !entrySet["note_"+name+".md"] {
+				rt.Fatalf("note %q missing from entries (expected %q)", name, "note_"+name+".md")
 			}
 		}
 
@@ -128,12 +128,12 @@ func TestProperty8_ListNotesShallowListing(t *testing.T) {
 		if err := os.MkdirAll(subDir, 0755); err != nil {
 			rt.Fatal(err)
 		}
-		if err := os.WriteFile(filepath.Join(subDir, nestedNoteName+".md"), []byte("nested"), 0644); err != nil {
+		if err := os.WriteFile(filepath.Join(subDir, "note_"+nestedNoteName+".md"), []byte("nested"), 0644); err != nil {
 			rt.Fatal(err)
 		}
 
 		// Create a root-level note
-		if err := os.WriteFile(filepath.Join(tmp, rootNoteName+".md"), []byte("root"), 0644); err != nil {
+		if err := os.WriteFile(filepath.Join(tmp, "note_"+rootNoteName+".md"), []byte("root"), 0644); err != nil {
 			rt.Fatal(err)
 		}
 
@@ -150,8 +150,8 @@ func TestProperty8_ListNotesShallowListing(t *testing.T) {
 			}
 		}
 
-		// The nested note path (folder/name.md) must NOT appear in root entries
-		nestedPath := folderName + "/" + nestedNoteName + ".md"
+		// The nested note path (folder/note_name.md) must NOT appear in root entries
+		nestedPath := folderName + "/note_" + nestedNoteName + ".md"
 		for _, e := range resp.Entries {
 			if e == nestedPath {
 				rt.Fatalf("nested note path %q should not appear in root entries: %v", nestedPath, resp.Entries)

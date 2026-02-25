@@ -22,7 +22,7 @@ func (s *NotesServer) CreateNote(
 		return nil, fmt.Errorf("failed to create folder: %w", err)
 	}
 
-	relativeFilePath := filepath.Join(req.Path, req.Title+".md")
+	relativeFilePath := filepath.Join(req.Path, "note_"+req.Title+".md")
 	absoluteFilePath := filepath.Join(s.dataDir, relativeFilePath)
 
 	err = atomicWriteFile(absoluteFilePath, []byte(req.Content))

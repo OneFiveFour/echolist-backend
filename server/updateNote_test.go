@@ -18,7 +18,7 @@ func TestUpdateNote(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	req := &pb.UpdateNoteRequest{FilePath: filepath.Join("a", "b.md"), Content: "hello"}
+	req := &pb.UpdateNoteRequest{FilePath: filepath.Join("a", "note_b.md"), Content: "hello"}
 	resp, err := s.UpdateNote(context.Background(), req)
 	if err != nil {
 		t.Fatalf("UpdateNote failed: %v", err)

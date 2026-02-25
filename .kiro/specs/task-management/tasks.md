@@ -42,25 +42,25 @@ Add task management to echolist-backend. The implementation proceeds bottom-up: 
 - [x] 3. Checkpoint — folder migration
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 4. NotesService adaptation — add `note_` prefix
-  - [ ] 4.1 Update `server/createNote.go` to create files with `note_` prefix
+- [x] 4. NotesService adaptation — add `note_` prefix
+  - [x] 4.1 Update `server/createNote.go` to create files with `note_` prefix
     - Change filename from `req.Title+".md"` to `"note_"+req.Title+".md"`
     - Strip `note_` prefix when returning the title in the response
     - _Requirements: 2.3, 2.4_
-  - [ ] 4.2 Update `server/listNotes.go` to filter by `note_` prefix
+  - [x] 4.2 Update `server/listNotes.go` to filter by `note_` prefix
     - Only include files with `note_` prefix and `.md` extension in the notes list
     - Skip `tasks_*` files and other non-note files
     - Strip `note_` prefix from title in returned `Note` objects
     - Include subdirectories in entries
     - _Requirements: 2.1, 2.2_
-  - [ ] 4.3 Update `server/getNote.go` to strip `note_` prefix when deriving title
+  - [x] 4.3 Update `server/getNote.go` to strip `note_` prefix when deriving title
     - _Requirements: 2.1_
-  - [ ] 4.4 Update existing notes tests to account for the `note_` prefix
+  - [x] 4.4 Update existing notes tests to account for the `note_` prefix
     - Update `createNote_test.go`, `listNotes_test.go`, `getNote_test.go`, `deleteNote_test.go`, `updateNote_test.go` to use `note_` prefixed filenames
     - Update `listNotes_property_test.go` to create files with `note_` prefix and verify filtering
     - _Requirements: 2.1, 2.2, 2.3, 2.4_
 
-- [ ] 5. Checkpoint — notes adaptation
+- [x] 5. Checkpoint — notes adaptation
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 6. Define tasks proto and generate Go code

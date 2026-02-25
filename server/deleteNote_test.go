@@ -13,12 +13,12 @@ func TestDeleteNote(t *testing.T) {
 	tmp := t.TempDir()
 	s := NewNotesServer(tmp)
 
-	path := filepath.Join(tmp, "todelete.md")
+	path := filepath.Join(tmp, "note_todelete.md")
 	if err := os.WriteFile(path, []byte("bye"), 0644); err != nil {
 		t.Fatal(err)
 	}
 
-	_, err := s.DeleteNote(context.Background(), &pb.DeleteNoteRequest{FilePath: "todelete.md"})
+	_, err := s.DeleteNote(context.Background(), &pb.DeleteNoteRequest{FilePath: "note_todelete.md"})
 	if err != nil {
 		t.Fatalf("DeleteNote failed: %v", err)
 	}

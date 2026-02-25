@@ -31,7 +31,7 @@ func TestCreateNote_CreatesMarkdownFile(t *testing.T) {
 		dataDir,
 		"Work",
 		"2026",
-		"Meeting.md",
+		"note_Meeting.md",
 	)
 
 	if _, err := os.Stat(expectedPath); err != nil {
@@ -47,7 +47,7 @@ func TestCreateNote_CreatesMarkdownFile(t *testing.T) {
 		t.Fatalf("file content mismatch")
 	}
 
-	if resp.FilePath != "Work/2026/Meeting.md" {
+	if resp.FilePath != "Work/2026/note_Meeting.md" {
 		t.Fatalf("unexpected file_path: %s", resp.FilePath)
 	}
 

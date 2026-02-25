@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"strings"
 
 	pb "echolist-backend/proto/gen/notes/v1"
 )
@@ -27,7 +28,7 @@ func (s *NotesServer) GetNote(
 
 	return &pb.GetNoteResponse{
 		FilePath:  req.FilePath,
-		Title:     info.Name()[:len(info.Name())-3],
+		Title:     strings.TrimPrefix(info.Name()[:len(info.Name())-3], "note_"),
 		Content:   string(content),
 		UpdatedAt: info.ModTime().UnixMilli(),
 	}, nil
