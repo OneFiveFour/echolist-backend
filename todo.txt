@@ -1,0 +1,1 @@
+ * simplify responses of CRUD (instead of returning the full list response every call)
