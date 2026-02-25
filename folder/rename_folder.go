@@ -9,6 +9,7 @@ import (
 
 	"connectrpc.com/connect"
 
+	"echolist-backend/pathutil"
 	folderv1 "echolist-backend/proto/gen/folder/v1"
 )
 
@@ -30,7 +31,7 @@ func (s *FolderServer) RenameFolder(
 	oldPath := filepath.Clean(filepath.Join(domainRoot, req.GetFolderPath()))
 
 	// Ensure old path is within domain root
-	if !isSubPath(domainRoot, oldPath) {
+	if !pathutil.IsSubPath(domainRoot, oldPath) {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("folder path escapes domain root"))
 	}
 

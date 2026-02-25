@@ -3,7 +3,6 @@ package folder
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"connectrpc.com/connect"
@@ -23,15 +22,6 @@ func NewFolderServer(dataDir string) *FolderServer {
 	return &FolderServer{dataDir: dataDir}
 }
 
-// isSubPath checks that resolved is a child of base (prevents path traversal).
-func isSubPath(base, resolved string) bool {
-	rel, err := filepath.Rel(base, resolved)
-	if err != nil {
-		return false
-	}
-	// Must not start with ".." and must not be "."
-	return !strings.HasPrefix(rel, "..") && rel != "."
-}
 
 // validateName checks that a folder name is non-empty and contains no
 // path separators, dots-only names, or null bytes.

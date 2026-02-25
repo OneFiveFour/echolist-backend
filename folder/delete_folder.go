@@ -8,6 +8,7 @@ import (
 
 	"connectrpc.com/connect"
 
+	"echolist-backend/pathutil"
 	folderv1 "echolist-backend/proto/gen/folder/v1"
 )
 
@@ -24,7 +25,7 @@ func (s *FolderServer) DeleteFolder(
 	target := filepath.Clean(filepath.Join(domainRoot, req.GetFolderPath()))
 
 	// Ensure target is within domain root
-	if !isSubPath(domainRoot, target) {
+	if !pathutil.IsSubPath(domainRoot, target) {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("folder path escapes domain root"))
 	}
 

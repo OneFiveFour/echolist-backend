@@ -6,12 +6,12 @@ Add task management to echolist-backend. The implementation proceeds bottom-up: 
 
 ## Tasks
 
-- [ ] 1. Extract shared `pathutil` package
-  - [ ] 1.1 Create `pathutil/pathutil.go` with `IsSubPath` and `ValidatePath` functions
+- [x] 1. Extract shared `pathutil` package
+  - [x] 1.1 Create `pathutil/pathutil.go` with `IsSubPath` and `ValidatePath` functions
     - Move `isSubPath` from `folder/folder_server.go` into `pathutil.IsSubPath`
     - Add `ValidatePath(dataDir, relativePath) (string, error)` that cleans and validates a path against the data directory root
     - _Requirements: 1.3, 9.1, 9.2, 9.3_
-  - [ ] 1.2 Update `folder/folder_server.go` to import and use `pathutil.IsSubPath` instead of the local `isSubPath`
+  - [x] 1.2 Update `folder/folder_server.go` to import and use `pathutil.IsSubPath` instead of the local `isSubPath`
     - Remove the local `isSubPath` function from `folder_server.go`
     - Update `create_folder.go`, `rename_folder.go`, `delete_folder.go` to use `pathutil.IsSubPath`
     - _Requirements: 1.2, 1.3_

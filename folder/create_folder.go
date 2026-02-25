@@ -9,6 +9,7 @@ import (
 
 	"connectrpc.com/connect"
 
+	"echolist-backend/pathutil"
 	folderv1 "echolist-backend/proto/gen/folder/v1"
 )
 
@@ -26,7 +27,7 @@ func (s *FolderServer) CreateFolder(
 	domainRoot := filepath.Join(s.dataDir, req.GetDomain())
 
 	// Ensure parent is within the domain root (or is the root itself)
-	if parentDir != domainRoot && !isSubPath(domainRoot, parentDir) {
+	if parentDir != domainRoot && !pathutil.IsSubPath(domainRoot, parentDir) {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("parent path escapes domain root"))
 	}
 
