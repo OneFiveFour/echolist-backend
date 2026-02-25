@@ -21,12 +21,11 @@ func (s *FolderServer) DeleteFolder(
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("folder_path must not be empty"))
 	}
 
-	domainRoot := filepath.Join(s.dataDir, req.GetDomain())
-	target := filepath.Clean(filepath.Join(domainRoot, req.GetFolderPath()))
+	target := filepath.Clean(filepath.Join(s.dataDir, req.GetFolderPath()))
 
-	// Ensure target is within domain root
-	if !pathutil.IsSubPath(domainRoot, target) {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("folder path escapes domain root"))
+	// Ensure target is within data directory
+	if !pathutil.IsSubPath(s.dataDir, target) {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("folder path escapes data directory"))
 	}
 
 	// Check folder exists and is a directory

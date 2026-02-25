@@ -16,30 +16,30 @@ Add task management to echolist-backend. The implementation proceeds bottom-up: 
     - Update `create_folder.go`, `rename_folder.go`, `delete_folder.go` to use `pathutil.IsSubPath`
     - _Requirements: 1.2, 1.3_
 
-- [ ] 2. FolderService migration — remove domain separation
-  - [ ] 2.1 Update `proto/folder/v1/folder.proto` to remove the `domain` field from all request messages
+- [x] 2. FolderService migration — remove domain separation
+  - [x] 2.1 Update `proto/folder/v1/folder.proto` to remove the `domain` field from all request messages
     - Remove `domain` from `CreateFolderRequest`, `RenameFolderRequest`, `DeleteFolderRequest`
     - Renumber fields: `parent_path` → 1, `name` → 2 in `CreateFolderRequest`; `folder_path` → 1, `new_name` → 2 in `RenameFolderRequest`; `folder_path` → 1 in `DeleteFolderRequest`
     - _Requirements: 1.1_
-  - [ ] 2.2 Regenerate Go code from the updated folder proto
+  - [x] 2.2 Regenerate Go code from the updated folder proto
     - Run `buf generate` in the `proto/` directory
     - _Requirements: 1.1_
-  - [ ] 2.3 Update `folder/create_folder.go` to resolve paths directly under `dataDir` (no domain prefix)
+  - [x] 2.3 Update `folder/create_folder.go` to resolve paths directly under `dataDir` (no domain prefix)
     - Replace `filepath.Join(s.dataDir, req.GetDomain(), req.GetParentPath())` with `filepath.Join(s.dataDir, req.GetParentPath())`
     - Validate against `s.dataDir` using `pathutil.IsSubPath`
     - _Requirements: 1.2, 1.4_
-  - [ ] 2.4 Update `folder/rename_folder.go` to resolve paths directly under `dataDir`
+  - [x] 2.4 Update `folder/rename_folder.go` to resolve paths directly under `dataDir`
     - Remove `domainRoot` variable, resolve `oldPath` against `s.dataDir` directly
     - _Requirements: 1.5_
-  - [ ] 2.5 Update `folder/delete_folder.go` to resolve paths directly under `dataDir`
+  - [x] 2.5 Update `folder/delete_folder.go` to resolve paths directly under `dataDir`
     - Remove `domainRoot` variable, resolve `target` against `s.dataDir` directly
     - _Requirements: 1.6_
-  - [ ] 2.6 Update existing folder tests to remove `Domain` field from all request structs
+  - [x] 2.6 Update existing folder tests to remove `Domain` field from all request structs
     - Update `create_folder_test.go`, `error_conditions_test.go`, `rename_delete_test.go` to remove `Domain` field usage
     - Tests should create temp dirs without a domain subdirectory
     - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6_
 
-- [ ] 3. Checkpoint — folder migration
+- [x] 3. Checkpoint — folder migration
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 4. NotesService adaptation — add `note_` prefix

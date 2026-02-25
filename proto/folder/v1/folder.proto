@@ -11,9 +11,8 @@ service FolderService {
 }
 
 message CreateFolderRequest {
-  string domain = 1;      // domain root, e.g. "notes" or "tasks"
-  string parent_path = 2; // relative path within root, empty = root
-  string name = 3;        // new folder name
+  string parent_path = 1;
+  string name = 2;
 }
 
 message FolderEntry {
@@ -25,9 +24,8 @@ message CreateFolderResponse {
 }
 
 message RenameFolderRequest {
-  string domain = 1;
-  string folder_path = 2; // relative path to existing folder
-  string new_name = 3;
+  string folder_path = 1;
+  string new_name = 2;
 }
 
 message RenameFolderResponse {
@@ -35,8 +33,7 @@ message RenameFolderResponse {
 }
 
 message DeleteFolderRequest {
-  string domain = 1;
-  string folder_path = 2;
+  string folder_path = 1;
 }
 
 message DeleteFolderResponse {

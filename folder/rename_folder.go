@@ -27,12 +27,11 @@ func (s *FolderServer) RenameFolder(
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("folder_path must not be empty"))
 	}
 
-	domainRoot := filepath.Join(s.dataDir, req.GetDomain())
-	oldPath := filepath.Clean(filepath.Join(domainRoot, req.GetFolderPath()))
+	oldPath := filepath.Clean(filepath.Join(s.dataDir, req.GetFolderPath()))
 
-	// Ensure old path is within domain root
-	if !pathutil.IsSubPath(domainRoot, oldPath) {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("folder path escapes domain root"))
+	// Ensure old path is within the data directory
+	if !pathutil.IsSubPath(s.dataDir, oldPath) {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("folder path escapes data directory"))
 	}
 
 	// Check folder exists and is a directory

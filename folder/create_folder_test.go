@@ -24,16 +24,9 @@ func TestProperty1_CreateFolderRoundTrip(t *testing.T) {
 		name := folderNameGen().Draw(rt, "folderName")
 
 		dataDir := t.TempDir()
-		domain := "notes"
-		domainDir := filepath.Join(dataDir, domain)
-		if err := os.MkdirAll(domainDir, 0755); err != nil {
-			rt.Fatal(err)
-		}
-
 		srv := NewFolderServer(dataDir)
 
 		resp, err := srv.CreateFolder(context.Background(), &folderv1.CreateFolderRequest{
-			Domain:     domain,
 			ParentPath: "",
 			Name:       name,
 		})
@@ -42,7 +35,7 @@ func TestProperty1_CreateFolderRoundTrip(t *testing.T) {
 		}
 
 		// The created folder must appear on disk
-		created := filepath.Join(domainDir, name)
+		created := filepath.Join(dataDir, name)
 		info, err := os.Stat(created)
 		if err != nil {
 			rt.Fatalf("folder not found on disk: %v", err)
@@ -75,18 +68,11 @@ func TestProperty2_CaseInsensitiveDuplicateRejection(t *testing.T) {
 		name := folderNameGen().Draw(rt, "folderName")
 
 		dataDir := t.TempDir()
-		domain := "notes"
-		domainDir := filepath.Join(dataDir, domain)
-		if err := os.MkdirAll(domainDir, 0755); err != nil {
-			rt.Fatal(err)
-		}
-
 		srv := NewFolderServer(dataDir)
 
 		// Create the folder first
 		_, err := srv.CreateFolder(context.Background(), &folderv1.CreateFolderRequest{
-			Domain: domain,
-			Name:   name,
+			Name: name,
 		})
 		if err != nil {
 			rt.Fatalf("first CreateFolder failed: %v", err)
@@ -97,8 +83,7 @@ func TestProperty2_CaseInsensitiveDuplicateRejection(t *testing.T) {
 
 		// Try to create with the variant name — should fail
 		_, err = srv.CreateFolder(context.Background(), &folderv1.CreateFolderRequest{
-			Domain: domain,
-			Name:   variant,
+			Name: variant,
 		})
 		if err == nil {
 			rt.Fatalf("expected AlreadyExists error for case-variant %q of %q", variant, name)
@@ -118,7 +103,6 @@ func swapCase(s string) string {
 	}
 	return string(b)
 }
-
 
 // Property 3: Invalid name rejection
 // Names that are empty, contain path separators, are "." or "..", or contain
@@ -143,17 +127,10 @@ func TestProperty3_InvalidNameRejection(t *testing.T) {
 		).Draw(rt, "invalidName")
 
 		dataDir := t.TempDir()
-		domain := "notes"
-		domainDir := filepath.Join(dataDir, domain)
-		if err := os.MkdirAll(domainDir, 0755); err != nil {
-			rt.Fatal(err)
-		}
-
 		srv := NewFolderServer(dataDir)
 
 		_, err := srv.CreateFolder(context.Background(), &folderv1.CreateFolderRequest{
-			Domain: domain,
-			Name:   invalidName,
+			Name: invalidName,
 		})
 		if err == nil {
 			rt.Fatalf("expected error for invalid name %q, got nil", invalidName)

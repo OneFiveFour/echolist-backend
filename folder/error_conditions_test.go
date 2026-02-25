@@ -3,8 +3,6 @@ package folder
 import (
 	"context"
 	"errors"
-	"os"
-	"path/filepath"
 	"testing"
 
 	"connectrpc.com/connect"
@@ -17,14 +15,9 @@ import (
 
 func TestRenameFolder_NonExistent(t *testing.T) {
 	dataDir := t.TempDir()
-	domain := "notes"
-	if err := os.MkdirAll(filepath.Join(dataDir, domain), 0755); err != nil {
-		t.Fatal(err)
-	}
 	srv := NewFolderServer(dataDir)
 
 	_, err := srv.RenameFolder(context.Background(), &folderv1.RenameFolderRequest{
-		Domain:     domain,
 		FolderPath: "nonexistent",
 		NewName:    "newname",
 	})
@@ -41,14 +34,9 @@ func TestRenameFolder_NonExistent(t *testing.T) {
 
 func TestDeleteFolder_NonExistent(t *testing.T) {
 	dataDir := t.TempDir()
-	domain := "notes"
-	if err := os.MkdirAll(filepath.Join(dataDir, domain), 0755); err != nil {
-		t.Fatal(err)
-	}
 	srv := NewFolderServer(dataDir)
 
 	_, err := srv.DeleteFolder(context.Background(), &folderv1.DeleteFolderRequest{
-		Domain:     domain,
 		FolderPath: "nonexistent",
 	})
 	if err == nil {
@@ -64,14 +52,9 @@ func TestDeleteFolder_NonExistent(t *testing.T) {
 
 func TestDeleteFolder_EmptyPath(t *testing.T) {
 	dataDir := t.TempDir()
-	domain := "notes"
-	if err := os.MkdirAll(filepath.Join(dataDir, domain), 0755); err != nil {
-		t.Fatal(err)
-	}
 	srv := NewFolderServer(dataDir)
 
 	_, err := srv.DeleteFolder(context.Background(), &folderv1.DeleteFolderRequest{
-		Domain:     domain,
 		FolderPath: "",
 	})
 	if err == nil {
@@ -87,14 +70,9 @@ func TestDeleteFolder_EmptyPath(t *testing.T) {
 
 func TestRenameFolder_EmptyPath(t *testing.T) {
 	dataDir := t.TempDir()
-	domain := "notes"
-	if err := os.MkdirAll(filepath.Join(dataDir, domain), 0755); err != nil {
-		t.Fatal(err)
-	}
 	srv := NewFolderServer(dataDir)
 
 	_, err := srv.RenameFolder(context.Background(), &folderv1.RenameFolderRequest{
-		Domain:     domain,
 		FolderPath: "",
 		NewName:    "newname",
 	})
@@ -111,14 +89,9 @@ func TestRenameFolder_EmptyPath(t *testing.T) {
 
 func TestRenameFolder_PathTraversal(t *testing.T) {
 	dataDir := t.TempDir()
-	domain := "notes"
-	if err := os.MkdirAll(filepath.Join(dataDir, domain), 0755); err != nil {
-		t.Fatal(err)
-	}
 	srv := NewFolderServer(dataDir)
 
 	_, err := srv.RenameFolder(context.Background(), &folderv1.RenameFolderRequest{
-		Domain:     domain,
 		FolderPath: "../../etc",
 		NewName:    "hacked",
 	})
@@ -135,14 +108,9 @@ func TestRenameFolder_PathTraversal(t *testing.T) {
 
 func TestDeleteFolder_PathTraversal(t *testing.T) {
 	dataDir := t.TempDir()
-	domain := "notes"
-	if err := os.MkdirAll(filepath.Join(dataDir, domain), 0755); err != nil {
-		t.Fatal(err)
-	}
 	srv := NewFolderServer(dataDir)
 
 	_, err := srv.DeleteFolder(context.Background(), &folderv1.DeleteFolderRequest{
-		Domain:     domain,
 		FolderPath: "../../etc",
 	})
 	if err == nil {

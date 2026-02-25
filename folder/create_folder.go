@@ -22,13 +22,12 @@ func (s *FolderServer) CreateFolder(
 	}
 
 	// Resolve parent directory
-	parentDir := filepath.Join(s.dataDir, req.GetDomain(), req.GetParentPath())
+	parentDir := filepath.Join(s.dataDir, req.GetParentPath())
 	parentDir = filepath.Clean(parentDir)
-	domainRoot := filepath.Join(s.dataDir, req.GetDomain())
 
-	// Ensure parent is within the domain root (or is the root itself)
-	if parentDir != domainRoot && !pathutil.IsSubPath(domainRoot, parentDir) {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("parent path escapes domain root"))
+	// Ensure parent is within the data directory (or is the root itself)
+	if parentDir != s.dataDir && !pathutil.IsSubPath(s.dataDir, parentDir) {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("parent path escapes data directory"))
 	}
 
 	// Check parent exists

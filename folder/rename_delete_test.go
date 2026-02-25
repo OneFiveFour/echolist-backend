@@ -30,18 +30,11 @@ func TestProperty4_RenamePreservesContents(t *testing.T) {
 		}
 
 		dataDir := t.TempDir()
-		domain := "notes"
-		domainDir := filepath.Join(dataDir, domain)
-		if err := os.MkdirAll(domainDir, 0755); err != nil {
-			rt.Fatal(err)
-		}
-
 		srv := NewFolderServer(dataDir)
 
 		// Create the folder
 		_, err := srv.CreateFolder(context.Background(), &folderv1.CreateFolderRequest{
-			Domain: domain,
-			Name:   oldName,
+			Name: oldName,
 		})
 		if err != nil {
 			rt.Fatalf("CreateFolder failed: %v", err)
@@ -51,18 +44,18 @@ func TestProperty4_RenamePreservesContents(t *testing.T) {
 		childFiles := []string{"a.md", "b.txt", "c.md"}
 		childDirs := []string{"sub1", "sub2"}
 		for _, f := range childFiles {
-			if err := os.WriteFile(filepath.Join(domainDir, oldName, f), []byte("x"), 0644); err != nil {
+			if err := os.WriteFile(filepath.Join(dataDir, oldName, f), []byte("x"), 0644); err != nil {
 				rt.Fatal(err)
 			}
 		}
 		for _, d := range childDirs {
-			if err := os.Mkdir(filepath.Join(domainDir, oldName, d), 0755); err != nil {
+			if err := os.Mkdir(filepath.Join(dataDir, oldName, d), 0755); err != nil {
 				rt.Fatal(err)
 			}
 		}
 
 		// Record children before rename
-		beforeEntries, _ := os.ReadDir(filepath.Join(domainDir, oldName))
+		beforeEntries, _ := os.ReadDir(filepath.Join(dataDir, oldName))
 		var beforeNames []string
 		for _, e := range beforeEntries {
 			beforeNames = append(beforeNames, e.Name())
@@ -71,7 +64,6 @@ func TestProperty4_RenamePreservesContents(t *testing.T) {
 
 		// Rename
 		_, err = srv.RenameFolder(context.Background(), &folderv1.RenameFolderRequest{
-			Domain:     domain,
 			FolderPath: oldName,
 			NewName:    newName,
 		})
@@ -80,7 +72,7 @@ func TestProperty4_RenamePreservesContents(t *testing.T) {
 		}
 
 		// Record children after rename
-		afterEntries, err := os.ReadDir(filepath.Join(domainDir, newName))
+		afterEntries, err := os.ReadDir(filepath.Join(dataDir, newName))
 		if err != nil {
 			rt.Fatalf("failed to read renamed folder: %v", err)
 		}
@@ -117,18 +109,11 @@ func TestProperty5_CaseInsensitiveDuplicateRejectionOnRename(t *testing.T) {
 		}
 
 		dataDir := t.TempDir()
-		domain := "notes"
-		domainDir := filepath.Join(dataDir, domain)
-		if err := os.MkdirAll(domainDir, 0755); err != nil {
-			rt.Fatal(err)
-		}
-
 		srv := NewFolderServer(dataDir)
 
 		// Create folder A
 		_, err := srv.CreateFolder(context.Background(), &folderv1.CreateFolderRequest{
-			Domain: domain,
-			Name:   nameA,
+			Name: nameA,
 		})
 		if err != nil {
 			rt.Fatalf("CreateFolder A failed: %v", err)
@@ -136,8 +121,7 @@ func TestProperty5_CaseInsensitiveDuplicateRejectionOnRename(t *testing.T) {
 
 		// Create folder B
 		_, err = srv.CreateFolder(context.Background(), &folderv1.CreateFolderRequest{
-			Domain: domain,
-			Name:   nameB,
+			Name: nameB,
 		})
 		if err != nil {
 			rt.Fatalf("CreateFolder B failed: %v", err)
@@ -146,7 +130,6 @@ func TestProperty5_CaseInsensitiveDuplicateRejectionOnRename(t *testing.T) {
 		// Try to rename A to a case-variant of B — should fail
 		variant := swapCase(nameB)
 		_, err = srv.RenameFolder(context.Background(), &folderv1.RenameFolderRequest{
-			Domain:     domain,
 			FolderPath: nameA,
 			NewName:    variant,
 		})
@@ -171,34 +154,26 @@ func TestProperty6_DeleteRemovesFolderAndContents(t *testing.T) {
 		name := folderNameGen().Draw(rt, "folderName")
 
 		dataDir := t.TempDir()
-		domain := "notes"
-		domainDir := filepath.Join(dataDir, domain)
-		if err := os.MkdirAll(domainDir, 0755); err != nil {
-			rt.Fatal(err)
-		}
-
 		srv := NewFolderServer(dataDir)
 
 		// Create the folder
 		_, err := srv.CreateFolder(context.Background(), &folderv1.CreateFolderRequest{
-			Domain: domain,
-			Name:   name,
+			Name: name,
 		})
 		if err != nil {
 			rt.Fatalf("CreateFolder failed: %v", err)
 		}
 
 		// Add some content inside
-		if err := os.WriteFile(filepath.Join(domainDir, name, "note.md"), []byte("hello"), 0644); err != nil {
+		if err := os.WriteFile(filepath.Join(dataDir, name, "note.md"), []byte("hello"), 0644); err != nil {
 			rt.Fatal(err)
 		}
-		if err := os.Mkdir(filepath.Join(domainDir, name, "child"), 0755); err != nil {
+		if err := os.Mkdir(filepath.Join(dataDir, name, "child"), 0755); err != nil {
 			rt.Fatal(err)
 		}
 
 		// Delete
 		resp, err := srv.DeleteFolder(context.Background(), &folderv1.DeleteFolderRequest{
-			Domain:     domain,
 			FolderPath: name,
 		})
 		if err != nil {
@@ -206,7 +181,7 @@ func TestProperty6_DeleteRemovesFolderAndContents(t *testing.T) {
 		}
 
 		// Folder must not exist on disk
-		if _, err := os.Stat(filepath.Join(domainDir, name)); !os.IsNotExist(err) {
+		if _, err := os.Stat(filepath.Join(dataDir, name)); !os.IsNotExist(err) {
 			rt.Fatalf("folder still exists on disk after delete")
 		}
 
