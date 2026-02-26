@@ -107,18 +107,18 @@ Add task management to echolist-backend. The implementation proceeds bottom-up: 
     - Test specific known file content against expected parsed output
     - _Requirements: 7.2, 7.3, 7.4, 7.5, 7.6_
 
-- [ ] 8. Implement RRULE helpers
-  - [ ] 8.1 Create `tasks/rrule.go` with `ComputeNextDueDate` and `ValidateRRule` functions
+- [x] 8. Implement RRULE helpers
+  - [x] 8.1 Create `tasks/rrule.go` with `ComputeNextDueDate` and `ValidateRRule` functions
     - `ComputeNextDueDate(rruleStr string, after time.Time) (time.Time, error)` wraps `teambition/rrule-go`
     - `ValidateRRule(rruleStr string) error` checks RFC 5545 conformance
     - Add `github.com/teambition/rrule-go` dependency via `go get`
     - _Requirements: 6.1, 6.2, 6.5_
-  - [ ] 8.2 Write unit tests for RRULE helpers (`tasks/rrule_test.go`)
+  - [x] 8.2 Write unit tests for RRULE helpers (`tasks/rrule_test.go`)
     - Test specific RRULE strings with known expected next dates
     - Test invalid RRULE strings return errors
     - _Requirements: 6.1, 6.5_
 
-- [ ] 9. Checkpoint — parser, printer, and RRULE helpers
+- [x] 9. Checkpoint — parser, printer, and RRULE helpers
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 10. Implement TaskServer RPC methods

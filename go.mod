@@ -14,4 +14,7 @@ require (
 	pgregory.net/rapid v1.2.0
 )
 
-require golang.org/x/text v0.34.0 // indirect
+require (
+	github.com/teambition/rrule-go v1.8.2 // indirect
+	golang.org/x/text v0.34.0 // indirect
+)
