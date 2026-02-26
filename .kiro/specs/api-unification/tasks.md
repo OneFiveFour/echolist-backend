@@ -117,36 +117,36 @@ Standardize the echolist backend's three domain services to follow a uniform Con
     - Create two sibling folders, attempt rename of one to case-variant of the other's name, assert `AlreadyExists` error
     - **Validates: Requirements 6.7**
 
-- [ ] 8. Update TaskListService handlers
-  - [ ] 8.1 Update `tasks/task_server.go` struct embedding
+- [x] 8. Update TaskListService handlers
+  - [x] 8.1 Update `tasks/task_server.go` struct embedding
     - Change `TaskServer` struct to embed `tasksv1connect.UnimplementedTaskListServiceHandler` instead of `UnimplementedTasksServiceHandler`
     - _Requirements: 2.3_
 
-- [ ] 9. Checkpoint - Verify handler compilation
+- [x] 9. Checkpoint - Verify handler compilation
   - Ensure all handler packages compile without errors, ask the user if questions arise.
 
-- [ ] 10. Update main.go wiring
-  - [ ] 10.1 Update service handler registration and reflector names
+- [x] 10. Update main.go wiring
+  - [x] 10.1 Update service handler registration and reflector names
     - Replace `notesv1connect.NewNotesServiceHandler(...)` with `notesv1connect.NewNoteServiceHandler(...)`
     - Replace `tasksv1connect.NewTasksServiceHandler(...)` with `tasksv1connect.NewTaskListServiceHandler(...)`
     - Update reflector service names to `"notes.v1.NoteService"`, `"folder.v1.FolderService"`, `"tasks.v1.TaskListService"`
     - _Requirements: 1.4, 2.4, 9.1, 9.2, 9.3, 9.4_
 
-- [ ] 11. Update existing tests
-  - [ ] 11.1 Update NoteService test files for new response types
+- [x] 11. Update existing tests
+  - [x] 11.1 Update NoteService test files for new response types
     - Update `server/createNote_test.go`, `server/getNote_test.go`, `server/deleteNote_test.go` to use new response types (e.g., `resp.Note.FilePath` instead of `resp.FilePath`)
     - Update `server/createNote_property_test.go` and `server/listNotes_property_test.go` for any type changes
     - _Requirements: 3.1, 3.2, 3.4, 3.5_
-  - [ ] 11.2 Update FolderService test files for new types and method names
+  - [x] 11.2 Update FolderService test files for new types and method names
     - Update `folder/create_folder_test.go` to assert on `Folder` message instead of `FolderEntry` list
     - Update `folder/error_conditions_test.go` to replace `RenameFolder` calls with `UpdateFolder`
     - Update `folder/rename_delete_test.go` to use `UpdateFolder` and new response types
     - _Requirements: 7.2, 7.4, 8.4_
-  - [ ] 11.3 Update TaskListService test files for renamed service
+  - [x] 11.3 Update TaskListService test files for renamed service
     - Update `tasks/task_server_property_test.go` and other task test files if they reference `TasksService` types
     - _Requirements: 2.3_
 
-- [ ] 12. Final checkpoint - Ensure all tests pass
+- [x] 12. Final checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes

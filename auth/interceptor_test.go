@@ -17,7 +17,7 @@ import (
 
 // contextCapturingNotesHandler captures the username injected by the interceptor.
 type contextCapturingNotesHandler struct {
-	notesv1connect.UnimplementedNotesServiceHandler
+	notesv1connect.UnimplementedNoteServiceHandler
 	capturedUsername string
 	capturedOk      bool
 }
@@ -48,7 +48,7 @@ func setupTestServer(tokenService *TokenService) (*httptest.Server, *contextCapt
 	mux := http.NewServeMux()
 
 	captureHandler := &contextCapturingNotesHandler{}
-	notesPath, notesHandler := notesv1connect.NewNotesServiceHandler(captureHandler, interceptors)
+	notesPath, notesHandler := notesv1connect.NewNoteServiceHandler(captureHandler, interceptors)
 	mux.Handle(notesPath, notesHandler)
 
 	authPath, authHandler := authv1connect.NewAuthServiceHandler(
@@ -83,7 +83,7 @@ func TestProperty5_ValidTokenPassesInterceptor(t *testing.T) {
 		}
 
 		// Create a client with the auth header set
-		client := notesv1connect.NewNotesServiceClient(
+		client := notesv1connect.NewNoteServiceClient(
 			http.DefaultClient,
 			server.URL,
 			connect.WithInterceptors(authHeaderInterceptor("Bearer "+token)),
@@ -122,7 +122,7 @@ func TestProperty6_InvalidTokensRejected(t *testing.T) {
 		server, _ := setupTestServer(tokenService)
 		defer server.Close()
 
-		client := notesv1connect.NewNotesServiceClient(
+		client := notesv1connect.NewNoteServiceClient(
 			http.DefaultClient,
 			server.URL,
 			connect.WithInterceptors(authHeaderInterceptor("Bearer "+invalidToken)),
@@ -197,7 +197,7 @@ func TestInterceptor_MissingAuthHeader(t *testing.T) {
 	defer server.Close()
 
 	// No auth header interceptor — sends request without Authorization
-	client := notesv1connect.NewNotesServiceClient(http.DefaultClient, server.URL)
+	client := notesv1connect.NewNoteServiceClient(http.DefaultClient, server.URL)
 
 	_, err := client.ListNotes(context.Background(), &notesv1.ListNotesRequest{})
 	if err == nil {
@@ -215,7 +215,7 @@ func TestInterceptor_MalformedAuthHeader(t *testing.T) {
 	server, _ := setupTestServer(tokenService)
 	defer server.Close()
 
-	client := notesv1connect.NewNotesServiceClient(
+	client := notesv1connect.NewNoteServiceClient(
 		http.DefaultClient,
 		server.URL,
 		connect.WithInterceptors(authHeaderInterceptor("Token some-value")),
@@ -246,7 +246,7 @@ func TestInterceptor_ExpiredToken(t *testing.T) {
 	server, _ := setupTestServer(tokenService)
 	defer server.Close()
 
-	client := notesv1connect.NewNotesServiceClient(
+	client := notesv1connect.NewNoteServiceClient(
 		http.DefaultClient,
 		server.URL,
 		connect.WithInterceptors(authHeaderInterceptor("Bearer "+token)),

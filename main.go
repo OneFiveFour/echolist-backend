@@ -81,7 +81,7 @@ func main() {
 	// Register handlers
 	mux := http.NewServeMux()
 
-	notesPath, notesHandler := notesv1connect.NewNotesServiceHandler(
+	notesPath, notesHandler := notesv1connect.NewNoteServiceHandler(
 		server.NewNotesServer(dataDir),
 		interceptors,
 	)
@@ -99,7 +99,7 @@ func main() {
 	)
 	mux.Handle(folderPath, folderHandler)
 
-	tasksPath, tasksHandler := tasksv1connect.NewTasksServiceHandler(
+	tasksPath, tasksHandler := tasksv1connect.NewTaskListServiceHandler(
 		tasks.NewTaskServer(dataDir),
 		interceptors,
 	)
@@ -107,10 +107,10 @@ func main() {
 
 	// Enable gRPC reflection for tools like grpcurl
 	reflector := grpcreflect.NewStaticReflector(
-		"notes.v1.NotesService",
+		"notes.v1.NoteService",
 		"auth.v1.AuthService",
 		"folder.v1.FolderService",
-		"tasks.v1.TasksService",
+		"tasks.v1.TaskListService",
 	)
 	mux.Handle(grpcreflect.NewHandlerV1(reflector))
 	mux.Handle(grpcreflect.NewHandlerV1Alpha(reflector))

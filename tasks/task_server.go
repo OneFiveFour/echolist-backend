@@ -9,9 +9,9 @@ import (
 	tasksv1connect "echolist-backend/proto/gen/tasks/v1/tasksv1connect"
 )
 
-// TaskServer implements the TasksService RPC handler.
+// TaskServer implements the TaskListService RPC handler.
 type TaskServer struct {
-	tasksv1connect.UnimplementedTasksServiceHandler
+	tasksv1connect.UnimplementedTaskListServiceHandler
 	dataDir string
 }
 
