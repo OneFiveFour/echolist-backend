@@ -47,11 +47,11 @@ func TestCreateNote_CreatesMarkdownFile(t *testing.T) {
 		t.Fatalf("file content mismatch")
 	}
 
-	if resp.FilePath != "Work/2026/note_Meeting.md" {
-		t.Fatalf("unexpected file_path: %s", resp.FilePath)
+	if resp.Note.FilePath != "Work/2026/note_Meeting.md" {
+		t.Fatalf("unexpected file_path: %s", resp.Note.FilePath)
 	}
 
-	if resp.Title != "Meeting" {
-		t.Fatalf("unexpected title: %s", resp.Title)
+	if resp.Note.Title != "Meeting" {
+		t.Fatalf("unexpected title: %s", resp.Note.Title)
 	}
 }

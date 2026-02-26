@@ -23,8 +23,8 @@ func TestUpdateNote(t *testing.T) {
 	if err != nil {
 		t.Fatalf("UpdateNote failed: %v", err)
 	}
-	if resp.UpdatedAt <= 0 {
-		t.Fatalf("invalid UpdatedAt: %d", resp.UpdatedAt)
+	if resp.Note.UpdatedAt <= 0 {
+		t.Fatalf("invalid UpdatedAt: %d", resp.Note.UpdatedAt)
 	}
 
 	// verify file contents

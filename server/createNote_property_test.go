@@ -30,8 +30,8 @@ func TestProperty4_CreatedNotesUseNotePrefix(t *testing.T) {
 		}
 
 		// Returned title should be the original (without prefix)
-		if resp.Title != title {
-			rt.Fatalf("expected title %q, got %q", title, resp.Title)
+		if resp.Note.Title != title {
+			rt.Fatalf("expected title %q, got %q", title, resp.Note.Title)
 		}
 
 		// File on disk must be note_<title>.md
@@ -42,8 +42,8 @@ func TestProperty4_CreatedNotesUseNotePrefix(t *testing.T) {
 		}
 
 		// FilePath in response should reflect the prefix
-		if resp.FilePath != expectedFile {
-			rt.Fatalf("expected file_path %q, got %q", expectedFile, resp.FilePath)
+		if resp.Note.FilePath != expectedFile {
+			rt.Fatalf("expected file_path %q, got %q", expectedFile, resp.Note.FilePath)
 		}
 	})
 }

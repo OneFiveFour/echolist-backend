@@ -57,11 +57,11 @@ Standardize the echolist backend's three domain services to follow a uniform Con
   - [x] 6.4 Update `UpdateNote` handler to return full `Note`
     - In `server/updateNote.go`: after writing, read back the file to populate full `Note` fields, return `&pb.UpdateNoteResponse{Note: note}`
     - _Requirements: 3.3, 3.6, 4.2_
-  - [ ]* 6.5 Write property test: Note create-then-get round trip
+  - [x] 6.5 Write property test: Note create-then-get round trip
     - **Property 1: Note create-then-get round trip**
     - Create a note with random title/content via `CreateNote`, retrieve via `GetNote`, assert `title`, `content`, `file_path` match and `updated_at` is non-zero in both responses
     - **Validates: Requirements 3.1, 3.2, 3.4, 3.5, 4.1**
-  - [ ]* 6.6 Write property test: UpdateNote returns full Note
+  - [x] 6.6 Write property test: UpdateNote returns full Note
     - **Property 2: UpdateNote returns full Note with updated content**
     - Create a note, update with random content, assert response `Note` has matching `content`, original `file_path`/`title`, and non-zero `updated_at`
     - **Validates: Requirements 3.3, 3.6, 4.2**
@@ -92,27 +92,27 @@ Standardize the echolist backend's three domain services to follow a uniform Con
     - In `folder/delete_folder.go`: return `&pb.DeleteFolderResponse{}` (empty) instead of entries listing
     - Return `NotFound` error if path does not exist, `Internal` error on filesystem failure
     - _Requirements: 5.2, 5.4, 5.5_
-  - [ ]* 7.7 Write property test: CreateFolder returns correct Folder
+  - [ ] 7.7 Write property test: CreateFolder returns correct Folder
     - **Property 3: CreateFolder returns correct Folder**
     - Generate random valid folder names, create folder, assert `Folder.name` matches request and `Folder.path` is parent + name with trailing `/`
     - **Validates: Requirements 4.3, 7.2**
-  - [ ]* 7.8 Write property test: GetFolder returns correct Folder
+  - [ ] 7.8 Write property test: GetFolder returns correct Folder
     - **Property 4: GetFolder returns correct Folder**
     - Create a folder, call `GetFolder`, assert `Folder.path` and `Folder.name` match
     - **Validates: Requirements 6.1, 7.3**
-  - [ ]* 7.9 Write property test: UpdateFolder returns renamed Folder
+  - [ ] 7.9 Write property test: UpdateFolder returns renamed Folder
     - **Property 5: UpdateFolder returns renamed Folder**
     - Create folder, rename with random valid name, assert response `Folder.name` matches new name and `Folder.path` reflects renamed location
     - **Validates: Requirements 4.4, 6.3, 7.4**
-  - [ ]* 7.10 Write property test: ListFolders returns immediate children
+  - [ ] 7.10 Write property test: ListFolders returns immediate children
     - **Property 6: ListFolders returns immediate children**
     - Create random number of child folders under a parent, call `ListFolders`, assert exact match of child `Folder` entries
     - **Validates: Requirements 6.2, 7.5**
-  - [ ]* 7.11 Write property test: Non-existent folder path returns NotFound
+  - [ ] 7.11 Write property test: Non-existent folder path returns NotFound
     - **Property 7: Non-existent folder path returns NotFound**
     - Generate random non-existent paths, call `GetFolder`, `ListFolders`, `UpdateFolder`, `DeleteFolder`, assert `NotFound` error code
     - **Validates: Requirements 5.4, 6.4, 6.5, 6.6**
-  - [ ]* 7.12 Write property test: Case-insensitive sibling conflict returns AlreadyExists
+  - [ ] 7.12 Write property test: Case-insensitive sibling conflict returns AlreadyExists
     - **Property 8: UpdateFolder case-insensitive sibling conflict returns AlreadyExists**
     - Create two sibling folders, attempt rename of one to case-variant of the other's name, assert `AlreadyExists` error
     - **Validates: Requirements 6.7**

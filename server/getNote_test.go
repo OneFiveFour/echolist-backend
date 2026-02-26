@@ -21,16 +21,16 @@ func TestGetNote(t *testing.T) {
 	if err != nil {
 		t.Fatalf("GetNote failed: %v", err)
 	}
-	if resp.FilePath != "note_mytest.md" {
-		t.Fatalf("unexpected FilePath: %s", resp.FilePath)
+	if resp.Note.FilePath != "note_mytest.md" {
+		t.Fatalf("unexpected FilePath: %s", resp.Note.FilePath)
 	}
-	if resp.Title != "mytest" {
-		t.Fatalf("unexpected Title: %s", resp.Title)
+	if resp.Note.Title != "mytest" {
+		t.Fatalf("unexpected Title: %s", resp.Note.Title)
 	}
-	if resp.Content != "abc" {
-		t.Fatalf("unexpected Content: %s", resp.Content)
+	if resp.Note.Content != "abc" {
+		t.Fatalf("unexpected Content: %s", resp.Note.Content)
 	}
-	if resp.UpdatedAt <= 0 {
-		t.Fatalf("invalid UpdatedAt: %d", resp.UpdatedAt)
+	if resp.Note.UpdatedAt <= 0 {
+		t.Fatalf("invalid UpdatedAt: %d", resp.Note.UpdatedAt)
 	}
 }
