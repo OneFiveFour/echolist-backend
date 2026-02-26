@@ -162,71 +162,71 @@ Add task management to echolist-backend. The implementation proceeds bottom-up: 
 - [x] 12. Checkpoint — TaskServer wired up
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 13. Property-based tests for NotesService adaptation
-  - [ ] 13.1 Write property test: ListNotes excludes non-note files (`server/listNotes_property_test.go`)
+- [x] 13. Property-based tests for NotesService adaptation
+  - [x] 13.1 Write property test: ListNotes excludes non-note files (`server/listNotes_property_test.go`)
     - **Property 2: ListNotes excludes non-note files**
     - Create a directory with a mix of `note_*.md`, `tasks_*.md`, other `.md`, and non-`.md` files
     - `ListNotes` must return only `note_` prefixed `.md` files in notes; entries include those files plus subdirectories
     - **Validates: Requirements 2.1, 2.2**
-  - [ ] 13.2 Write property test: Created notes use `note_` prefix (`server/createNote_property_test.go`)
+  - [x] 13.2 Write property test: Created notes use `note_` prefix (`server/createNote_property_test.go`)
     - **Property 4: Created notes use note_ prefix**
     - For any valid title and content, after `CreateNote`, the file on disk must be named `note_<title>.md`
     - **Validates: Requirements 2.3, 2.4**
 
-- [ ] 14. Property-based tests for TaskServer
-  - [ ] 14.1 Write property test: Created task lists use `tasks_` prefix (`tasks/task_server_property_test.go`)
+- [x] 14. Property-based tests for TaskServer
+  - [x] 14.1 Write property test: Created task lists use `tasks_` prefix (`tasks/task_server_property_test.go`)
     - **Property 5: Created task lists use tasks_ prefix**
     - For any valid name, after `CreateTaskList`, the file on disk must be named `tasks_<name>.md`
     - **Validates: Requirements 3.1, 7.1**
-  - [ ] 14.2 Write property test: Task list create-then-get round-trip (`tasks/task_server_property_test.go`)
+  - [x] 14.2 Write property test: Task list create-then-get round-trip (`tasks/task_server_property_test.go`)
     - **Property 6: Task list create-then-get round-trip**
     - Create a task list, then `GetTaskList` — returned tasks must match the input
     - **Validates: Requirements 3.2, 3.4**
-  - [ ] 14.3 Write property test: Duplicate name returns already-exists (`tasks/task_server_property_test.go`)
+  - [x] 14.3 Write property test: Duplicate name returns already-exists (`tasks/task_server_property_test.go`)
     - **Property 7: Duplicate task list name returns already-exists**
     - Create a task list, then create another with the same name in the same folder — must fail with AlreadyExists
     - **Validates: Requirements 3.6**
-  - [ ] 14.4 Write property test: Non-existent paths return not-found (`tasks/task_server_property_test.go`)
+  - [x] 14.4 Write property test: Non-existent paths return not-found (`tasks/task_server_property_test.go`)
     - **Property 8: Operations on non-existent paths return not-found**
     - `GetTaskList` and `DeleteTaskList` on non-existent paths must return NotFound
     - **Validates: Requirements 3.7, 3.8**
-  - [ ] 14.5 Write property test: Mutual exclusion of due date and recurrence (`tasks/task_server_property_test.go`)
+  - [x] 14.5 Write property test: Mutual exclusion of due date and recurrence (`tasks/task_server_property_test.go`)
     - **Property 9: Mutual exclusion of due date and recurrence on main tasks**
     - Tasks with both `due_date` and `recurrence` set must be rejected with InvalidArgument
     - **Validates: Requirements 4.5**
-  - [ ] 14.6 Write property test: Valid RRULE produces computed due date (`tasks/task_server_property_test.go`)
+  - [x] 14.6 Write property test: Valid RRULE produces computed due date (`tasks/task_server_property_test.go`)
     - **Property 10: Valid RRULE produces a computed due date**
     - Create a recurring task — returned `due_date` must be non-empty and on or after current date
     - Create `validRRuleGen()` generator for supported RRULE subset
     - **Validates: Requirements 4.3, 6.1, 6.2**
-  - [ ] 14.7 Write property test: Recurring task done-advance cycle (`tasks/task_server_property_test.go`)
+  - [x] 14.7 Write property test: Recurring task done-advance cycle (`tasks/task_server_property_test.go`)
     - **Property 11: Recurring task done-advance cycle**
     - Mark a recurring task done via `UpdateTaskList` — returned task must be `done=false` with a later due date
     - **Validates: Requirements 6.3, 6.4**
-  - [ ] 14.8 Write property test: Invalid RRULE rejected (`tasks/task_server_property_test.go`)
+  - [x] 14.8 Write property test: Invalid RRULE rejected (`tasks/task_server_property_test.go`)
     - **Property 12: Invalid RRULE rejected**
     - Tasks with invalid RRULE strings must be rejected with InvalidArgument
     - Create `invalidRRuleGen()` generator
     - **Validates: Requirements 6.5**
-  - [ ] 14.9 Write property test: Path traversal prevention (`tasks/task_server_property_test.go`)
+  - [x] 14.9 Write property test: Path traversal prevention (`tasks/task_server_property_test.go`)
     - **Property 13: Path traversal prevention**
     - All five RPC methods must reject paths with `..` or paths resolving outside data directory
     - Create `traversalPathGen()` generator
     - **Validates: Requirements 1.3, 9.1, 9.2, 9.3**
-  - [ ] 14.10 Write property test: ListTaskLists excludes non-task files (`tasks/task_server_property_test.go`)
+  - [x] 14.10 Write property test: ListTaskLists excludes non-task files (`tasks/task_server_property_test.go`)
     - **Property 3: ListTaskLists excludes non-task files**
     - Directory with mixed files — `ListTaskLists` returns only `tasks_` prefixed `.md` files
     - **Validates: Requirements 3.3**
-  - [ ] 14.11 Write property test: Auto-create folders on task list creation (`tasks/task_server_property_test.go`)
+  - [x] 14.11 Write property test: Auto-create folders on task list creation (`tasks/task_server_property_test.go`)
     - **Property 15: Auto-create folders on task list creation**
     - `CreateTaskList` with non-existent intermediate directories must succeed and create them
     - **Validates: Requirements 8.2**
-  - [ ] 14.12 Write property test: Delete removes task list from disk (`tasks/task_server_property_test.go`)
+  - [x] 14.12 Write property test: Delete removes task list from disk (`tasks/task_server_property_test.go`)
     - **Property 16: Delete removes task list from disk**
     - After `DeleteTaskList`, the file must not exist and `GetTaskList` must return NotFound
     - **Validates: Requirements 3.5**
 
-- [ ] 15. Final checkpoint
+- [x] 15. Final checkpoint
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes

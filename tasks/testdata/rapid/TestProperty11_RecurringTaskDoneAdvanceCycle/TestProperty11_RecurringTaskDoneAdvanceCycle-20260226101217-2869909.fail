@@ -1,0 +1,11 @@
+# 2026/02/26 10:12:17.785880 [TestProperty11_RecurringTaskDoneAdvanceCycle] [rapid] draw name: "A"
+# 2026/02/26 10:12:17.785890 [TestProperty11_RecurringTaskDoneAdvanceCycle] [rapid] draw rrule: "FREQ=DAILY"
+# 2026/02/26 10:12:17.786011 [TestProperty11_RecurringTaskDoneAdvanceCycle] UpdateTaskList failed: invalid_argument: task 0: cannot set both due_date and recurrence
+# 
+v0.4.8#11576389432291814629
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0

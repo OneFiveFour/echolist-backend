@@ -1,0 +1,11 @@
+# 2026/02/26 10:12:17.831535 [TestProperty12_InvalidRRuleRejected] [rapid] draw name: "A"
+# 2026/02/26 10:12:17.831543 [TestProperty12_InvalidRRuleRejected] [rapid] draw badRule: ""
+# 2026/02/26 10:12:17.831654 [TestProperty12_InvalidRRuleRejected] expected InvalidArgument for invalid RRULE "", got nil
+# 
+v0.4.8#8487029796242220742
+0x0
+0x0
+0x0
+0x0
+0x38e38e38e38e4
+0x2

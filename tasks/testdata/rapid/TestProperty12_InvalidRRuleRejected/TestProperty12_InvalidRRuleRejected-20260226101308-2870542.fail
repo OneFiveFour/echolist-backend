@@ -1,0 +1,11 @@
+# 2026/02/26 10:13:08.035894 [TestProperty12_InvalidRRuleRejected] [rapid] draw name: "A"
+# 2026/02/26 10:13:08.035902 [TestProperty12_InvalidRRuleRejected] [rapid] draw badRule: "RRULE:FREQ=DAILY"
+# 2026/02/26 10:13:08.036022 [TestProperty12_InvalidRRuleRejected] expected InvalidArgument for invalid RRULE "RRULE:FREQ=DAILY", got nil
+# 
+v0.4.8#15577420807050759271
+0x0
+0x0
+0x0
+0x0
+0x6b74f03291620
+0x6
