@@ -1,1 +1,3 @@
  * simplify responses of CRUD (instead of returning the full list response every call)
+ * unify TaskList vs. Tasks
+ * unify GetXZY vs. ListXZY

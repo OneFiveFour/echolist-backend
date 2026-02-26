@@ -121,13 +121,13 @@ Add task management to echolist-backend. The implementation proceeds bottom-up: 
 - [x] 9. Checkpoint — parser, printer, and RRULE helpers
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 10. Implement TaskServer RPC methods
-  - [ ] 10.1 Create `tasks/task_server.go` with `TaskServer` struct and `NewTaskServer(dataDir string)` constructor
+- [x] 10. Implement TaskServer RPC methods
+  - [x] 10.1 Create `tasks/task_server.go` with `TaskServer` struct and `NewTaskServer(dataDir string)` constructor
     - Embed `tasksv1connect.UnimplementedTasksServiceHandler`
     - Store `dataDir` field
     - Add proto-to-domain and domain-to-proto conversion helpers
     - _Requirements: 10.1, 10.2_
-  - [ ] 10.2 Implement `CreateTaskList` in `tasks/create_task_list.go`
+  - [x] 10.2 Implement `CreateTaskList` in `tasks/create_task_list.go`
     - Validate path with `pathutil.ValidatePath`, validate name (non-empty, no separators)
     - Validate tasks: reject if any main task has both `due_date` and `recurrence`, reject subtasks with due date or recurrence
     - For recurring tasks, compute first due date via `ComputeNextDueDate`
@@ -135,21 +135,21 @@ Add task management to echolist-backend. The implementation proceeds bottom-up: 
     - Check for existing file (return AlreadyExists if present)
     - Write file atomically using `PrintTaskFile` output
     - _Requirements: 3.1, 3.6, 4.2, 4.3, 4.4, 4.5, 5.4, 5.5, 7.1, 7.8, 8.1, 8.2, 9.1, 9.2, 9.3_
-  - [ ] 10.3 Implement `GetTaskList` in `tasks/get_task_list.go`
+  - [x] 10.3 Implement `GetTaskList` in `tasks/get_task_list.go`
     - Validate path, read file, parse with `ParseTaskFile`, return task list
     - Return NotFound if file doesn't exist
     - _Requirements: 3.2, 3.7, 9.1, 9.2, 9.3_
-  - [ ] 10.4 Implement `ListTaskLists` in `tasks/list_task_lists.go`
+  - [x] 10.4 Implement `ListTaskLists` in `tasks/list_task_lists.go`
     - Validate path, read directory, filter for `tasks_` prefixed `.md` files
     - Return `TaskListEntry` for each task file and folder names in entries
     - _Requirements: 3.3_
-  - [ ] 10.5 Implement `UpdateTaskList` in `tasks/update_task_list.go`
+  - [x] 10.5 Implement `UpdateTaskList` in `tasks/update_task_list.go`
     - Validate path, validate tasks (same rules as create)
     - For recurring tasks marked done: reset to open, compute next due date
     - Read existing file to compare recurring task state changes
     - Write updated file atomically
     - _Requirements: 3.4, 4.5, 5.4, 5.5, 6.3, 6.4, 7.8, 9.1, 9.2, 9.3_
-  - [ ] 10.6 Implement `DeleteTaskList` in `tasks/delete_task_list.go`
+  - [x] 10.6 Implement `DeleteTaskList` in `tasks/delete_task_list.go`
     - Validate path, remove file, return NotFound if file doesn't exist
     - _Requirements: 3.5, 3.8, 9.1, 9.2, 9.3_
 
