@@ -153,13 +153,13 @@ Add task management to echolist-backend. The implementation proceeds bottom-up: 
     - Validate path, remove file, return NotFound if file doesn't exist
     - _Requirements: 3.5, 3.8, 9.1, 9.2, 9.3_
 
-- [ ] 11. Register TaskServer in `main.go`
+- [x] 11. Register TaskServer in `main.go`
   - Import `tasksv1connect` and `tasks` packages
   - Create `tasks.NewTaskServer(dataDir)` and register with `tasksv1connect.NewTasksServiceHandler`
   - Add `"tasks.v1.TasksService"` to the gRPC reflector
   - _Requirements: 10.1, 10.3_
 
-- [ ] 12. Checkpoint — TaskServer wired up
+- [x] 12. Checkpoint — TaskServer wired up
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 13. Property-based tests for NotesService adaptation

@@ -18,7 +18,9 @@ import (
 	authv1connect "echolist-backend/proto/gen/auth/v1/authv1connect"
 	folderv1connect "echolist-backend/proto/gen/folder/v1/folderv1connect"
 	notesv1connect "echolist-backend/proto/gen/notes/v1/notesv1connect"
+	tasksv1connect "echolist-backend/proto/gen/tasks/v1/tasksv1connect"
 	"echolist-backend/server"
+	"echolist-backend/tasks"
 )
 
 // envOrDefault returns the value of the environment variable named by key,
@@ -97,11 +99,18 @@ func main() {
 	)
 	mux.Handle(folderPath, folderHandler)
 
+	tasksPath, tasksHandler := tasksv1connect.NewTasksServiceHandler(
+		tasks.NewTaskServer(dataDir),
+		interceptors,
+	)
+	mux.Handle(tasksPath, tasksHandler)
+
 	// Enable gRPC reflection for tools like grpcurl
 	reflector := grpcreflect.NewStaticReflector(
 		"notes.v1.NotesService",
 		"auth.v1.AuthService",
 		"folder.v1.FolderService",
+		"tasks.v1.TasksService",
 	)
 	mux.Handle(grpcreflect.NewHandlerV1(reflector))
 	mux.Handle(grpcreflect.NewHandlerV1Alpha(reflector))
