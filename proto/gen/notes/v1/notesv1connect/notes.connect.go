@@ -21,8 +21,8 @@ import (
 const _ = connect.IsAtLeastVersion1_13_0
 
 const (
-	// NotesServiceName is the fully-qualified name of the NotesService service.
-	NotesServiceName = "notes.v1.NotesService"
+	// NoteServiceName is the fully-qualified name of the NoteService service.
+	NoteServiceName = "notes.v1.NoteService"
 )
 
 // These constants are the fully-qualified names of the RPCs defined in this package. They're
@@ -33,20 +33,20 @@ const (
 // reflection-formatted method names, remove the leading slash and convert the remaining slash to a
 // period.
 const (
-	// NotesServiceCreateNoteProcedure is the fully-qualified name of the NotesService's CreateNote RPC.
-	NotesServiceCreateNoteProcedure = "/notes.v1.NotesService/CreateNote"
-	// NotesServiceListNotesProcedure is the fully-qualified name of the NotesService's ListNotes RPC.
-	NotesServiceListNotesProcedure = "/notes.v1.NotesService/ListNotes"
-	// NotesServiceGetNoteProcedure is the fully-qualified name of the NotesService's GetNote RPC.
-	NotesServiceGetNoteProcedure = "/notes.v1.NotesService/GetNote"
-	// NotesServiceUpdateNoteProcedure is the fully-qualified name of the NotesService's UpdateNote RPC.
-	NotesServiceUpdateNoteProcedure = "/notes.v1.NotesService/UpdateNote"
-	// NotesServiceDeleteNoteProcedure is the fully-qualified name of the NotesService's DeleteNote RPC.
-	NotesServiceDeleteNoteProcedure = "/notes.v1.NotesService/DeleteNote"
+	// NoteServiceCreateNoteProcedure is the fully-qualified name of the NoteService's CreateNote RPC.
+	NoteServiceCreateNoteProcedure = "/notes.v1.NoteService/CreateNote"
+	// NoteServiceListNotesProcedure is the fully-qualified name of the NoteService's ListNotes RPC.
+	NoteServiceListNotesProcedure = "/notes.v1.NoteService/ListNotes"
+	// NoteServiceGetNoteProcedure is the fully-qualified name of the NoteService's GetNote RPC.
+	NoteServiceGetNoteProcedure = "/notes.v1.NoteService/GetNote"
+	// NoteServiceUpdateNoteProcedure is the fully-qualified name of the NoteService's UpdateNote RPC.
+	NoteServiceUpdateNoteProcedure = "/notes.v1.NoteService/UpdateNote"
+	// NoteServiceDeleteNoteProcedure is the fully-qualified name of the NoteService's DeleteNote RPC.
+	NoteServiceDeleteNoteProcedure = "/notes.v1.NoteService/DeleteNote"
 )
 
-// NotesServiceClient is a client for the notes.v1.NotesService service.
-type NotesServiceClient interface {
+// NoteServiceClient is a client for the notes.v1.NoteService service.
+type NoteServiceClient interface {
 	CreateNote(context.Context, *v1.CreateNoteRequest) (*v1.CreateNoteResponse, error)
 	ListNotes(context.Context, *v1.ListNotesRequest) (*v1.ListNotesResponse, error)
 	GetNote(context.Context, *v1.GetNoteRequest) (*v1.GetNoteResponse, error)
@@ -54,52 +54,52 @@ type NotesServiceClient interface {
 	DeleteNote(context.Context, *v1.DeleteNoteRequest) (*v1.DeleteNoteResponse, error)
 }
 
-// NewNotesServiceClient constructs a client for the notes.v1.NotesService service. By default, it
+// NewNoteServiceClient constructs a client for the notes.v1.NoteService service. By default, it
 // uses the Connect protocol with the binary Protobuf Codec, asks for gzipped responses, and sends
 // uncompressed requests. To use the gRPC or gRPC-Web protocols, supply the connect.WithGRPC() or
 // connect.WithGRPCWeb() options.
 //
 // The URL supplied here should be the base URL for the Connect or gRPC server (for example,
 // http://api.acme.com or https://acme.com/grpc).
-func NewNotesServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) NotesServiceClient {
+func NewNoteServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) NoteServiceClient {
 	baseURL = strings.TrimRight(baseURL, "/")
-	notesServiceMethods := v1.File_notes_v1_notes_proto.Services().ByName("NotesService").Methods()
-	return &notesServiceClient{
+	noteServiceMethods := v1.File_notes_v1_notes_proto.Services().ByName("NoteService").Methods()
+	return &noteServiceClient{
 		createNote: connect.NewClient[v1.CreateNoteRequest, v1.CreateNoteResponse](
 			httpClient,
-			baseURL+NotesServiceCreateNoteProcedure,
-			connect.WithSchema(notesServiceMethods.ByName("CreateNote")),
+			baseURL+NoteServiceCreateNoteProcedure,
+			connect.WithSchema(noteServiceMethods.ByName("CreateNote")),
 			connect.WithClientOptions(opts...),
 		),
 		listNotes: connect.NewClient[v1.ListNotesRequest, v1.ListNotesResponse](
 			httpClient,
-			baseURL+NotesServiceListNotesProcedure,
-			connect.WithSchema(notesServiceMethods.ByName("ListNotes")),
+			baseURL+NoteServiceListNotesProcedure,
+			connect.WithSchema(noteServiceMethods.ByName("ListNotes")),
 			connect.WithClientOptions(opts...),
 		),
 		getNote: connect.NewClient[v1.GetNoteRequest, v1.GetNoteResponse](
 			httpClient,
-			baseURL+NotesServiceGetNoteProcedure,
-			connect.WithSchema(notesServiceMethods.ByName("GetNote")),
+			baseURL+NoteServiceGetNoteProcedure,
+			connect.WithSchema(noteServiceMethods.ByName("GetNote")),
 			connect.WithClientOptions(opts...),
 		),
 		updateNote: connect.NewClient[v1.UpdateNoteRequest, v1.UpdateNoteResponse](
 			httpClient,
-			baseURL+NotesServiceUpdateNoteProcedure,
-			connect.WithSchema(notesServiceMethods.ByName("UpdateNote")),
+			baseURL+NoteServiceUpdateNoteProcedure,
+			connect.WithSchema(noteServiceMethods.ByName("UpdateNote")),
 			connect.WithClientOptions(opts...),
 		),
 		deleteNote: connect.NewClient[v1.DeleteNoteRequest, v1.DeleteNoteResponse](
 			httpClient,
-			baseURL+NotesServiceDeleteNoteProcedure,
-			connect.WithSchema(notesServiceMethods.ByName("DeleteNote")),
+			baseURL+NoteServiceDeleteNoteProcedure,
+			connect.WithSchema(noteServiceMethods.ByName("DeleteNote")),
 			connect.WithClientOptions(opts...),
 		),
 	}
 }
 
-// notesServiceClient implements NotesServiceClient.
-type notesServiceClient struct {
+// noteServiceClient implements NoteServiceClient.
+type noteServiceClient struct {
 	createNote *connect.Client[v1.CreateNoteRequest, v1.CreateNoteResponse]
 	listNotes  *connect.Client[v1.ListNotesRequest, v1.ListNotesResponse]
 	getNote    *connect.Client[v1.GetNoteRequest, v1.GetNoteResponse]
@@ -107,8 +107,8 @@ type notesServiceClient struct {
 	deleteNote *connect.Client[v1.DeleteNoteRequest, v1.DeleteNoteResponse]
 }
 
-// CreateNote calls notes.v1.NotesService.CreateNote.
-func (c *notesServiceClient) CreateNote(ctx context.Context, req *v1.CreateNoteRequest) (*v1.CreateNoteResponse, error) {
+// CreateNote calls notes.v1.NoteService.CreateNote.
+func (c *noteServiceClient) CreateNote(ctx context.Context, req *v1.CreateNoteRequest) (*v1.CreateNoteResponse, error) {
 	response, err := c.createNote.CallUnary(ctx, connect.NewRequest(req))
 	if response != nil {
 		return response.Msg, err
@@ -116,8 +116,8 @@ func (c *notesServiceClient) CreateNote(ctx context.Context, req *v1.CreateNoteR
 	return nil, err
 }
 
-// ListNotes calls notes.v1.NotesService.ListNotes.
-func (c *notesServiceClient) ListNotes(ctx context.Context, req *v1.ListNotesRequest) (*v1.ListNotesResponse, error) {
+// ListNotes calls notes.v1.NoteService.ListNotes.
+func (c *noteServiceClient) ListNotes(ctx context.Context, req *v1.ListNotesRequest) (*v1.ListNotesResponse, error) {
 	response, err := c.listNotes.CallUnary(ctx, connect.NewRequest(req))
 	if response != nil {
 		return response.Msg, err
@@ -125,8 +125,8 @@ func (c *notesServiceClient) ListNotes(ctx context.Context, req *v1.ListNotesReq
 	return nil, err
 }
 
-// GetNote calls notes.v1.NotesService.GetNote.
-func (c *notesServiceClient) GetNote(ctx context.Context, req *v1.GetNoteRequest) (*v1.GetNoteResponse, error) {
+// GetNote calls notes.v1.NoteService.GetNote.
+func (c *noteServiceClient) GetNote(ctx context.Context, req *v1.GetNoteRequest) (*v1.GetNoteResponse, error) {
 	response, err := c.getNote.CallUnary(ctx, connect.NewRequest(req))
 	if response != nil {
 		return response.Msg, err
@@ -134,8 +134,8 @@ func (c *notesServiceClient) GetNote(ctx context.Context, req *v1.GetNoteRequest
 	return nil, err
 }
 
-// UpdateNote calls notes.v1.NotesService.UpdateNote.
-func (c *notesServiceClient) UpdateNote(ctx context.Context, req *v1.UpdateNoteRequest) (*v1.UpdateNoteResponse, error) {
+// UpdateNote calls notes.v1.NoteService.UpdateNote.
+func (c *noteServiceClient) UpdateNote(ctx context.Context, req *v1.UpdateNoteRequest) (*v1.UpdateNoteResponse, error) {
 	response, err := c.updateNote.CallUnary(ctx, connect.NewRequest(req))
 	if response != nil {
 		return response.Msg, err
@@ -143,8 +143,8 @@ func (c *notesServiceClient) UpdateNote(ctx context.Context, req *v1.UpdateNoteR
 	return nil, err
 }
 
-// DeleteNote calls notes.v1.NotesService.DeleteNote.
-func (c *notesServiceClient) DeleteNote(ctx context.Context, req *v1.DeleteNoteRequest) (*v1.DeleteNoteResponse, error) {
+// DeleteNote calls notes.v1.NoteService.DeleteNote.
+func (c *noteServiceClient) DeleteNote(ctx context.Context, req *v1.DeleteNoteRequest) (*v1.DeleteNoteResponse, error) {
 	response, err := c.deleteNote.CallUnary(ctx, connect.NewRequest(req))
 	if response != nil {
 		return response.Msg, err
@@ -152,8 +152,8 @@ func (c *notesServiceClient) DeleteNote(ctx context.Context, req *v1.DeleteNoteR
 	return nil, err
 }
 
-// NotesServiceHandler is an implementation of the notes.v1.NotesService service.
-type NotesServiceHandler interface {
+// NoteServiceHandler is an implementation of the notes.v1.NoteService service.
+type NoteServiceHandler interface {
 	CreateNote(context.Context, *v1.CreateNoteRequest) (*v1.CreateNoteResponse, error)
 	ListNotes(context.Context, *v1.ListNotesRequest) (*v1.ListNotesResponse, error)
 	GetNote(context.Context, *v1.GetNoteRequest) (*v1.GetNoteResponse, error)
@@ -161,80 +161,80 @@ type NotesServiceHandler interface {
 	DeleteNote(context.Context, *v1.DeleteNoteRequest) (*v1.DeleteNoteResponse, error)
 }
 
-// NewNotesServiceHandler builds an HTTP handler from the service implementation. It returns the
-// path on which to mount the handler and the handler itself.
+// NewNoteServiceHandler builds an HTTP handler from the service implementation. It returns the path
+// on which to mount the handler and the handler itself.
 //
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
-func NewNotesServiceHandler(svc NotesServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
-	notesServiceMethods := v1.File_notes_v1_notes_proto.Services().ByName("NotesService").Methods()
-	notesServiceCreateNoteHandler := connect.NewUnaryHandlerSimple(
-		NotesServiceCreateNoteProcedure,
+func NewNoteServiceHandler(svc NoteServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
+	noteServiceMethods := v1.File_notes_v1_notes_proto.Services().ByName("NoteService").Methods()
+	noteServiceCreateNoteHandler := connect.NewUnaryHandlerSimple(
+		NoteServiceCreateNoteProcedure,
 		svc.CreateNote,
-		connect.WithSchema(notesServiceMethods.ByName("CreateNote")),
+		connect.WithSchema(noteServiceMethods.ByName("CreateNote")),
 		connect.WithHandlerOptions(opts...),
 	)
-	notesServiceListNotesHandler := connect.NewUnaryHandlerSimple(
-		NotesServiceListNotesProcedure,
+	noteServiceListNotesHandler := connect.NewUnaryHandlerSimple(
+		NoteServiceListNotesProcedure,
 		svc.ListNotes,
-		connect.WithSchema(notesServiceMethods.ByName("ListNotes")),
+		connect.WithSchema(noteServiceMethods.ByName("ListNotes")),
 		connect.WithHandlerOptions(opts...),
 	)
-	notesServiceGetNoteHandler := connect.NewUnaryHandlerSimple(
-		NotesServiceGetNoteProcedure,
+	noteServiceGetNoteHandler := connect.NewUnaryHandlerSimple(
+		NoteServiceGetNoteProcedure,
 		svc.GetNote,
-		connect.WithSchema(notesServiceMethods.ByName("GetNote")),
+		connect.WithSchema(noteServiceMethods.ByName("GetNote")),
 		connect.WithHandlerOptions(opts...),
 	)
-	notesServiceUpdateNoteHandler := connect.NewUnaryHandlerSimple(
-		NotesServiceUpdateNoteProcedure,
+	noteServiceUpdateNoteHandler := connect.NewUnaryHandlerSimple(
+		NoteServiceUpdateNoteProcedure,
 		svc.UpdateNote,
-		connect.WithSchema(notesServiceMethods.ByName("UpdateNote")),
+		connect.WithSchema(noteServiceMethods.ByName("UpdateNote")),
 		connect.WithHandlerOptions(opts...),
 	)
-	notesServiceDeleteNoteHandler := connect.NewUnaryHandlerSimple(
-		NotesServiceDeleteNoteProcedure,
+	noteServiceDeleteNoteHandler := connect.NewUnaryHandlerSimple(
+		NoteServiceDeleteNoteProcedure,
 		svc.DeleteNote,
-		connect.WithSchema(notesServiceMethods.ByName("DeleteNote")),
+		connect.WithSchema(noteServiceMethods.ByName("DeleteNote")),
 		connect.WithHandlerOptions(opts...),
 	)
-	return "/notes.v1.NotesService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return "/notes.v1.NoteService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
-		case NotesServiceCreateNoteProcedure:
-			notesServiceCreateNoteHandler.ServeHTTP(w, r)
-		case NotesServiceListNotesProcedure:
-			notesServiceListNotesHandler.ServeHTTP(w, r)
-		case NotesServiceGetNoteProcedure:
-			notesServiceGetNoteHandler.ServeHTTP(w, r)
-		case NotesServiceUpdateNoteProcedure:
-			notesServiceUpdateNoteHandler.ServeHTTP(w, r)
-		case NotesServiceDeleteNoteProcedure:
-			notesServiceDeleteNoteHandler.ServeHTTP(w, r)
+		case NoteServiceCreateNoteProcedure:
+			noteServiceCreateNoteHandler.ServeHTTP(w, r)
+		case NoteServiceListNotesProcedure:
+			noteServiceListNotesHandler.ServeHTTP(w, r)
+		case NoteServiceGetNoteProcedure:
+			noteServiceGetNoteHandler.ServeHTTP(w, r)
+		case NoteServiceUpdateNoteProcedure:
+			noteServiceUpdateNoteHandler.ServeHTTP(w, r)
+		case NoteServiceDeleteNoteProcedure:
+			noteServiceDeleteNoteHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
 	})
 }
 
-// UnimplementedNotesServiceHandler returns CodeUnimplemented from all methods.
-type UnimplementedNotesServiceHandler struct{}
+// UnimplementedNoteServiceHandler returns CodeUnimplemented from all methods.
+type UnimplementedNoteServiceHandler struct{}
 
-func (UnimplementedNotesServiceHandler) CreateNote(context.Context, *v1.CreateNoteRequest) (*v1.CreateNoteResponse, error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("notes.v1.NotesService.CreateNote is not implemented"))
+func (UnimplementedNoteServiceHandler) CreateNote(context.Context, *v1.CreateNoteRequest) (*v1.CreateNoteResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("notes.v1.NoteService.CreateNote is not implemented"))
 }
 
-func (UnimplementedNotesServiceHandler) ListNotes(context.Context, *v1.ListNotesRequest) (*v1.ListNotesResponse, error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("notes.v1.NotesService.ListNotes is not implemented"))
+func (UnimplementedNoteServiceHandler) ListNotes(context.Context, *v1.ListNotesRequest) (*v1.ListNotesResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("notes.v1.NoteService.ListNotes is not implemented"))
 }
 
-func (UnimplementedNotesServiceHandler) GetNote(context.Context, *v1.GetNoteRequest) (*v1.GetNoteResponse, error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("notes.v1.NotesService.GetNote is not implemented"))
+func (UnimplementedNoteServiceHandler) GetNote(context.Context, *v1.GetNoteRequest) (*v1.GetNoteResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("notes.v1.NoteService.GetNote is not implemented"))
 }
 
-func (UnimplementedNotesServiceHandler) UpdateNote(context.Context, *v1.UpdateNoteRequest) (*v1.UpdateNoteResponse, error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("notes.v1.NotesService.UpdateNote is not implemented"))
+func (UnimplementedNoteServiceHandler) UpdateNote(context.Context, *v1.UpdateNoteRequest) (*v1.UpdateNoteResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("notes.v1.NoteService.UpdateNote is not implemented"))
 }
 
-func (UnimplementedNotesServiceHandler) DeleteNote(context.Context, *v1.DeleteNoteRequest) (*v1.DeleteNoteResponse, error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("notes.v1.NotesService.DeleteNote is not implemented"))
+func (UnimplementedNoteServiceHandler) DeleteNote(context.Context, *v1.DeleteNoteRequest) (*v1.DeleteNoteResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("notes.v1.NoteService.DeleteNote is not implemented"))
 }

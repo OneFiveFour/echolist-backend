@@ -15,8 +15,8 @@ Standardize the echolist backend's three domain services to follow a uniform Con
     - `DeleteNoteResponse` and `ListNotesResponse` remain unchanged
     - _Requirements: 1.1, 3.1, 3.2, 3.3, 8.1_
 
-- [ ] 2. Update proto definitions for FolderService
-  - [ ] 2.1 Define `Folder` message and add missing CRUD RPCs
+- [x] 2. Update proto definitions for FolderService
+  - [x] 2.1 Define `Folder` message and add missing CRUD RPCs
     - In `proto/folder/v1/folder.proto`: add `message Folder { string path = 1; string name = 2; }`
     - Remove `FolderEntry`, `RenameFolderRequest`, `RenameFolderResponse` messages
     - Replace `RenameFolder` RPC with `UpdateFolder(UpdateFolderRequest) returns (UpdateFolderResponse)`
@@ -27,21 +27,21 @@ Standardize the echolist backend's three domain services to follow a uniform Con
     - Update `DeleteFolderResponse` to be empty (remove `repeated FolderEntry entries`)
     - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 8.2, 8.4_
 
-- [ ] 3. Update proto definition for TaskListService
-  - [ ] 3.1 Rename `TasksService` to `TaskListService`
+- [x] 3. Update proto definition for TaskListService
+  - [x] 3.1 Rename `TasksService` to `TaskListService`
     - In `proto/tasks/v1/tasks.proto`: rename `service TasksService` to `service TaskListService`
     - All request/response messages remain unchanged
     - _Requirements: 2.1, 8.3, 10.1, 10.2, 10.3, 10.4_
 
-- [ ] 4. Regenerate Connect/gRPC code
-  - [ ] 4.1 Run `buf generate` to regenerate all Go code in `proto/gen/`
+- [x] 4. Regenerate Connect/gRPC code
+  - [x] 4.1 Run `buf generate` to regenerate all Go code in `proto/gen/`
     - Run `buf generate` from the project root
     - Verify that `proto/gen/notes/v1/notesv1connect/` exposes `NoteServiceHandler`, `UnimplementedNoteServiceHandler`, `NewNoteServiceHandler`
     - Verify that `proto/gen/folder/v1/folderv1connect/` exposes `FolderServiceHandler`, `UnimplementedFolderServiceHandler`, `NewFolderServiceHandler`
     - Verify that `proto/gen/tasks/v1/tasksv1connect/` exposes `TaskListServiceHandler`, `UnimplementedTaskListServiceHandler`, `NewTaskListServiceHandler`
     - _Requirements: 1.2, 2.2_
 
-- [ ] 5. Checkpoint - Verify proto generation
+- [x] 5. Checkpoint - Verify proto generation
   - Ensure `buf generate` completes without errors, ask the user if questions arise.
 
 - [ ] 6. Update NoteService handlers

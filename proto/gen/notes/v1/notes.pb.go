@@ -83,10 +83,7 @@ func (x *CreateNoteRequest) GetPath() string {
 
 type CreateNoteResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	FilePath      string                 `protobuf:"bytes,1,opt,name=file_path,json=filePath,proto3" json:"file_path,omitempty"`
-	Title         string                 `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
-	Content       string                 `protobuf:"bytes,3,opt,name=content,proto3" json:"content,omitempty"`
-	UpdatedAt     int64                  `protobuf:"varint,4,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"` // Unix timestamp in ms
+	Note          *Note                  `protobuf:"bytes,1,opt,name=note,proto3" json:"note,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -121,32 +118,11 @@ func (*CreateNoteResponse) Descriptor() ([]byte, []int) {
 	return file_notes_v1_notes_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *CreateNoteResponse) GetFilePath() string {
+func (x *CreateNoteResponse) GetNote() *Note {
 	if x != nil {
-		return x.FilePath
+		return x.Note
 	}
-	return ""
-}
-
-func (x *CreateNoteResponse) GetTitle() string {
-	if x != nil {
-		return x.Title
-	}
-	return ""
-}
-
-func (x *CreateNoteResponse) GetContent() string {
-	if x != nil {
-		return x.Content
-	}
-	return ""
-}
-
-func (x *CreateNoteResponse) GetUpdatedAt() int64 {
-	if x != nil {
-		return x.UpdatedAt
-	}
-	return 0
+	return nil
 }
 
 type ListNotesRequest struct {
@@ -359,10 +335,7 @@ func (x *GetNoteRequest) GetFilePath() string {
 
 type GetNoteResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	FilePath      string                 `protobuf:"bytes,1,opt,name=file_path,json=filePath,proto3" json:"file_path,omitempty"`
-	Title         string                 `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
-	Content       string                 `protobuf:"bytes,3,opt,name=content,proto3" json:"content,omitempty"`
-	UpdatedAt     int64                  `protobuf:"varint,4,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	Note          *Note                  `protobuf:"bytes,1,opt,name=note,proto3" json:"note,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -397,32 +370,11 @@ func (*GetNoteResponse) Descriptor() ([]byte, []int) {
 	return file_notes_v1_notes_proto_rawDescGZIP(), []int{6}
 }
 
-func (x *GetNoteResponse) GetFilePath() string {
+func (x *GetNoteResponse) GetNote() *Note {
 	if x != nil {
-		return x.FilePath
+		return x.Note
 	}
-	return ""
-}
-
-func (x *GetNoteResponse) GetTitle() string {
-	if x != nil {
-		return x.Title
-	}
-	return ""
-}
-
-func (x *GetNoteResponse) GetContent() string {
-	if x != nil {
-		return x.Content
-	}
-	return ""
-}
-
-func (x *GetNoteResponse) GetUpdatedAt() int64 {
-	if x != nil {
-		return x.UpdatedAt
-	}
-	return 0
+	return nil
 }
 
 type UpdateNoteRequest struct {
@@ -479,7 +431,7 @@ func (x *UpdateNoteRequest) GetContent() string {
 
 type UpdateNoteResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	UpdatedAt     int64                  `protobuf:"varint,1,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	Note          *Note                  `protobuf:"bytes,1,opt,name=note,proto3" json:"note,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -514,11 +466,11 @@ func (*UpdateNoteResponse) Descriptor() ([]byte, []int) {
 	return file_notes_v1_notes_proto_rawDescGZIP(), []int{8}
 }
 
-func (x *UpdateNoteResponse) GetUpdatedAt() int64 {
+func (x *UpdateNoteResponse) GetNote() *Note {
 	if x != nil {
-		return x.UpdatedAt
+		return x.Note
 	}
-	return 0
+	return nil
 }
 
 type DeleteNoteRequest struct {
@@ -609,13 +561,9 @@ const file_notes_v1_notes_proto_rawDesc = "" +
 	"\x11CreateNoteRequest\x12\x14\n" +
 	"\x05title\x18\x01 \x01(\tR\x05title\x12\x18\n" +
 	"\acontent\x18\x02 \x01(\tR\acontent\x12\x12\n" +
-	"\x04path\x18\x03 \x01(\tR\x04path\"\x80\x01\n" +
-	"\x12CreateNoteResponse\x12\x1b\n" +
-	"\tfile_path\x18\x01 \x01(\tR\bfilePath\x12\x14\n" +
-	"\x05title\x18\x02 \x01(\tR\x05title\x12\x18\n" +
-	"\acontent\x18\x03 \x01(\tR\acontent\x12\x1d\n" +
-	"\n" +
-	"updated_at\x18\x04 \x01(\x03R\tupdatedAt\"&\n" +
+	"\x04path\x18\x03 \x01(\tR\x04path\"8\n" +
+	"\x12CreateNoteResponse\x12\"\n" +
+	"\x04note\x18\x01 \x01(\v2\x0e.notes.v1.NoteR\x04note\"&\n" +
 	"\x10ListNotesRequest\x12\x12\n" +
 	"\x04path\x18\x01 \x01(\tR\x04path\"r\n" +
 	"\x04Note\x12\x1b\n" +
@@ -628,23 +576,18 @@ const file_notes_v1_notes_proto_rawDesc = "" +
 	"\x05notes\x18\x01 \x03(\v2\x0e.notes.v1.NoteR\x05notes\x12\x18\n" +
 	"\aentries\x18\x02 \x03(\tR\aentries\"-\n" +
 	"\x0eGetNoteRequest\x12\x1b\n" +
-	"\tfile_path\x18\x01 \x01(\tR\bfilePath\"}\n" +
-	"\x0fGetNoteResponse\x12\x1b\n" +
-	"\tfile_path\x18\x01 \x01(\tR\bfilePath\x12\x14\n" +
-	"\x05title\x18\x02 \x01(\tR\x05title\x12\x18\n" +
-	"\acontent\x18\x03 \x01(\tR\acontent\x12\x1d\n" +
-	"\n" +
-	"updated_at\x18\x04 \x01(\x03R\tupdatedAt\"J\n" +
+	"\tfile_path\x18\x01 \x01(\tR\bfilePath\"5\n" +
+	"\x0fGetNoteResponse\x12\"\n" +
+	"\x04note\x18\x01 \x01(\v2\x0e.notes.v1.NoteR\x04note\"J\n" +
 	"\x11UpdateNoteRequest\x12\x1b\n" +
 	"\tfile_path\x18\x01 \x01(\tR\bfilePath\x12\x18\n" +
-	"\acontent\x18\x02 \x01(\tR\acontent\"3\n" +
-	"\x12UpdateNoteResponse\x12\x1d\n" +
-	"\n" +
-	"updated_at\x18\x01 \x01(\x03R\tupdatedAt\"0\n" +
+	"\acontent\x18\x02 \x01(\tR\acontent\"8\n" +
+	"\x12UpdateNoteResponse\x12\"\n" +
+	"\x04note\x18\x01 \x01(\v2\x0e.notes.v1.NoteR\x04note\"0\n" +
 	"\x11DeleteNoteRequest\x12\x1b\n" +
 	"\tfile_path\x18\x01 \x01(\tR\bfilePath\"\x14\n" +
-	"\x12DeleteNoteResponse2\xef\x02\n" +
-	"\fNotesService\x12G\n" +
+	"\x12DeleteNoteResponse2\xee\x02\n" +
+	"\vNoteService\x12G\n" +
 	"\n" +
 	"CreateNote\x12\x1b.notes.v1.CreateNoteRequest\x1a\x1c.notes.v1.CreateNoteResponse\x12D\n" +
 	"\tListNotes\x12\x1a.notes.v1.ListNotesRequest\x1a\x1b.notes.v1.ListNotesResponse\x12>\n" +
@@ -683,22 +626,25 @@ var file_notes_v1_notes_proto_goTypes = []any{
 	(*DeleteNoteResponse)(nil), // 10: notes.v1.DeleteNoteResponse
 }
 var file_notes_v1_notes_proto_depIdxs = []int32{
-	3,  // 0: notes.v1.ListNotesResponse.notes:type_name -> notes.v1.Note
-	0,  // 1: notes.v1.NotesService.CreateNote:input_type -> notes.v1.CreateNoteRequest
-	2,  // 2: notes.v1.NotesService.ListNotes:input_type -> notes.v1.ListNotesRequest
-	5,  // 3: notes.v1.NotesService.GetNote:input_type -> notes.v1.GetNoteRequest
-	7,  // 4: notes.v1.NotesService.UpdateNote:input_type -> notes.v1.UpdateNoteRequest
-	9,  // 5: notes.v1.NotesService.DeleteNote:input_type -> notes.v1.DeleteNoteRequest
-	1,  // 6: notes.v1.NotesService.CreateNote:output_type -> notes.v1.CreateNoteResponse
-	4,  // 7: notes.v1.NotesService.ListNotes:output_type -> notes.v1.ListNotesResponse
-	6,  // 8: notes.v1.NotesService.GetNote:output_type -> notes.v1.GetNoteResponse
-	8,  // 9: notes.v1.NotesService.UpdateNote:output_type -> notes.v1.UpdateNoteResponse
-	10, // 10: notes.v1.NotesService.DeleteNote:output_type -> notes.v1.DeleteNoteResponse
-	6,  // [6:11] is the sub-list for method output_type
-	1,  // [1:6] is the sub-list for method input_type
-	1,  // [1:1] is the sub-list for extension type_name
-	1,  // [1:1] is the sub-list for extension extendee
-	0,  // [0:1] is the sub-list for field type_name
+	3,  // 0: notes.v1.CreateNoteResponse.note:type_name -> notes.v1.Note
+	3,  // 1: notes.v1.ListNotesResponse.notes:type_name -> notes.v1.Note
+	3,  // 2: notes.v1.GetNoteResponse.note:type_name -> notes.v1.Note
+	3,  // 3: notes.v1.UpdateNoteResponse.note:type_name -> notes.v1.Note
+	0,  // 4: notes.v1.NoteService.CreateNote:input_type -> notes.v1.CreateNoteRequest
+	2,  // 5: notes.v1.NoteService.ListNotes:input_type -> notes.v1.ListNotesRequest
+	5,  // 6: notes.v1.NoteService.GetNote:input_type -> notes.v1.GetNoteRequest
+	7,  // 7: notes.v1.NoteService.UpdateNote:input_type -> notes.v1.UpdateNoteRequest
+	9,  // 8: notes.v1.NoteService.DeleteNote:input_type -> notes.v1.DeleteNoteRequest
+	1,  // 9: notes.v1.NoteService.CreateNote:output_type -> notes.v1.CreateNoteResponse
+	4,  // 10: notes.v1.NoteService.ListNotes:output_type -> notes.v1.ListNotesResponse
+	6,  // 11: notes.v1.NoteService.GetNote:output_type -> notes.v1.GetNoteResponse
+	8,  // 12: notes.v1.NoteService.UpdateNote:output_type -> notes.v1.UpdateNoteResponse
+	10, // 13: notes.v1.NoteService.DeleteNote:output_type -> notes.v1.DeleteNoteResponse
+	9,  // [9:14] is the sub-list for method output_type
+	4,  // [4:9] is the sub-list for method input_type
+	4,  // [4:4] is the sub-list for extension type_name
+	4,  // [4:4] is the sub-list for extension extendee
+	0,  // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_notes_v1_notes_proto_init() }

@@ -4,7 +4,7 @@ package tasks.v1;
 
 option go_package = "gen/tasks;tasks";
 
-service TasksService {
+service TaskListService {
   rpc CreateTaskList (CreateTaskListRequest) returns (CreateTaskListResponse);
   rpc GetTaskList (GetTaskListRequest) returns (GetTaskListResponse);
   rpc ListTaskLists (ListTaskListsRequest) returns (ListTaskListsResponse);
