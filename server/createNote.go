@@ -30,13 +30,13 @@ func (s *NotesServer) CreateNote(
 		return nil, fmt.Errorf("failed to write note: %w", err)
 	}
 
-	resp := &pb.CreateNoteResponse{
+	note := &pb.Note{
 		FilePath:  relativeFilePath,
 		Title:     req.Title,
 		Content:   req.Content,
 		UpdatedAt: time.Now().UnixMilli(),
 	}
 
-	return resp, nil
+	return &pb.CreateNoteResponse{Note: note}, nil
 
 }

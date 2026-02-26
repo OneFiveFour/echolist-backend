@@ -44,17 +44,17 @@ Standardize the echolist backend's three domain services to follow a uniform Con
 - [x] 5. Checkpoint - Verify proto generation
   - Ensure `buf generate` completes without errors, ask the user if questions arise.
 
-- [ ] 6. Update NoteService handlers
-  - [ ] 6.1 Update `server/notesServer.go` struct embedding
+- [x] 6. Update NoteService handlers
+  - [x] 6.1 Update `server/notesServer.go` struct embedding
     - Change `NotesServer` struct to embed `notesv1connect.UnimplementedNoteServiceHandler` instead of `UnimplementedNotesServiceHandler`
     - _Requirements: 1.3_
-  - [ ] 6.2 Update `CreateNote` handler to return embedded `Note`
+  - [x] 6.2 Update `CreateNote` handler to return embedded `Note`
     - In `server/createNote.go`: build a `&pb.Note{...}` and return `&pb.CreateNoteResponse{Note: note}`
     - _Requirements: 3.4, 4.1_
-  - [ ] 6.3 Update `GetNote` handler to return embedded `Note`
+  - [x] 6.3 Update `GetNote` handler to return embedded `Note`
     - In `server/getNote.go`: build a `&pb.Note{...}` and return `&pb.GetNoteResponse{Note: note}`
     - _Requirements: 3.5_
-  - [ ] 6.4 Update `UpdateNote` handler to return full `Note`
+  - [x] 6.4 Update `UpdateNote` handler to return full `Note`
     - In `server/updateNote.go`: after writing, read back the file to populate full `Note` fields, return `&pb.UpdateNoteResponse{Note: note}`
     - _Requirements: 3.3, 3.6, 4.2_
   - [ ]* 6.5 Write property test: Note create-then-get round trip

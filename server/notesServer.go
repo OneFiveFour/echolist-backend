@@ -5,7 +5,7 @@ import (
 )
 
 type NotesServer struct {
-	notesv1connect.UnimplementedNotesServiceHandler
+	notesv1connect.UnimplementedNoteServiceHandler
 	dataDir string
 }
 

@@ -26,10 +26,12 @@ func (s *NotesServer) GetNote(
 		return nil, err
 	}
 
-	return &pb.GetNoteResponse{
+	note := &pb.Note{
 		FilePath:  req.FilePath,
 		Title:     strings.TrimPrefix(info.Name()[:len(info.Name())-3], "note_"),
 		Content:   string(content),
 		UpdatedAt: info.ModTime().UnixMilli(),
-	}, nil
+	}
+
+	return &pb.GetNoteResponse{Note: note}, nil
 }
