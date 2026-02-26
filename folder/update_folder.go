@@ -13,28 +13,24 @@ import (
 	folderv1 "echolist-backend/proto/gen/folder/v1"
 )
 
-func (s *FolderServer) RenameFolder(
+func (s *FolderServer) UpdateFolder(
 	ctx context.Context,
-	req *folderv1.RenameFolderRequest,
-) (*folderv1.RenameFolderResponse, error) {
-	// Validate new name
+	req *folderv1.UpdateFolderRequest,
+) (*folderv1.UpdateFolderResponse, error) {
 	if err := validateName(req.GetNewName()); err != nil {
 		return nil, err
 	}
 
-	// folder_path must not be empty (can't rename root)
 	if req.GetFolderPath() == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("folder_path must not be empty"))
 	}
 
 	oldPath := filepath.Clean(filepath.Join(s.dataDir, req.GetFolderPath()))
 
-	// Ensure old path is within the data directory
 	if !pathutil.IsSubPath(s.dataDir, oldPath) {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("folder path escapes data directory"))
 	}
 
-	// Check folder exists and is a directory
 	info, err := os.Stat(oldPath)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("folder does not exist"))
@@ -57,17 +53,22 @@ func (s *FolderServer) RenameFolder(
 		}
 	}
 
-	// Rename
 	newPath := filepath.Join(parentDir, req.GetNewName())
 	if err := os.Rename(oldPath, newPath); err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to rename folder: %w", err))
 	}
 
-	// Return parent listing
-	entries, err := listDirectory(parentDir)
+	// Build relative path for the renamed folder
+	relParent, err := filepath.Rel(s.dataDir, parentDir)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		relParent = ""
 	}
+	relPath := filepath.Join(relParent, req.GetNewName()) + "/"
 
-	return &folderv1.RenameFolderResponse{Entries: entries}, nil
+	return &folderv1.UpdateFolderResponse{
+		Folder: &folderv1.Folder{
+			Path: relPath,
+			Name: req.GetNewName(),
+		},
+	}, nil
 }

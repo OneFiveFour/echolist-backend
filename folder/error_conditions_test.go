@@ -13,11 +13,11 @@ import (
 // Unit tests for error conditions
 // **Validates: Requirements 1.5, 2.3, 3.2, 3.3**
 
-func TestRenameFolder_NonExistent(t *testing.T) {
+func TestUpdateFolder_NonExistent(t *testing.T) {
 	dataDir := t.TempDir()
 	srv := NewFolderServer(dataDir)
 
-	_, err := srv.RenameFolder(context.Background(), &folderv1.RenameFolderRequest{
+	_, err := srv.UpdateFolder(context.Background(), &folderv1.UpdateFolderRequest{
 		FolderPath: "nonexistent",
 		NewName:    "newname",
 	})
@@ -68,11 +68,11 @@ func TestDeleteFolder_EmptyPath(t *testing.T) {
 	}
 }
 
-func TestRenameFolder_EmptyPath(t *testing.T) {
+func TestUpdateFolder_EmptyPath(t *testing.T) {
 	dataDir := t.TempDir()
 	srv := NewFolderServer(dataDir)
 
-	_, err := srv.RenameFolder(context.Background(), &folderv1.RenameFolderRequest{
+	_, err := srv.UpdateFolder(context.Background(), &folderv1.UpdateFolderRequest{
 		FolderPath: "",
 		NewName:    "newname",
 	})
@@ -87,11 +87,11 @@ func TestRenameFolder_EmptyPath(t *testing.T) {
 	}
 }
 
-func TestRenameFolder_PathTraversal(t *testing.T) {
+func TestUpdateFolder_PathTraversal(t *testing.T) {
 	dataDir := t.TempDir()
 	srv := NewFolderServer(dataDir)
 
-	_, err := srv.RenameFolder(context.Background(), &folderv1.RenameFolderRequest{
+	_, err := srv.UpdateFolder(context.Background(), &folderv1.UpdateFolderRequest{
 		FolderPath: "../../etc",
 		NewName:    "hacked",
 	})

@@ -12,23 +12,20 @@ import (
 	folderv1 "echolist-backend/proto/gen/folder/v1"
 )
 
-func (s *FolderServer) DeleteFolder(
+func (s *FolderServer) GetFolder(
 	ctx context.Context,
-	req *folderv1.DeleteFolderRequest,
-) (*folderv1.DeleteFolderResponse, error) {
-	// folder_path must not be empty (can't delete root)
+	req *folderv1.GetFolderRequest,
+) (*folderv1.GetFolderResponse, error) {
 	if req.GetFolderPath() == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("folder_path must not be empty"))
 	}
 
 	target := filepath.Clean(filepath.Join(s.dataDir, req.GetFolderPath()))
 
-	// Ensure target is within data directory
 	if !pathutil.IsSubPath(s.dataDir, target) {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("folder path escapes data directory"))
 	}
 
-	// Check folder exists and is a directory
 	info, err := os.Stat(target)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("folder does not exist"))
@@ -37,10 +34,10 @@ func (s *FolderServer) DeleteFolder(
 		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("path is not a directory"))
 	}
 
-	// Remove folder and all contents
-	if err := os.RemoveAll(target); err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to delete folder: %w", err))
-	}
-
-	return &folderv1.DeleteFolderResponse{}, nil
+	return &folderv1.GetFolderResponse{
+		Folder: &folderv1.Folder{
+			Path: req.GetFolderPath(),
+			Name: filepath.Base(target),
+		},
+	}, nil
 }

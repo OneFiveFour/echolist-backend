@@ -53,11 +53,13 @@ func (s *FolderServer) CreateFolder(
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to create folder: %w", err))
 	}
 
-	// Return parent listing
-	entries, err := listDirectory(parentDir)
-	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
-	}
+	// Build relative path for the created folder (with trailing /)
+	relPath := filepath.Join(req.GetParentPath(), req.GetName()) + "/"
 
-	return &folderv1.CreateFolderResponse{Entries: entries}, nil
+	return &folderv1.CreateFolderResponse{
+		Folder: &folderv1.Folder{
+			Path: relPath,
+			Name: req.GetName(),
+		},
+	}, nil
 }

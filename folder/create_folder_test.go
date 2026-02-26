@@ -44,16 +44,12 @@ func TestProperty1_CreateFolderRoundTrip(t *testing.T) {
 			rt.Fatal("created path is not a directory")
 		}
 
-		// The response entries must contain the folder with trailing "/"
-		found := false
-		for _, e := range resp.Entries {
-			if e.Path == name+"/" {
-				found = true
-				break
-			}
+		// The response must contain the created folder
+		if resp.Folder == nil {
+			rt.Fatal("response Folder is nil")
 		}
-		if !found {
-			rt.Fatalf("response entries do not contain %q/", name)
+		if resp.Folder.Name != name {
+			rt.Fatalf("expected Folder.Name %q, got %q", name, resp.Folder.Name)
 		}
 	})
 }

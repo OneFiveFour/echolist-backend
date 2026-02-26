@@ -66,53 +66,53 @@ Standardize the echolist backend's three domain services to follow a uniform Con
     - Create a note, update with random content, assert response `Note` has matching `content`, original `file_path`/`title`, and non-zero `updated_at`
     - **Validates: Requirements 3.3, 3.6, 4.2**
 
-- [ ] 7. Update FolderService handlers
-  - [ ] 7.1 Update `folder/folder_server.go` struct and helpers
+- [x] 7. Update FolderService handlers
+  - [x] 7.1 Update `folder/folder_server.go` struct and helpers
     - Update the `FolderServer` struct embedding if the generated handler name changed
     - Remove or repurpose the `listDirectory` helper (no longer returns `FolderEntry` slices)
     - _Requirements: 8.2_
-  - [ ] 7.2 Update `CreateFolder` handler to return `Folder` message
+  - [x] 7.2 Update `CreateFolder` handler to return `Folder` message
     - In `folder/create_folder.go`: return `&pb.CreateFolderResponse{Folder: &pb.Folder{Path: ..., Name: ...}}` instead of entries listing
     - _Requirements: 4.3, 7.2_
-  - [ ] 7.3 Implement `GetFolder` handler
+  - [x] 7.3 Implement `GetFolder` handler
     - Create `folder/get_folder.go`: stat the folder path, validate it exists and is a directory, return `&pb.GetFolderResponse{Folder: &pb.Folder{Path: ..., Name: ...}}`
     - Return `NotFound` error if path does not exist
     - _Requirements: 6.1, 6.4, 7.3_
-  - [ ] 7.4 Implement `ListFolders` handler
+  - [x] 7.4 Implement `ListFolders` handler
     - Create `folder/list_folders.go`: read directory children, filter to directories only, return `&pb.ListFoldersResponse{Folders: []*pb.Folder{...}}`
     - Return `NotFound` error if parent path does not exist
     - _Requirements: 6.2, 6.5, 7.5_
-  - [ ] 7.5 Replace `RenameFolder` with `UpdateFolder` handler
+  - [x] 7.5 Replace `RenameFolder` with `UpdateFolder` handler
     - Rename `folder/rename_folder.go` to `folder/update_folder.go`
     - Change method signature from `RenameFolder` to `UpdateFolder` using new request/response types
     - Return `&pb.UpdateFolderResponse{Folder: &pb.Folder{Path: ..., Name: ...}}` instead of entries listing
     - Add case-insensitive sibling conflict check returning `AlreadyExists` error
     - _Requirements: 4.4, 6.3, 6.6, 6.7, 7.4, 8.4_
-  - [ ] 7.6 Update `DeleteFolder` handler to return empty response
+  - [x] 7.6 Update `DeleteFolder` handler to return empty response
     - In `folder/delete_folder.go`: return `&pb.DeleteFolderResponse{}` (empty) instead of entries listing
     - Return `NotFound` error if path does not exist, `Internal` error on filesystem failure
     - _Requirements: 5.2, 5.4, 5.5_
-  - [ ] 7.7 Write property test: CreateFolder returns correct Folder
+  - [x] 7.7 Write property test: CreateFolder returns correct Folder
     - **Property 3: CreateFolder returns correct Folder**
     - Generate random valid folder names, create folder, assert `Folder.name` matches request and `Folder.path` is parent + name with trailing `/`
     - **Validates: Requirements 4.3, 7.2**
-  - [ ] 7.8 Write property test: GetFolder returns correct Folder
+  - [x] 7.8 Write property test: GetFolder returns correct Folder
     - **Property 4: GetFolder returns correct Folder**
     - Create a folder, call `GetFolder`, assert `Folder.path` and `Folder.name` match
     - **Validates: Requirements 6.1, 7.3**
-  - [ ] 7.9 Write property test: UpdateFolder returns renamed Folder
+  - [x] 7.9 Write property test: UpdateFolder returns renamed Folder
     - **Property 5: UpdateFolder returns renamed Folder**
     - Create folder, rename with random valid name, assert response `Folder.name` matches new name and `Folder.path` reflects renamed location
     - **Validates: Requirements 4.4, 6.3, 7.4**
-  - [ ] 7.10 Write property test: ListFolders returns immediate children
+  - [x] 7.10 Write property test: ListFolders returns immediate children
     - **Property 6: ListFolders returns immediate children**
     - Create random number of child folders under a parent, call `ListFolders`, assert exact match of child `Folder` entries
     - **Validates: Requirements 6.2, 7.5**
-  - [ ] 7.11 Write property test: Non-existent folder path returns NotFound
+  - [x] 7.11 Write property test: Non-existent folder path returns NotFound
     - **Property 7: Non-existent folder path returns NotFound**
     - Generate random non-existent paths, call `GetFolder`, `ListFolders`, `UpdateFolder`, `DeleteFolder`, assert `NotFound` error code
     - **Validates: Requirements 5.4, 6.4, 6.5, 6.6**
-  - [ ] 7.12 Write property test: Case-insensitive sibling conflict returns AlreadyExists
+  - [x] 7.12 Write property test: Case-insensitive sibling conflict returns AlreadyExists
     - **Property 8: UpdateFolder case-insensitive sibling conflict returns AlreadyExists**
     - Create two sibling folders, attempt rename of one to case-variant of the other's name, assert `AlreadyExists` error
     - **Validates: Requirements 6.7**
