@@ -6,7 +6,7 @@ Rename the existing `FolderService` Connect-RPC service to `FileService`, remove
 
 ## Tasks
 
-- [ ] 1. Create the new proto definition and generate Go code
+- [x] 1. Create the new proto definition and generate Go code
   - [x] 1.1 Create `proto/file/v1/file.proto` with the `FileService` definition
     - Define `file.v1` package with `FileService` exposing `CreateFolder`, `ListFiles`, `UpdateFolder`, `DeleteFolder`
     - Include all request/response messages (`Folder`, `CreateFolderRequest`, `CreateFolderResponse`, `ListFilesRequest`, `ListFilesResponse`, `UpdateFolderRequest`, `UpdateFolderResponse`, `DeleteFolderRequest`, `DeleteFolderResponse`)
@@ -14,32 +14,32 @@ Rename the existing `FolderService` Connect-RPC service to `FileService`, remove
     - `ListFiles` returns `repeated string entries` instead of `repeated Folder folders`
     - Set `option go_package = "gen/file;file";`
     - _Requirements: 1.1, 1.2, 2.1, 3.1, 3.2_
-  - [-] 1.2 Run `buf generate` to produce Go code under `proto/gen/file/v1/` and `proto/gen/file/v1/filev1connect/`
+  - [x] 1.2 Run `buf generate` to produce Go code under `proto/gen/file/v1/` and `proto/gen/file/v1/filev1connect/`
     - Verify the generated `filev1connect` package contains `NewFileServiceHandler` and `UnimplementedFileServiceHandler`
     - _Requirements: 1.3_
 
-- [ ] 2. Implement the `file/` Go package
-  - [ ] 2.1 Create `file/file_server.go` with `FileServer` struct and constructor
+- [x] 2. Implement the `file/` Go package
+  - [x] 2.1 Create `file/file_server.go` with `FileServer` struct and constructor
     - Define `FileServer` struct embedding `filev1connect.UnimplementedFileServiceHandler` and holding `dataDir`
     - Implement `NewFileServer(dataDir string) *FileServer` constructor
     - Migrate `validateName` helper from `folder/folder_server.go` (no logic changes)
     - _Requirements: 1.4, 4.1_
-  - [ ] 2.2 Migrate `CreateFolder` RPC to `file/create_folder.go`
+  - [x] 2.2 Migrate `CreateFolder` RPC to `file/create_folder.go`
     - Copy from `folder/create_folder.go`, update package name to `file`, update imports from `folderv1`/`folderv1connect` to `filev1`/`filev1connect`
     - Change receiver from `FolderServer` to `FileServer`
     - No logic changes
     - _Requirements: 4.1, 4.2_
-  - [ ] 2.3 Migrate `UpdateFolder` RPC to `file/update_folder.go`
+  - [x] 2.3 Migrate `UpdateFolder` RPC to `file/update_folder.go`
     - Copy from `folder/update_folder.go`, update package name and imports
     - Change receiver from `FolderServer` to `FileServer`
     - No logic changes
     - _Requirements: 4.1, 4.2_
-  - [ ] 2.4 Migrate `DeleteFolder` RPC to `file/delete_folder.go`
+  - [x] 2.4 Migrate `DeleteFolder` RPC to `file/delete_folder.go`
     - Copy from `folder/delete_folder.go`, update package name and imports
     - Change receiver from `FolderServer` to `FileServer`
     - No logic changes
     - _Requirements: 4.1, 4.2_
-  - [ ] 2.5 Implement `ListFiles` RPC in `file/list_files.go`
+  - [x] 2.5 Implement `ListFiles` RPC in `file/list_files.go`
     - Base on `folder/list_folders.go` but return `[]string` entries instead of `[]*Folder`
     - Iterate all entries from `os.ReadDir` (not just directories)
     - Append `/` suffix to directory entries, no suffix for file entries
@@ -49,7 +49,7 @@ Rename the existing `FolderService` Connect-RPC service to `FileService`, remove
     - Empty/root parent path resolves to `dataDir`
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7_
 
-- [ ] 3. Checkpoint - Verify compilation
+- [x] 3. Checkpoint - Verify compilation
   - Ensure the `file/` package compiles with no errors, ask the user if questions arise.
 
 - [ ] 4. Migrate and write tests for the `file/` package
