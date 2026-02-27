@@ -1,0 +1,210 @@
+package file
+
+import (
+	"context"
+	"errors"
+	"os"
+	"path/filepath"
+	"sort"
+	"strings"
+	"testing"
+
+	"connectrpc.com/connect"
+
+	filev1 "echolist-backend/proto/gen/file/v1"
+	"pgregory.net/rapid"
+)
+
+func TestProperty3_CreateFolderReturnsCorrectFolder(t *testing.T) {
+	rapid.Check(t, func(rt *rapid.T) {
+		name := folderNameGen().Draw(rt, "folderName")
+		dataDir := t.TempDir()
+		srv := NewFileServer(dataDir)
+		resp, err := srv.CreateFolder(context.Background(), &filev1.CreateFolderRequest{
+			ParentPath: "",
+			Name:       name,
+		})
+		if err != nil {
+			rt.Fatalf("CreateFolder failed: %v", err)
+		}
+		if resp.Folder == nil {
+			rt.Fatal("response Folder is nil")
+		}
+		if resp.Folder.Name != name {
+			rt.Fatalf("expected Folder.Name %q, got %q", name, resp.Folder.Name)
+		}
+		expectedPath := name + "/"
+		if resp.Folder.Path != expectedPath {
+			rt.Fatalf("expected Folder.Path %q, got %q", expectedPath, resp.Folder.Path)
+		}
+	})
+}
+
+func TestProperty5_UpdateFolderReturnsRenamedFolder(t *testing.T) {
+	rapid.Check(t, func(rt *rapid.T) {
+		oldName := folderNameGen().Draw(rt, "oldName")
+		newName := folderNameGen().Draw(rt, "newName")
+		if strings.EqualFold(oldName, newName) {
+			rt.Skip("old and new names are case-insensitively equal")
+		}
+		dataDir := t.TempDir()
+		srv := NewFileServer(dataDir)
+		_, err := srv.CreateFolder(context.Background(), &filev1.CreateFolderRequest{
+			Name: oldName,
+		})
+		if err != nil {
+			rt.Fatalf("CreateFolder failed: %v", err)
+		}
+		resp, err := srv.UpdateFolder(context.Background(), &filev1.UpdateFolderRequest{
+			FolderPath: oldName,
+			NewName:    newName,
+		})
+		if err != nil {
+			rt.Fatalf("UpdateFolder failed: %v", err)
+		}
+		if resp.Folder == nil {
+			rt.Fatal("response Folder is nil")
+		}
+		if resp.Folder.Name != newName {
+			rt.Fatalf("expected Folder.Name %q, got %q", newName, resp.Folder.Name)
+		}
+		expectedPath := newName + "/"
+		if resp.Folder.Path != expectedPath {
+			rt.Fatalf("expected Folder.Path %q, got %q", expectedPath, resp.Folder.Path)
+		}
+	})
+}
+
+func TestProperty6_ListFilesReturnsImmediateChildren(t *testing.T) {
+	rapid.Check(t, func(rt *rapid.T) {
+		numChildren := rapid.IntRange(0, 5).Draw(rt, "numChildren")
+		dataDir := t.TempDir()
+		srv := NewFileServer(dataDir)
+		created := make(map[string]bool)
+		for i := 0; i < numChildren; i++ {
+			name := folderNameGen().Draw(rt, "childName")
+			if created[strings.ToLower(name)] {
+				continue
+			}
+			created[strings.ToLower(name)] = true
+			_, err := srv.CreateFolder(context.Background(), &filev1.CreateFolderRequest{
+				Name: name,
+			})
+			if err != nil {
+				rt.Fatalf("CreateFolder %q failed: %v", name, err)
+			}
+		}
+		os.WriteFile(filepath.Join(dataDir, "note.md"), []byte("x"), 0644)
+		resp, err := srv.ListFiles(context.Background(), &filev1.ListFilesRequest{
+			ParentPath: "",
+		})
+		if err != nil {
+			rt.Fatalf("ListFiles failed: %v", err)
+		}
+		// Count directory entries (those ending with "/") — should match created folders
+		var dirEntries []string
+		for _, e := range resp.Entries {
+			if strings.HasSuffix(e, "/") {
+				dirEntries = append(dirEntries, strings.ToLower(strings.TrimSuffix(e, "/")))
+			}
+		}
+		sort.Strings(dirEntries)
+		var expectedNames []string
+		for n := range created {
+			expectedNames = append(expectedNames, n)
+		}
+		sort.Strings(expectedNames)
+		if len(dirEntries) != len(expectedNames) {
+			rt.Fatalf("expected %d directory entries, got %d", len(expectedNames), len(dirEntries))
+		}
+		for i := range expectedNames {
+			if dirEntries[i] != expectedNames[i] {
+				rt.Fatalf("mismatch at %d: expected %q, got %q", i, expectedNames[i], dirEntries[i])
+			}
+		}
+		// The "note.md" file should also appear as a non-directory entry
+		foundFile := false
+		for _, e := range resp.Entries {
+			if e == "note.md" {
+				foundFile = true
+				break
+			}
+		}
+		if !foundFile {
+			rt.Fatal("expected 'note.md' in entries but not found")
+		}
+	})
+}
+
+func TestProperty7_NonExistentFolderReturnsNotFound(t *testing.T) {
+	rapid.Check(t, func(rt *rapid.T) {
+		name := folderNameGen().Draw(rt, "nonExistentName")
+		dataDir := t.TempDir()
+		srv := NewFileServer(dataDir)
+		assertNotFound := func(label string, err error) {
+			if err == nil {
+				rt.Fatalf("%s: expected error, got nil", label)
+			}
+			var connErr *connect.Error
+			if errors.As(err, &connErr) {
+				if connErr.Code() != connect.CodeNotFound {
+					rt.Fatalf("%s: expected NotFound, got %v", label, connErr.Code())
+				}
+			}
+		}
+
+		_, err := srv.ListFiles(context.Background(), &filev1.ListFilesRequest{
+			ParentPath: name,
+		})
+		assertNotFound("ListFiles", err)
+
+		_, err = srv.UpdateFolder(context.Background(), &filev1.UpdateFolderRequest{
+			FolderPath: name,
+			NewName:    "anything",
+		})
+		assertNotFound("UpdateFolder", err)
+
+		_, err = srv.DeleteFolder(context.Background(), &filev1.DeleteFolderRequest{
+			FolderPath: name,
+		})
+		assertNotFound("DeleteFolder", err)
+	})
+}
+
+func TestProperty8_UpdateFolderCaseInsensitiveConflict(t *testing.T) {
+	rapid.Check(t, func(rt *rapid.T) {
+		nameA := folderNameGen().Draw(rt, "nameA")
+		nameB := folderNameGen().Draw(rt, "nameB")
+		if strings.EqualFold(nameA, nameB) {
+			rt.Skip("names are case-insensitively equal")
+		}
+		dataDir := t.TempDir()
+		srv := NewFileServer(dataDir)
+		_, err := srv.CreateFolder(context.Background(), &filev1.CreateFolderRequest{
+			Name: nameA,
+		})
+		if err != nil {
+			rt.Fatalf("CreateFolder A failed: %v", err)
+		}
+		_, err = srv.CreateFolder(context.Background(), &filev1.CreateFolderRequest{
+			Name: nameB,
+		})
+		if err != nil {
+			rt.Fatalf("CreateFolder B failed: %v", err)
+		}
+		variant := swapCase(nameB)
+		_, err = srv.UpdateFolder(context.Background(), &filev1.UpdateFolderRequest{
+			FolderPath: nameA,
+			NewName:    variant,
+		})
+		if err == nil {
+			rt.Fatalf("expected AlreadyExists error for case-variant %q of %q", variant, nameB)
+		}
+		var connErr *connect.Error
+		if errors.As(err, &connErr) {
+			if connErr.Code() != connect.CodeAlreadyExists {
+				rt.Fatalf("expected AlreadyExists, got %v", connErr.Code())
+			}
+		}
+	})
+}

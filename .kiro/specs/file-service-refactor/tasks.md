@@ -52,8 +52,8 @@ Rename the existing `FolderService` Connect-RPC service to `FileService`, remove
 - [x] 3. Checkpoint - Verify compilation
   - Ensure the `file/` package compiles with no errors, ask the user if questions arise.
 
-- [ ] 4. Migrate and write tests for the `file/` package
-  - [ ] 4.1 Migrate existing property tests to `file/` package
+- [x] 4. Migrate and write tests for the `file/` package
+  - [x] 4.1 Migrate existing property tests to `file/` package
     - Copy `folder/create_folder_test.go` → `file/create_folder_test.go`, update package to `file`, imports to `filev1`
     - Copy `folder/rename_delete_test.go` → `file/rename_delete_test.go`, update package and imports
     - Copy `folder/folder_api_property_test.go` → `file/file_api_property_test.go`, update package and imports
@@ -61,37 +61,37 @@ Rename the existing `FolderService` Connect-RPC service to `FileService`, remove
     - Update `TestProperty7_NonExistentFolderReturnsNotFound` to remove the `GetFolder` assertion
     - Change all `NewFolderServer` calls to `NewFileServer`, `FolderServer` to `FileServer`
     - _Requirements: 2.1, 2.2, 4.1, 4.2_
-  - [ ] 4.2 Migrate existing error condition unit tests to `file/` package
+  - [x] 4.2 Migrate existing error condition unit tests to `file/` package
     - Copy `folder/error_conditions_test.go` → `file/error_conditions_test.go`, update package and imports
     - Change all `NewFolderServer` calls to `NewFileServer`
     - _Requirements: 4.1, 4.2_
-  - [ ]* 4.3 Write property test for ListFiles immediate children with correct entry format
+  - [x]* 4.3 Write property test for ListFiles immediate children with correct entry format
     - **Property 1: ListFiles returns immediate children with correct entry format**
     - Generate random directory trees with files and subdirs, call `ListFiles`, verify: (a) every immediate child represented exactly once, (b) directory entries end with `/`, (c) file entries do not end with `/`, (d) no deeper entries included
     - Place in `file/list_files_test.go`
     - **Validates: Requirements 3.1, 3.2, 3.3, 3.4**
-  - [ ]* 4.4 Write property test for ListFiles non-existent path
+  - [x]* 4.4 Write property test for ListFiles non-existent path
     - **Property 2: ListFiles on non-existent path returns NotFound**
     - Generate random non-existent path strings, verify `NotFound` error
     - Place in `file/list_files_test.go`
     - **Validates: Requirements 3.5**
-  - [ ]* 4.5 Write property test for ListFiles on file path
+  - [x]* 4.5 Write property test for ListFiles on file path
     - **Property 3: ListFiles on file path returns NotFound**
     - Create random files, call `ListFiles` with file paths, verify `NotFound` error with "not a directory" message
     - Place in `file/list_files_test.go`
     - **Validates: Requirements 3.6**
-  - [ ]* 4.6 Write property test for ListFiles path traversal
+  - [x]* 4.6 Write property test for ListFiles path traversal
     - **Property 4: ListFiles on path-traversal returns InvalidArgument**
     - Generate path-traversal strings (e.g. `../` sequences), verify `InvalidArgument` error
     - Place in `file/list_files_test.go`
     - **Validates: Requirements 3.7**
-  - [ ]* 4.7 Write unit tests for ListFiles edge cases
+  - [x]* 4.7 Write unit tests for ListFiles edge cases
     - `TestListFiles_EmptyDirectory` — empty directory returns empty entries list
     - `TestListFiles_RootPath` — empty `parent_path` returns data directory children
     - Place in `file/list_files_test.go`
     - _Requirements: 3.1, 3.4_
 
-- [ ] 5. Checkpoint - Run all tests in `file/` package
+- [x] 5. Checkpoint - Run all tests in `file/` package
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 6. Update `main.go` wiring and clean up old packages
