@@ -94,20 +94,20 @@ Rename the existing `FolderService` Connect-RPC service to `FileService`, remove
 - [x] 5. Checkpoint - Run all tests in `file/` package
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 6. Update `main.go` wiring and clean up old packages
-  - [ ] 6.1 Update `main.go` to use `FileService`
+- [x] 6. Update `main.go` wiring and clean up old packages
+  - [x] 6.1 Update `main.go` to use `FileService`
     - Replace `folder` import with `file` import (`echolist-backend/file`)
     - Replace `folderv1connect` import with `filev1connect` import (`echolist-backend/proto/gen/file/v1/filev1connect`)
     - Replace `folderv1connect.NewFolderServiceHandler(folder.NewFolderServer(dataDir), interceptors)` with `filev1connect.NewFileServiceHandler(file.NewFileServer(dataDir), interceptors)`
     - Update gRPC reflection service name from `"folder.v1.FolderService"` to `"file.v1.FileService"`
     - _Requirements: 1.5, 1.6_
-  - [ ] 6.2 Remove old `folder/`, `proto/folder/`, and `proto/gen/folder/` directories
+  - [x] 6.2 Remove old `folder/`, `proto/folder/`, and `proto/gen/folder/` directories
     - Delete `folder/` Go package directory
     - Delete `proto/folder/` proto source directory
     - Delete `proto/gen/folder/` generated code directory
     - _Requirements: 1.6_
 
-- [ ] 7. Final checkpoint - Full build and test verification
+- [x] 7. Final checkpoint - Full build and test verification
   - Ensure the project compiles and all tests pass across all packages, ask the user if questions arise.
 
 ## Notes

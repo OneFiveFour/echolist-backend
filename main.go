@@ -14,9 +14,9 @@ import (
 	"golang.org/x/net/http2/h2c"
 
 	"echolist-backend/auth"
-	"echolist-backend/folder"
+	"echolist-backend/file"
 	authv1connect "echolist-backend/proto/gen/auth/v1/authv1connect"
-	folderv1connect "echolist-backend/proto/gen/folder/v1/folderv1connect"
+	filev1connect "echolist-backend/proto/gen/file/v1/filev1connect"
 	notesv1connect "echolist-backend/proto/gen/notes/v1/notesv1connect"
 	tasksv1connect "echolist-backend/proto/gen/tasks/v1/tasksv1connect"
 	"echolist-backend/server"
@@ -93,11 +93,11 @@ func main() {
 	)
 	mux.Handle(authPath, authHandler)
 
-	folderPath, folderHandler := folderv1connect.NewFolderServiceHandler(
-		folder.NewFolderServer(dataDir),
+	filePath, fileHandler := filev1connect.NewFileServiceHandler(
+		file.NewFileServer(dataDir),
 		interceptors,
 	)
-	mux.Handle(folderPath, folderHandler)
+	mux.Handle(filePath, fileHandler)
 
 	tasksPath, tasksHandler := tasksv1connect.NewTaskListServiceHandler(
 		tasks.NewTaskServer(dataDir),
@@ -109,7 +109,7 @@ func main() {
 	reflector := grpcreflect.NewStaticReflector(
 		"notes.v1.NoteService",
 		"auth.v1.AuthService",
-		"folder.v1.FolderService",
+		"file.v1.FileService",
 		"tasks.v1.TaskListService",
 	)
 	mux.Handle(grpcreflect.NewHandlerV1(reflector))
