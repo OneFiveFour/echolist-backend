@@ -42,7 +42,7 @@ func TestProperty1_ListFilesReturnsImmediateChildren(t *testing.T) {
 		}
 
 		for i := 0; i < numFiles; i++ {
-			name := folderNameGen().Draw(rt, "fileName")
+			name := "note_" + folderNameGen().Draw(rt, "fileName")
 			lower := strings.ToLower(name)
 			if createdDirs[lower] || createdFiles[lower] {
 				continue
@@ -52,6 +52,9 @@ func TestProperty1_ListFilesReturnsImmediateChildren(t *testing.T) {
 			}
 			createdFiles[lower] = true
 		}
+
+		// Also create a non-matching file to verify it's filtered out
+		os.WriteFile(filepath.Join(dataDir, "users.json"), []byte("{}"), 0644)
 
 		// Also create a nested file inside a subdir to verify non-recursive behavior
 		if len(createdDirs) > 0 {
@@ -80,6 +83,8 @@ func TestProperty1_ListFilesReturnsImmediateChildren(t *testing.T) {
 			name := e.Name()
 			if e.IsDir() {
 				name += "/"
+			} else if !strings.HasPrefix(name, "note_") && !strings.HasPrefix(name, "task_") {
+				continue
 			}
 			expected = append(expected, name)
 		}
@@ -247,7 +252,9 @@ func TestListFiles_RootPath(t *testing.T) {
 
 	// Create some children in the data directory
 	os.Mkdir(filepath.Join(dataDir, "folderA"), 0755)
-	os.WriteFile(filepath.Join(dataDir, "file.txt"), []byte("hello"), 0644)
+	os.WriteFile(filepath.Join(dataDir, "note_hello.txt"), []byte("hello"), 0644)
+	os.WriteFile(filepath.Join(dataDir, "task_todo.txt"), []byte("todo"), 0644)
+	os.WriteFile(filepath.Join(dataDir, "users.json"), []byte("{}"), 0644) // should be filtered
 
 	resp, err := srv.ListFiles(context.Background(), &filev1.ListFilesRequest{
 		ParentPath: "",
@@ -264,10 +271,16 @@ func TestListFiles_RootPath(t *testing.T) {
 	if !entries["folderA/"] {
 		t.Fatal("expected 'folderA/' in entries")
 	}
-	if !entries["file.txt"] {
-		t.Fatal("expected 'file.txt' in entries")
+	if !entries["note_hello.txt"] {
+		t.Fatal("expected 'note_hello.txt' in entries")
 	}
-	if len(resp.Entries) != 2 {
-		t.Fatalf("expected 2 entries, got %d: %v", len(resp.Entries), resp.Entries)
+	if !entries["task_todo.txt"] {
+		t.Fatal("expected 'task_todo.txt' in entries")
+	}
+	if entries["users.json"] {
+		t.Fatal("'users.json' should be filtered out")
+	}
+	if len(resp.Entries) != 3 {
+		t.Fatalf("expected 3 entries, got %d: %v", len(resp.Entries), resp.Entries)
 	}
 }

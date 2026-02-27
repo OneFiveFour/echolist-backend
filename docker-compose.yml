@@ -5,6 +5,7 @@ services:
       - "9090:8080"  # Change the first port to expose on different host port (e.g., "9090:8080")
     volumes:
       - ./data:/app/data  # Change ./data to your preferred host directory for persistent storage
+      - ./auth:/app/auth  # Auth credentials stored separately from data
     environment:
       - DATA_DIR=/app/data
       - JWT_SECRET=${JWT_SECRET:?JWT_SECRET is required}

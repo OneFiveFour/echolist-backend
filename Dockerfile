@@ -23,8 +23,8 @@ WORKDIR /app
 # Copy binary from builder
 COPY --from=builder /app/echolist-backend .
 
-# Create data directory
-RUN mkdir -p /app/data
+# Create data and auth directories
+RUN mkdir -p /app/data /app/auth
 
 # Expose port
 EXPOSE 8080

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"connectrpc.com/connect"
 
@@ -41,6 +42,8 @@ func (s *FileServer) ListFiles(
 		name := e.Name()
 		if e.IsDir() {
 			name += "/"
+		} else if !strings.HasPrefix(name, "note_") && !strings.HasPrefix(name, "task_") {
+			continue
 		}
 		result = append(result, name)
 	}

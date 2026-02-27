@@ -94,7 +94,7 @@ func TestProperty6_ListFilesReturnsImmediateChildren(t *testing.T) {
 				rt.Fatalf("CreateFolder %q failed: %v", name, err)
 			}
 		}
-		os.WriteFile(filepath.Join(dataDir, "note.md"), []byte("x"), 0644)
+		os.WriteFile(filepath.Join(dataDir, "note_test.md"), []byte("x"), 0644)
 		resp, err := srv.ListFiles(context.Background(), &filev1.ListFilesRequest{
 			ParentPath: "",
 		})
@@ -122,16 +122,16 @@ func TestProperty6_ListFilesReturnsImmediateChildren(t *testing.T) {
 				rt.Fatalf("mismatch at %d: expected %q, got %q", i, expectedNames[i], dirEntries[i])
 			}
 		}
-		// The "note.md" file should also appear as a non-directory entry
+		// The "note_test.md" file should also appear as a non-directory entry
 		foundFile := false
 		for _, e := range resp.Entries {
-			if e == "note.md" {
+			if e == "note_test.md" {
 				foundFile = true
 				break
 			}
 		}
 		if !foundFile {
-			rt.Fatal("expected 'note.md' in entries but not found")
+			rt.Fatal("expected 'note_test.md' in entries but not found")
 		}
 	})
 }

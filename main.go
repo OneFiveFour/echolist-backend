@@ -64,8 +64,8 @@ func main() {
 	accessTtl := parseDurationMinutesEnv("ACCESS_TOKEN_EXPIRY_MINUTES", 15)
 	refreshTtl := parseDurationMinutesEnv("REFRESH_TOKEN_EXPIRY_MINUTES", 10080) // 7 days
 
-	// Initialize auth components
-	userStore := auth.NewUserStore(filepath.Join(dataDir, "users.json"))
+	// Initialize auth components — users.json lives outside the data directory
+	userStore := auth.NewUserStore(filepath.Join("auth", "users.json"))
 	err := userStore.LoadOrInitialize(
 		envOrDefault("AUTH_DEFAULT_USER", "admin"),
 		os.Getenv("AUTH_DEFAULT_PASSWORD"),

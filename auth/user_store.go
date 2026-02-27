@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 	"sync"
 
 	"golang.org/x/crypto/bcrypt"
@@ -66,6 +67,13 @@ func (s *UserStore) LoadOrInitialize(defaultUser, defaultPassword string) error 
 	data, err = json.MarshalIndent(s.users, "", "  ")
 	if err != nil {
 		return fmt.Errorf("failed to marshal user store: %w", err)
+	}
+
+	// Ensure parent directory exists
+	if dir := filepath.Dir(s.filePath); dir != "" && dir != "." {
+		if err := os.MkdirAll(dir, 0700); err != nil {
+			return fmt.Errorf("failed to create directory for user store: %w", err)
+		}
 	}
 
 	if err := os.WriteFile(s.filePath, data, 0600); err != nil {
