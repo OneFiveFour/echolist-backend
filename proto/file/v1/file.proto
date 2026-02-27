@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+package file.v1;
+
+option go_package = "gen/file;file";
+
+service FileService {
+  rpc CreateFolder (CreateFolderRequest) returns (CreateFolderResponse);
+  rpc ListFiles (ListFilesRequest) returns (ListFilesResponse);
+  rpc UpdateFolder (UpdateFolderRequest) returns (UpdateFolderResponse);
+  rpc DeleteFolder (DeleteFolderRequest) returns (DeleteFolderResponse);
+}
+
+message Folder {
+  string path = 1;
+  string name = 2;
+}
+
+message CreateFolderRequest {
+  string parent_path = 1;
+  string name = 2;
+}
+
+message CreateFolderResponse {
+  Folder folder = 1;
+}
+
+message ListFilesRequest {
+  string parent_path = 1;
+}
+
+message ListFilesResponse {
+  repeated string entries = 1;
+}
+
+message UpdateFolderRequest {
+  string folder_path = 1;
+  string new_name = 2;
+}
+
+message UpdateFolderResponse {
+  Folder folder = 1;
+}
+
+message DeleteFolderRequest {
+  string folder_path = 1;
+}
+
+message DeleteFolderResponse {}
