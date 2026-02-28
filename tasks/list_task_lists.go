@@ -32,18 +32,12 @@ func (s *TaskServer) ListTaskLists(
 		prefix += "/"
 	}
 
-	var taskLists []*pb.TaskListEntry
-	var entries []string
+	var taskLists []*pb.TaskList
 
 	for _, e := range dirEntries {
 		name := e.Name()
 
-		if e.IsDir() {
-			entries = append(entries, prefix+name+"/")
-			continue
-		}
-
-		if filepath.Ext(name) != ".md" || !strings.HasPrefix(name, "tasks_") {
+		if e.IsDir() || filepath.Ext(name) != ".md" || !strings.HasPrefix(name, "tasks_") {
 			continue
 		}
 
@@ -53,15 +47,21 @@ func (s *TaskServer) ListTaskLists(
 		}
 
 		entryPath := prefix + name
-		entries = append(entries, entryPath)
 		listName := strings.TrimPrefix(strings.TrimSuffix(name, ".md"), "tasks_")
 
-		taskLists = append(taskLists, &pb.TaskListEntry{
-			FilePath:  entryPath,
-			Name:      listName,
-			UpdatedAt: info.ModTime().UnixMilli(),
-		})
+		absPath := filepath.Join(dirPath, name)
+		data, err := os.ReadFile(absPath)
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to read task file %s: %w", name, err))
+		}
+
+		domainTasks, err := ParseTaskFile(data)
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to parse task file %s: %w", name, err))
+		}
+
+		taskLists = append(taskLists, buildTaskList(entryPath, listName, domainTasks, info.ModTime().UnixMilli()))
 	}
 
-	return &pb.ListTaskListsResponse{TaskLists: taskLists, Entries: entries}, nil
+	return &pb.ListTaskListsResponse{TaskLists: taskLists}, nil
 }

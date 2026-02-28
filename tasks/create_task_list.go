@@ -73,9 +73,6 @@ func (s *TaskServer) CreateTaskList(
 
 	relPath := filepath.Join(req.GetPath(), filename)
 	return &pb.CreateTaskListResponse{
-		FilePath:  relPath,
-		Name:      name,
-		Tasks:     mainTasksToProto(domainTasks),
-		UpdatedAt: nowMillis(),
+		TaskList: buildTaskList(relPath, name, domainTasks, nowMillis()),
 	}, nil
 }

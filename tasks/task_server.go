@@ -61,6 +61,17 @@ func mainTasksToProto(tasks []MainTask) []*pb.MainTask {
 	return pbTasks
 }
 
+// buildTaskList constructs a pb.TaskList from the given parameters.
+func buildTaskList(filePath, name string, tasks []MainTask, updatedAt int64) *pb.TaskList {
+	return &pb.TaskList{
+		FilePath:  filePath,
+		Name:      name,
+		Tasks:     mainTasksToProto(tasks),
+		UpdatedAt: updatedAt,
+	}
+}
+
+
 func subtasksToProto(subs []Subtask) []*pb.Subtask {
 	if len(subs) == 0 {
 		return nil

@@ -44,9 +44,6 @@ func (s *TaskServer) GetTaskList(
 	name := strings.TrimPrefix(strings.TrimSuffix(filepath.Base(absPath), ".md"), "tasks_")
 
 	return &pb.GetTaskListResponse{
-		FilePath:  req.GetFilePath(),
-		Name:      name,
-		Tasks:     mainTasksToProto(domainTasks),
-		UpdatedAt: info.ModTime().UnixMilli(),
+		TaskList: buildTaskList(req.GetFilePath(), name, domainTasks, info.ModTime().UnixMilli()),
 	}, nil
 }

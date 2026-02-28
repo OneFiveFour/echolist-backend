@@ -88,9 +88,6 @@ func (s *TaskServer) UpdateTaskList(
 	name := strings.TrimPrefix(strings.TrimSuffix(filepath.Base(absPath), ".md"), "tasks_")
 
 	return &pb.UpdateTaskListResponse{
-		FilePath:  req.GetFilePath(),
-		Name:      name,
-		Tasks:     mainTasksToProto(domainTasks),
-		UpdatedAt: nowMillis(),
+		TaskList: buildTaskList(req.GetFilePath(), name, domainTasks, nowMillis()),
 	}, nil
 }

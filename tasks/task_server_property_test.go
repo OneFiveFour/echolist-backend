@@ -85,8 +85,8 @@ func TestProperty5_CreatedTaskListsUseTasksPrefix(t *testing.T) {
 		if _, err := os.Stat(filepath.Join(tmp, expectedFile)); os.IsNotExist(err) {
 			rt.Fatalf("expected file %q on disk", expectedFile)
 		}
-		if resp.FilePath != expectedFile {
-			rt.Fatalf("expected file_path %q, got %q", expectedFile, resp.FilePath)
+		if resp.TaskList.FilePath != expectedFile {
+			rt.Fatalf("expected file_path %q, got %q", expectedFile, resp.TaskList.FilePath)
 		}
 	})
 }
@@ -109,19 +109,19 @@ func TestProperty6_TaskListCreateThenGetRoundTrip(t *testing.T) {
 		}
 
 		getResp, err := srv.GetTaskList(context.Background(), &pb.GetTaskListRequest{
-			FilePath: createResp.FilePath,
+			FilePath: createResp.TaskList.FilePath,
 		})
 		if err != nil {
 			rt.Fatalf("GetTaskList failed: %v", err)
 		}
 
-		if getResp.Name != name {
-			rt.Fatalf("name mismatch: expected %q, got %q", name, getResp.Name)
+		if getResp.TaskList.Name != name {
+			rt.Fatalf("name mismatch: expected %q, got %q", name, getResp.TaskList.Name)
 		}
-		if len(getResp.Tasks) != len(tasks) {
-			rt.Fatalf("task count mismatch: expected %d, got %d", len(tasks), len(getResp.Tasks))
+		if len(getResp.TaskList.Tasks) != len(tasks) {
+			rt.Fatalf("task count mismatch: expected %d, got %d", len(tasks), len(getResp.TaskList.Tasks))
 		}
-		for i, got := range getResp.Tasks {
+		for i, got := range getResp.TaskList.Tasks {
 			want := tasks[i]
 			if got.Description != want.Description {
 				rt.Fatalf("task %d description: expected %q, got %q", i, want.Description, got.Description)
@@ -246,10 +246,10 @@ func TestProperty10_ValidRRuleProducesComputedDueDate(t *testing.T) {
 			rt.Fatalf("CreateTaskList failed: %v", err)
 		}
 
-		if len(resp.Tasks) != 1 {
-			rt.Fatalf("expected 1 task, got %d", len(resp.Tasks))
+		if len(resp.TaskList.Tasks) != 1 {
+			rt.Fatalf("expected 1 task, got %d", len(resp.TaskList.Tasks))
 		}
-		task := resp.Tasks[0]
+		task := resp.TaskList.Tasks[0]
 		if task.DueDate == "" {
 			rt.Fatal("expected non-empty due_date for recurring task")
 		}
@@ -279,11 +279,11 @@ func TestProperty11_RecurringTaskDoneAdvanceCycle(t *testing.T) {
 			rt.Fatalf("CreateTaskList failed: %v", err)
 		}
 
-		originalDueDate := createResp.Tasks[0].DueDate
+		originalDueDate := createResp.TaskList.Tasks[0].DueDate
 
 		// Mark the task as done
 		updateResp, err := srv.UpdateTaskList(context.Background(), &pb.UpdateTaskListRequest{
-			FilePath: createResp.FilePath,
+			FilePath: createResp.TaskList.FilePath,
 			Tasks: []*pb.MainTask{{
 				Description: "recurring task",
 				Done:        true,
@@ -294,7 +294,7 @@ func TestProperty11_RecurringTaskDoneAdvanceCycle(t *testing.T) {
 			rt.Fatalf("UpdateTaskList failed: %v", err)
 		}
 
-		updated := updateResp.Tasks[0]
+		updated := updateResp.TaskList.Tasks[0]
 		if updated.Done {
 			rt.Fatal("recurring task should be reset to done=false after advance")
 		}
@@ -455,11 +455,6 @@ func TestProperty3_ListTaskListsExcludesNonTaskFiles(t *testing.T) {
 				rt.Fatalf("unexpected task list name %q", tl.Name)
 			}
 		}
-
-		expectedEntries := len(taskNames) + len(dirNames)
-		if len(resp.Entries) != expectedEntries {
-			rt.Fatalf("expected %d entries, got %d: %v", expectedEntries, len(resp.Entries), resp.Entries)
-		}
 	})
 }
 
@@ -497,8 +492,8 @@ func TestProperty15_AutoCreateFoldersOnCreation(t *testing.T) {
 
 		// Verify file exists
 		expectedFile := filepath.Join(nestedPath, "tasks_"+name+".md")
-		if resp.FilePath != expectedFile {
-			rt.Fatalf("expected file_path %q, got %q", expectedFile, resp.FilePath)
+		if resp.TaskList.FilePath != expectedFile {
+			rt.Fatalf("expected file_path %q, got %q", expectedFile, resp.TaskList.FilePath)
 		}
 	})
 }
@@ -520,21 +515,21 @@ func TestProperty16_DeleteRemovesTaskListFromDisk(t *testing.T) {
 		}
 
 		_, err = srv.DeleteTaskList(context.Background(), &pb.DeleteTaskListRequest{
-			FilePath: createResp.FilePath,
+			FilePath: createResp.TaskList.FilePath,
 		})
 		if err != nil {
 			rt.Fatalf("DeleteTaskList failed: %v", err)
 		}
 
 		// File must not exist
-		absPath := filepath.Join(tmp, createResp.FilePath)
+		absPath := filepath.Join(tmp, createResp.TaskList.FilePath)
 		if _, err := os.Stat(absPath); !os.IsNotExist(err) {
 			rt.Fatalf("expected file %q to be deleted", absPath)
 		}
 
 		// GetTaskList must return NotFound
 		_, err = srv.GetTaskList(context.Background(), &pb.GetTaskListRequest{
-			FilePath: createResp.FilePath,
+			FilePath: createResp.TaskList.FilePath,
 		})
 		if err == nil {
 			rt.Fatal("expected NotFound after delete, got nil")
