@@ -22,7 +22,7 @@ func (s *FileServer) CreateFolder(
 	}
 
 	// Resolve parent directory
-	parentDir := filepath.Join(s.dataDir, req.GetParentPath())
+	parentDir := filepath.Join(s.dataDir, req.GetParentDir())
 	parentDir = filepath.Clean(parentDir)
 
 	// Ensure parent is within the data directory (or is the root itself)
@@ -54,7 +54,7 @@ func (s *FileServer) CreateFolder(
 	}
 
 	// Build relative path for the created folder (with trailing /)
-	relPath := filepath.Join(req.GetParentPath(), req.GetName()) + "/"
+	relPath := filepath.Join(req.GetParentDir(), req.GetName()) + "/"
 	return &filev1.CreateFolderResponse{
 		Folder: &filev1.Folder{
 			Path: relPath,

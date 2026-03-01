@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"strings"
 
 	"connectrpc.com/connect"
 
@@ -38,9 +37,14 @@ func (s *NotesServer) GetNote(
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to read note: %w", err))
 	}
 
+	title, err := ExtractNoteTitle(info.Name())
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+
 	note := &pb.Note{
 		FilePath:  req.FilePath,
-		Title:     strings.TrimPrefix(info.Name()[:len(info.Name())-3], "note_"),
+		Title:     title,
 		Content:   string(content),
 		UpdatedAt: info.ModTime().UnixMilli(),
 	}

@@ -340,7 +340,7 @@ func TestProperty13_PathTraversalPrevention(t *testing.T) {
 		// CreateTaskList
 		_, err := srv.CreateTaskList(context.Background(), &pb.CreateTaskListRequest{
 			Name: "test",
-			Path: badPath,
+			ParentDir: badPath,
 			Tasks: []*pb.MainTask{{Description: "task"}},
 		})
 		if err == nil {
@@ -357,7 +357,7 @@ func TestProperty13_PathTraversalPrevention(t *testing.T) {
 
 		// ListTaskLists
 		_, err = srv.ListTaskLists(context.Background(), &pb.ListTaskListsRequest{
-			Path: badPath,
+			ParentDir: badPath,
 		})
 		if err == nil {
 			rt.Fatalf("ListTaskLists should reject traversal path %q", badPath)
@@ -473,7 +473,7 @@ func TestProperty15_AutoCreateFoldersOnCreation(t *testing.T) {
 
 		resp, err := srv.CreateTaskList(context.Background(), &pb.CreateTaskListRequest{
 			Name:  name,
-			Path:  nestedPath,
+			ParentDir:  nestedPath,
 			Tasks: []*pb.MainTask{{Description: "task in nested dir"}},
 		})
 		if err != nil {

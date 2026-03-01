@@ -20,7 +20,7 @@ func TestCreateNote_CreatesMarkdownFile(t *testing.T) {
 	}
 
 	req := &pb.CreateNoteRequest{
-		Path:    "Work/2026",
+		ParentDir: "Work/2026",
 		Title:   "Meeting",
 		Content: "# Meeting\n\nHello World",
 	}
@@ -67,7 +67,7 @@ func TestCreateNote_EmptyTitleRejected(t *testing.T) {
 	}
 
 	req := &pb.CreateNoteRequest{
-		Path:    "Work",
+		ParentDir: "Work",
 		Title:   "",
 		Content: "some content",
 	}

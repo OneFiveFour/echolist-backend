@@ -10,7 +10,9 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-const bcryptCost = 10
+// bcryptCost is the bcrypt cost factor used for password hashing.
+// It is a variable (not a constant) so that tests can lower it for speed.
+var bcryptCost = 10
 
 // User represents a stored user credential.
 type User struct {

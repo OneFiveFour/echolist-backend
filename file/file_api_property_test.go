@@ -21,7 +21,7 @@ func TestProperty3_CreateFolderReturnsCorrectFolder(t *testing.T) {
 		dataDir := t.TempDir()
 		srv := NewFileServer(dataDir)
 		resp, err := srv.CreateFolder(context.Background(), &filev1.CreateFolderRequest{
-			ParentPath: "",
+			ParentDir: "",
 			Name:       name,
 		})
 		if err != nil {
@@ -96,7 +96,7 @@ func TestProperty6_ListFilesReturnsImmediateChildren(t *testing.T) {
 		}
 		os.WriteFile(filepath.Join(dataDir, "note_test.md"), []byte("x"), 0644)
 		resp, err := srv.ListFiles(context.Background(), &filev1.ListFilesRequest{
-			ParentPath: "",
+			ParentDir: "",
 		})
 		if err != nil {
 			rt.Fatalf("ListFiles failed: %v", err)
@@ -154,7 +154,7 @@ func TestProperty7_NonExistentFolderReturnsNotFound(t *testing.T) {
 		}
 
 		_, err := srv.ListFiles(context.Background(), &filev1.ListFilesRequest{
-			ParentPath: name,
+			ParentDir: name,
 		})
 		assertNotFound("ListFiles", err)
 

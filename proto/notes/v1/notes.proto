@@ -15,7 +15,7 @@ service NoteService {
 message CreateNoteRequest {
   string title = 1;
   string content = 2;
-  string path = 3;
+  string parent_dir = 3;
 }
 
 message CreateNoteResponse {
@@ -23,7 +23,7 @@ message CreateNoteResponse {
 }
 
 message ListNotesRequest {
-  string path = 1; // optional filter on subfolder, empty = root
+  string parent_dir = 1; // optional filter on subfolder, empty = root
 }
 
 message Note {

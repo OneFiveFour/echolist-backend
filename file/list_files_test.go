@@ -66,7 +66,7 @@ func TestProperty1_ListFilesReturnsImmediateChildren(t *testing.T) {
 		}
 
 		resp, err := srv.ListFiles(context.Background(), &filev1.ListFilesRequest{
-			ParentPath: "",
+			ParentDir: "",
 		})
 		if err != nil {
 			rt.Fatalf("ListFiles failed: %v", err)
@@ -140,7 +140,7 @@ func TestProperty2_ListFilesNonExistentPathNotFound(t *testing.T) {
 		srv := NewFileServer(dataDir)
 
 		_, err := srv.ListFiles(context.Background(), &filev1.ListFilesRequest{
-			ParentPath: name,
+			ParentDir: name,
 		})
 		if err == nil {
 			rt.Fatalf("expected NotFound error for non-existent path %q, got nil", name)
@@ -170,7 +170,7 @@ func TestProperty3_ListFilesFilePathNotFound(t *testing.T) {
 		}
 
 		_, err := srv.ListFiles(context.Background(), &filev1.ListFilesRequest{
-			ParentPath: fileName,
+			ParentDir: fileName,
 		})
 		if err == nil {
 			rt.Fatalf("expected NotFound error for file path %q, got nil", fileName)
@@ -208,7 +208,7 @@ func TestProperty4_ListFilesPathTraversalInvalidArgument(t *testing.T) {
 		srv := NewFileServer(dataDir)
 
 		_, err := srv.ListFiles(context.Background(), &filev1.ListFilesRequest{
-			ParentPath: traversalPath,
+			ParentDir: traversalPath,
 		})
 		if err == nil {
 			rt.Fatalf("expected InvalidArgument error for traversal path %q, got nil", traversalPath)
@@ -235,7 +235,7 @@ func TestListFiles_EmptyDirectory(t *testing.T) {
 	}
 
 	resp, err := srv.ListFiles(context.Background(), &filev1.ListFilesRequest{
-		ParentPath: emptyDir,
+		ParentDir: emptyDir,
 	})
 	if err != nil {
 		t.Fatalf("ListFiles failed: %v", err)
@@ -257,7 +257,7 @@ func TestListFiles_RootPath(t *testing.T) {
 	os.WriteFile(filepath.Join(dataDir, "users.json"), []byte("{}"), 0644) // should be filtered
 
 	resp, err := srv.ListFiles(context.Background(), &filev1.ListFilesRequest{
-		ParentPath: "",
+		ParentDir: "",
 	})
 	if err != nil {
 		t.Fatalf("ListFiles failed: %v", err)

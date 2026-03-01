@@ -18,7 +18,7 @@ func (s *NotesServer) ListNotes(
 	req *pb.ListNotesRequest,
 ) (*pb.ListNotesResponse, error) {
 
-	dirPath := filepath.Clean(filepath.Join(s.dataDir, req.GetPath()))
+	dirPath := filepath.Clean(filepath.Join(s.dataDir, req.GetParentDir()))
 	if dirPath != s.dataDir && !pathutil.IsSubPath(s.dataDir, dirPath) {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("path escapes data directory"))
 	}
@@ -32,7 +32,7 @@ func (s *NotesServer) ListNotes(
 
 	var notes []*pb.Note
 
-	prefix := req.Path
+	prefix := req.ParentDir
 	if prefix != "" && !strings.HasSuffix(prefix, "/") {
 		prefix += "/"
 	}
@@ -61,9 +61,14 @@ func (s *NotesServer) ListNotes(
 			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to read %s: %w", fullPath, err))
 		}
 
+		title, err := ExtractNoteTitle(name)
+		if err != nil {
+			continue
+		}
+
 		notes = append(notes, &pb.Note{
 			FilePath:  entryPath,
-			Title:     strings.TrimPrefix(strings.TrimSuffix(name, ".md"), "note_"),
+			Title:     title,
 			Content:   string(content),
 			UpdatedAt: info.ModTime().UnixMilli(),
 		})

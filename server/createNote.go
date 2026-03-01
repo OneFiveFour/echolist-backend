@@ -21,7 +21,7 @@ func (s *NotesServer) CreateNote(
 ) (*pb.CreateNoteResponse, error) {
 
 	// Validate path
-	dirPath := filepath.Clean(filepath.Join(s.dataDir, req.GetPath()))
+	dirPath := filepath.Clean(filepath.Join(s.dataDir, req.GetParentDir()))
 	if dirPath != s.dataDir && !pathutil.IsSubPath(s.dataDir, dirPath) {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("path escapes data directory"))
 	}
@@ -34,14 +34,14 @@ func (s *NotesServer) CreateNote(
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("title must not contain path separators"))
 	}
 
-	destination := filepath.Join(s.dataDir, req.Path)
+	destination := filepath.Join(s.dataDir, req.ParentDir)
 
 	err := os.MkdirAll(destination, 0755)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to create directory: %w", err))
 	}
 
-	relativeFilePath := filepath.Join(req.Path, "note_"+req.Title+".md")
+	relativeFilePath := filepath.Join(req.ParentDir, "note_"+req.Title+".md")
 	absoluteFilePath := filepath.Join(s.dataDir, relativeFilePath)
 
 	err = atomicwrite.File(absoluteFilePath, []byte(req.Content))

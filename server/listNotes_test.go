@@ -62,7 +62,7 @@ func TestListNotes_SubfolderPath(t *testing.T) {
 
 	s := NewNotesServer(tmp)
 
-	resp, err := s.ListNotes(context.Background(), &pb.ListNotesRequest{Path: "sub"})
+	resp, err := s.ListNotes(context.Background(), &pb.ListNotesRequest{ParentDir: "sub"})
 	if err != nil {
 		t.Fatalf("ListNotes with Path failed: %v", err)
 	}

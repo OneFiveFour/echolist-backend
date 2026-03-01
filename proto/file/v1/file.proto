@@ -17,7 +17,7 @@ message Folder {
 }
 
 message CreateFolderRequest {
-  string parent_path = 1;
+  string parent_dir = 1;
   string name = 2;
 }
 
@@ -26,7 +26,7 @@ message CreateFolderResponse {
 }
 
 message ListFilesRequest {
-  string parent_path = 1;
+  string parent_dir = 1;
 }
 
 message ListFilesResponse {

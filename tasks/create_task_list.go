@@ -20,7 +20,7 @@ func (s *TaskServer) CreateTaskList(
 	req *pb.CreateTaskListRequest,
 ) (*pb.CreateTaskListResponse, error) {
 	// Validate path
-	dirPath := filepath.Clean(filepath.Join(s.dataDir, req.GetPath()))
+	dirPath := filepath.Clean(filepath.Join(s.dataDir, req.GetParentDir()))
 	if dirPath != s.dataDir && !pathutil.IsSubPath(s.dataDir, dirPath) {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("path escapes data directory"))
 	}
@@ -72,7 +72,7 @@ func (s *TaskServer) CreateTaskList(
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to write task file: %w", err))
 	}
 
-	relPath := filepath.Join(req.GetPath(), filename)
+	relPath := filepath.Join(req.GetParentDir(), filename)
 	return &pb.CreateTaskListResponse{
 		TaskList: buildTaskList(relPath, name, domainTasks, nowMillis()),
 	}, nil

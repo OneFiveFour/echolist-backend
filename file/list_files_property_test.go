@@ -67,7 +67,7 @@ func TestProperty_ListFilesFilterCorrectness(t *testing.T) {
 
 		// Call ListFiles
 		resp, err := srv.ListFiles(context.Background(), &filev1.ListFilesRequest{
-			ParentPath: "",
+			ParentDir: "",
 		})
 		if err != nil {
 			rt.Fatalf("ListFiles failed: %v", err)

@@ -42,7 +42,7 @@ func TestProperty_PathTraversalRejection(t *testing.T) {
 
 		// CreateNote: path field is the directory
 		_, err := srv.CreateNote(ctx, &pb.CreateNoteRequest{
-			Path:    traversalPath,
+			ParentDir: traversalPath,
 			Title:   "test",
 			Content: "test",
 		})
@@ -69,7 +69,7 @@ func TestProperty_PathTraversalRejection(t *testing.T) {
 
 		// ListNotes: path field is the directory
 		_, err = srv.ListNotes(ctx, &pb.ListNotesRequest{
-			Path: traversalPath,
+			ParentDir: traversalPath,
 		})
 		assertCodeInvalidArgument(rt, err, "ListNotes", traversalPath)
 	})

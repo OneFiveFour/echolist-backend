@@ -74,7 +74,7 @@ func TestProperty_TitleWithPathSeparatorsRejected(t *testing.T) {
 		ctx := context.Background()
 
 		_, err := srv.CreateNote(ctx, &pb.CreateNoteRequest{
-			Path:    "",
+			ParentDir: "",
 			Title:   title,
 			Content: "test content",
 		})

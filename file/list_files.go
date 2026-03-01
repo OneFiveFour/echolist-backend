@@ -18,7 +18,7 @@ func (s *FileServer) ListFiles(
 	req *filev1.ListFilesRequest,
 ) (*filev1.ListFilesResponse, error) {
 
-	parentDir := filepath.Clean(filepath.Join(s.dataDir, req.GetParentPath()))
+	parentDir := filepath.Clean(filepath.Join(s.dataDir, req.GetParentDir()))
 	if parentDir != s.dataDir && !pathutil.IsSubPath(s.dataDir, parentDir) {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("parent path escapes data directory"))
 	}

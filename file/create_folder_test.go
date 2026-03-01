@@ -20,7 +20,7 @@ func TestProperty1_CreateFolderRoundTrip(t *testing.T) {
 		dataDir := t.TempDir()
 		srv := NewFileServer(dataDir)
 		resp, err := srv.CreateFolder(context.Background(), &filev1.CreateFolderRequest{
-			ParentPath: "",
+			ParentDir: "",
 			Name:       name,
 		})
 		if err != nil {

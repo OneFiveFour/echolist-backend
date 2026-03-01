@@ -115,7 +115,7 @@ func TestProperty2_BcryptHashingInvariant(t *testing.T) {
 			rt.Fatalf("plaintext password %q found in stored data", password)
 		}
 
-		// Verify the stored hash is valid bcrypt with cost >= 10
+		// Verify the stored hash is valid bcrypt with cost >= bcryptCost
 		user, err := store.getUser(username)
 		if err != nil {
 			rt.Fatal(err)
@@ -125,8 +125,8 @@ func TestProperty2_BcryptHashingInvariant(t *testing.T) {
 		if err != nil {
 			rt.Fatalf("stored hash is not valid bcrypt: %v", err)
 		}
-		if cost < 10 {
-			rt.Fatalf("bcrypt cost %d is less than minimum 10", cost)
+		if cost < bcryptCost {
+			rt.Fatalf("bcrypt cost %d is less than minimum %d", cost, bcryptCost)
 		}
 
 		// Verify the password actually matches the hash

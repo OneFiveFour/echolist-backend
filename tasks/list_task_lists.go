@@ -17,7 +17,7 @@ func (s *TaskServer) ListTaskLists(
 	ctx context.Context,
 	req *pb.ListTaskListsRequest,
 ) (*pb.ListTaskListsResponse, error) {
-	dirPath := filepath.Clean(filepath.Join(s.dataDir, req.GetPath()))
+	dirPath := filepath.Clean(filepath.Join(s.dataDir, req.GetParentDir()))
 	if dirPath != s.dataDir && !pathutil.IsSubPath(s.dataDir, dirPath) {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("path escapes data directory"))
 	}
@@ -27,7 +27,7 @@ func (s *TaskServer) ListTaskLists(
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to read directory: %w", err))
 	}
 
-	prefix := req.GetPath()
+	prefix := req.GetParentDir()
 	if prefix != "" && !strings.HasSuffix(prefix, "/") {
 		prefix += "/"
 	}

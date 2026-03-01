@@ -25,7 +25,7 @@ type CreateNoteRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Title         string                 `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
 	Content       string                 `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`
-	Path          string                 `protobuf:"bytes,3,opt,name=path,proto3" json:"path,omitempty"`
+	ParentDir     string                 `protobuf:"bytes,3,opt,name=parent_dir,json=parentDir,proto3" json:"parent_dir,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -74,9 +74,9 @@ func (x *CreateNoteRequest) GetContent() string {
 	return ""
 }
 
-func (x *CreateNoteRequest) GetPath() string {
+func (x *CreateNoteRequest) GetParentDir() string {
 	if x != nil {
-		return x.Path
+		return x.ParentDir
 	}
 	return ""
 }
@@ -127,7 +127,7 @@ func (x *CreateNoteResponse) GetNote() *Note {
 
 type ListNotesRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Path          string                 `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"` // optional filter on subfolder, empty = root
+	ParentDir     string                 `protobuf:"bytes,1,opt,name=parent_dir,json=parentDir,proto3" json:"parent_dir,omitempty"` // optional filter on subfolder, empty = root
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -162,9 +162,9 @@ func (*ListNotesRequest) Descriptor() ([]byte, []int) {
 	return file_notes_v1_notes_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *ListNotesRequest) GetPath() string {
+func (x *ListNotesRequest) GetParentDir() string {
 	if x != nil {
-		return x.Path
+		return x.ParentDir
 	}
 	return ""
 }
@@ -549,15 +549,17 @@ var File_notes_v1_notes_proto protoreflect.FileDescriptor
 
 const file_notes_v1_notes_proto_rawDesc = "" +
 	"\n" +
-	"\x14notes/v1/notes.proto\x12\bnotes.v1\"W\n" +
+	"\x14notes/v1/notes.proto\x12\bnotes.v1\"b\n" +
 	"\x11CreateNoteRequest\x12\x14\n" +
 	"\x05title\x18\x01 \x01(\tR\x05title\x12\x18\n" +
-	"\acontent\x18\x02 \x01(\tR\acontent\x12\x12\n" +
-	"\x04path\x18\x03 \x01(\tR\x04path\"8\n" +
+	"\acontent\x18\x02 \x01(\tR\acontent\x12\x1d\n" +
+	"\n" +
+	"parent_dir\x18\x03 \x01(\tR\tparentDir\"8\n" +
 	"\x12CreateNoteResponse\x12\"\n" +
-	"\x04note\x18\x01 \x01(\v2\x0e.notes.v1.NoteR\x04note\"&\n" +
-	"\x10ListNotesRequest\x12\x12\n" +
-	"\x04path\x18\x01 \x01(\tR\x04path\"r\n" +
+	"\x04note\x18\x01 \x01(\v2\x0e.notes.v1.NoteR\x04note\"1\n" +
+	"\x10ListNotesRequest\x12\x1d\n" +
+	"\n" +
+	"parent_dir\x18\x01 \x01(\tR\tparentDir\"r\n" +
 	"\x04Note\x12\x1b\n" +
 	"\tfile_path\x18\x01 \x01(\tR\bfilePath\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12\x18\n" +
