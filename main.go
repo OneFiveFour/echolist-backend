@@ -1,11 +1,14 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"strconv"
+	"syscall"
 	"time"
 
 	"connectrpc.com/connect"
@@ -46,6 +49,14 @@ func parseDurationMinutesEnv(key string, defaultMinutes int) time.Duration {
 		log.Fatalf("Invalid value for %s: %q (expected integer minutes)", key, raw)
 	}
 	return time.Duration(minutes) * time.Minute
+}
+
+// maxBytesMiddleware wraps a handler to limit request body size.
+func maxBytesMiddleware(maxBytes int64, next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		r.Body = http.MaxBytesReader(w, r.Body, maxBytes)
+		next.ServeHTTP(w, r)
+	})
 }
 
 func main() {
@@ -117,8 +128,50 @@ func main() {
 
 	address := ":8080"
 	log.Printf("Authentication enabled. Access token TTL: %v, Refresh token TTL: %v", accessTtl, refreshTtl)
-	log.Println("ConnectRPC Server läuft auf", address)
+	log.Println("ConnectRPC Server listening on", address)
+
+	// Request size limit
+	maxBodyBytes := int64(4194304) // 4MB default
+	if raw := os.Getenv("MAX_REQUEST_BODY_BYTES"); raw != "" {
+		parsed, err := strconv.ParseInt(raw, 10, 64)
+		if err != nil {
+			log.Fatalf("Invalid value for MAX_REQUEST_BODY_BYTES: %q", raw)
+		}
+		maxBodyBytes = parsed
+	}
+
+	handler := maxBytesMiddleware(maxBodyBytes, mux)
+
+	// Graceful shutdown
+	shutdownTimeout := 30 * time.Second
+	if raw := os.Getenv("SHUTDOWN_TIMEOUT_SECONDS"); raw != "" {
+		secs, err := strconv.Atoi(raw)
+		if err != nil {
+			log.Fatalf("Invalid value for SHUTDOWN_TIMEOUT_SECONDS: %q", raw)
+		}
+		shutdownTimeout = time.Duration(secs) * time.Second
+	}
+
+	srv := &http.Server{
+		Addr:    address,
+		Handler: h2c.NewHandler(handler, &http2.Server{}),
+	}
+
+	go func() {
+		sigCh := make(chan os.Signal, 1)
+		signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
+		<-sigCh
+		log.Println("Shutting down server...")
+		ctx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
+		defer cancel()
+		if err := srv.Shutdown(ctx); err != nil {
+			log.Printf("Shutdown error: %v", err)
+		}
+		log.Println("Server shutdown complete")
+	}()
 
 	// Enable HTTP/2 support for gRPC clients
-	log.Fatal(http.ListenAndServe(address, h2c.NewHandler(mux, &http2.Server{})))
+	if err := srv.ListenAndServe(); err != http.ErrServerClosed {
+		log.Fatal(err)
+	}
 }

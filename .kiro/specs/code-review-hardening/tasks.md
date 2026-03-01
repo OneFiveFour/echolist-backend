@@ -128,20 +128,20 @@ Harden the echolist-backend against 18 code review findings: security fixes (pat
     - Generate random username/password pairs, authenticate with non-existent users and wrong passwords, verify all error messages are identical and contain no username
     - **Validates: Requirements 18.1, 18.2, 18.3**
 
-- [ ] 12. Checkpoint — Ensure auth changes work
+- [x] 12. Checkpoint — Ensure auth changes work
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 13. Operational improvements
-  - [ ] 13.1 Replace German log message in `main.go` — change `"ConnectRPC Server läuft auf"` to `"ConnectRPC Server listening on"`
+- [x] 13. Operational improvements
+  - [x] 13.1 Replace German log message in `main.go` — change `"ConnectRPC Server läuft auf"` to `"ConnectRPC Server listening on"`
     - _Requirements: 10.1_
-  - [ ] 13.2 Add fsync before rename in `atomicwrite/atomicwrite.go` — call `tmp.Sync()` after writing and before closing, remove temp file on sync failure
+  - [x] 13.2 Add fsync before rename in `atomicwrite/atomicwrite.go` — call `tmp.Sync()` after writing and before closing, remove temp file on sync failure
     - _Requirements: 17.1, 17.2, 17.3_
-  - [ ] 13.3 Add request size limit middleware in `main.go` — wrap handler with `http.MaxBytesReader`, configurable via `MAX_REQUEST_BODY_BYTES` env var (default 4MB)
+  - [x] 13.3 Add request size limit middleware in `main.go` — wrap handler with `http.MaxBytesReader`, configurable via `MAX_REQUEST_BODY_BYTES` env var (default 4MB)
     - _Requirements: 16.1, 16.2, 16.3_
-  - [ ] 13.4 Add graceful shutdown in `main.go` — listen for SIGINT/SIGTERM, call `srv.Shutdown` with configurable timeout via `SHUTDOWN_TIMEOUT_SECONDS` env var (default 30s), log shutdown start and completion
+  - [x] 13.4 Add graceful shutdown in `main.go` — listen for SIGINT/SIGTERM, call `srv.Shutdown` with configurable timeout via `SHUTDOWN_TIMEOUT_SECONDS` env var (default 30s), log shutdown start and completion
     - _Requirements: 15.1, 15.2, 15.3_
 
-- [ ] 14. Final checkpoint — Ensure all tests pass
+- [x] 14. Final checkpoint — Ensure all tests pass
   - Run `go build ./...` and `go test ./...` to verify the entire project compiles and all tests pass.
   - Ensure all tests pass, ask the user if questions arise.
 
