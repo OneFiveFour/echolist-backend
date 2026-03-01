@@ -82,15 +82,15 @@ Harden the echolist-backend against 18 code review findings: security fixes (pat
   - [x] 7.5 Verify all existing tests for affected handlers still pass
     - _Requirements: 12.5_
 
-- [ ] 8. Shared task validation
-  - [ ] 8.1 Create `tasks/validate.go` with `validateTasks` function — due_date/recurrence mutual exclusion and RRULE validation
+- [x] 8. Shared task validation
+  - [x] 8.1 Create `tasks/validate.go` with `validateTasks` function — due_date/recurrence mutual exclusion and RRULE validation
     - _Requirements: 13.1_
-  - [ ] 8.2 Update `tasks/create_task_list.go` and `tasks/update_task_list.go` to call `validateTasks` instead of inline validation
+  - [x] 8.2 Update `tasks/create_task_list.go` and `tasks/update_task_list.go` to call `validateTasks` instead of inline validation
     - _Requirements: 13.2_
-  - [ ] 8.3 Verify existing tests for CreateTaskList and UpdateTaskList still pass
+  - [x] 8.3 Verify existing tests for CreateTaskList and UpdateTaskList still pass
     - _Requirements: 13.3_
 
-- [ ] 9. Checkpoint — Ensure all refactoring and security fixes work
+- [x] 9. Checkpoint — Ensure all refactoring and security fixes work
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 10. Token type differentiation

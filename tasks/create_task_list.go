@@ -36,14 +36,11 @@ func (s *TaskServer) CreateTaskList(
 
 	// Validate tasks
 	domainTasks := protoToMainTasks(req.GetTasks())
+	if err := validateTasks(domainTasks); err != nil {
+		return nil, err
+	}
 	for i, t := range domainTasks {
-		if t.DueDate != "" && t.Recurrence != "" {
-			return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("task %d: cannot set both due_date and recurrence", i))
-		}
 		if t.Recurrence != "" {
-			if err := ValidateRRule(t.Recurrence); err != nil {
-				return nil, connect.NewError(connect.CodeInvalidArgument, err)
-			}
 			next, err := ComputeNextDueDate(t.Recurrence, time.Now())
 			if err != nil {
 				return nil, connect.NewError(connect.CodeInvalidArgument, err)
