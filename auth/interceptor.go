@@ -59,6 +59,11 @@ func NewAuthInterceptor(tokenService *TokenService) connect.UnaryInterceptorFunc
 				return nil, connect.NewError(connect.CodeUnauthenticated, fmt.Errorf("invalid token"))
 			}
 
+			// Reject non-access tokens.
+			if claims.TokenType != "access" {
+				return nil, connect.NewError(connect.CodeUnauthenticated, fmt.Errorf("invalid token type"))
+			}
+
 			// Inject username into context.
 			ctx = context.WithValue(ctx, usernameKey, claims.Username)
 			return next(ctx, req)

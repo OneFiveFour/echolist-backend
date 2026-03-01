@@ -261,3 +261,41 @@ func TestInterceptor_ExpiredToken(t *testing.T) {
 	}
 }
 
+
+// Property 8: Auth interceptor rejects non-access tokens
+// For any valid refresh token, using it as the Authorization bearer token for
+// a protected endpoint should result in a CodeUnauthenticated error.
+// **Validates: Requirements 6.3**
+// Feature: code-review-hardening, Property 8: Auth interceptor rejects non-access tokens
+func TestProperty_InterceptorRejectsRefreshTokens(t *testing.T) {
+	rapid.Check(t, func(rt *rapid.T) {
+		username := usernameGen().Draw(rt, "username")
+		secret := secretGen().Draw(rt, "secret")
+
+		tokenService := NewTokenService(secret, 15*time.Minute, 7*24*time.Hour)
+		server, _ := setupTestServer(tokenService)
+		defer server.Close()
+
+		// Generate a refresh token (not an access token)
+		refreshToken, err := tokenService.GenerateRefreshToken(username)
+		if err != nil {
+			rt.Fatalf("GenerateRefreshToken failed: %v", err)
+		}
+
+		// Use the refresh token as Bearer token on a protected endpoint
+		client := notesv1connect.NewNoteServiceClient(
+			http.DefaultClient,
+			server.URL,
+			connect.WithInterceptors(authHeaderInterceptor("Bearer "+refreshToken)),
+		)
+
+		_, err = client.ListNotes(context.Background(), &notesv1.ListNotesRequest{})
+		if err == nil {
+			rt.Fatal("expected error when using refresh token on protected endpoint, got nil")
+		}
+
+		if connect.CodeOf(err) != connect.CodeUnauthenticated {
+			rt.Fatalf("expected CodeUnauthenticated, got %v: %v", connect.CodeOf(err), err)
+		}
+	})
+}

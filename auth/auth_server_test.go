@@ -54,6 +54,9 @@ func TestProperty4_ValidCredentialsProduceValidTokens(t *testing.T) {
 		if accessClaims.Username != username {
 			rt.Fatalf("access token username: got %q, want %q", accessClaims.Username, username)
 		}
+		if accessClaims.TokenType != "access" {
+			rt.Fatalf("access token type: got %q, want %q", accessClaims.TokenType, "access")
+		}
 
 		// Validate refresh token has correct claims
 		refreshClaims, err := tokenService.ValidateToken(resp.GetRefreshToken())
@@ -62,6 +65,9 @@ func TestProperty4_ValidCredentialsProduceValidTokens(t *testing.T) {
 		}
 		if refreshClaims.Username != username {
 			rt.Fatalf("refresh token username: got %q, want %q", refreshClaims.Username, username)
+		}
+		if refreshClaims.TokenType != "refresh" {
+			rt.Fatalf("refresh token type: got %q, want %q", refreshClaims.TokenType, "refresh")
 		}
 	})
 }
@@ -261,4 +267,73 @@ func assertUnauthenticated(t *testing.T, err error) {
 	if connectErr.Code() != connect.CodeUnauthenticated {
 		t.Fatalf("expected CodeUnauthenticated, got %v", connectErr.Code())
 	}
+}
+
+// Property 9: RefreshToken endpoint enforces token type
+// For any valid access token, calling RefreshToken with it should return
+// CodeUnauthenticated. For any valid refresh token, calling RefreshToken
+// should return a new valid access token.
+// **Validates: Requirements 7.1, 7.2**
+// Feature: code-review-hardening, Property 9: RefreshToken endpoint enforces token type
+func TestProperty_RefreshEndpointEnforcesTokenType(t *testing.T) {
+	rapid.Check(t, func(rt *rapid.T) {
+		username := usernameGen().Draw(rt, "username")
+		secret := rapid.StringMatching(`[a-zA-Z0-9]{16,32}`).Draw(rt, "secret")
+
+		tokenService := NewTokenService(secret, 15*time.Minute, 7*24*time.Hour)
+
+		// Set up AuthServer with minimal UserStore
+		dir := t.TempDir()
+		filePath := filepath.Join(dir, "users.json")
+		store := NewUserStore(filePath)
+		if err := os.WriteFile(filePath, []byte("[]"), 0600); err != nil {
+			rt.Fatal(err)
+		}
+		if err := store.LoadOrInitialize("", ""); err != nil {
+			rt.Fatal(err)
+		}
+
+		server := NewAuthServer(store, tokenService)
+
+		// Part 1: Access token should be rejected by RefreshToken endpoint
+		accessToken, err := tokenService.GenerateAccessToken(username)
+		if err != nil {
+			rt.Fatalf("GenerateAccessToken failed: %v", err)
+		}
+
+		_, err = server.RefreshToken(nil, refreshTokenRequest(accessToken))
+		if err == nil {
+			rt.Fatal("expected error when using access token for refresh, got nil")
+		}
+		if connect.CodeOf(err) != connect.CodeUnauthenticated {
+			rt.Fatalf("expected CodeUnauthenticated for access token, got %v: %v", connect.CodeOf(err), err)
+		}
+
+		// Part 2: Refresh token should succeed
+		refreshToken, err := tokenService.GenerateRefreshToken(username)
+		if err != nil {
+			rt.Fatalf("GenerateRefreshToken failed: %v", err)
+		}
+
+		resp, err := server.RefreshToken(nil, refreshTokenRequest(refreshToken))
+		if err != nil {
+			rt.Fatalf("RefreshToken with valid refresh token failed: %v", err)
+		}
+
+		if resp.GetAccessToken() == "" {
+			rt.Fatal("returned access token is empty")
+		}
+
+		// Validate the returned access token
+		claims, err := tokenService.ValidateToken(resp.GetAccessToken())
+		if err != nil {
+			rt.Fatalf("returned access token is invalid: %v", err)
+		}
+		if claims.Username != username {
+			rt.Fatalf("returned token username: got %q, want %q", claims.Username, username)
+		}
+		if claims.TokenType != "access" {
+			rt.Fatalf("returned token type: got %q, want %q", claims.TokenType, "access")
+		}
+	})
 }

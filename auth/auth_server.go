@@ -51,7 +51,11 @@ func (s *AuthServer) Login(_ context.Context, req *authv1.LoginRequest) (*authv1
 func (s *AuthServer) RefreshToken(_ context.Context, req *authv1.RefreshTokenRequest) (*authv1.RefreshTokenResponse, error) {
 	claims, err := s.tokenService.ValidateToken(req.GetRefreshToken())
 	if err != nil {
-		return nil, connect.NewError(connect.CodeUnauthenticated, fmt.Errorf("invalid credentials"))
+		return nil, connect.NewError(connect.CodeUnauthenticated, fmt.Errorf("invalid or expired refresh token"))
+	}
+
+	if claims.TokenType != "refresh" {
+		return nil, connect.NewError(connect.CodeUnauthenticated, fmt.Errorf("invalid or expired refresh token"))
 	}
 
 	accessToken, err := s.tokenService.GenerateAccessToken(claims.Username)

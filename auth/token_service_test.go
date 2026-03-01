@@ -44,6 +44,11 @@ func TestProperty3_TokenGenerationRoundTrip(t *testing.T) {
 			rt.Fatalf("username mismatch: got %q, want %q", claims.Username, username)
 		}
 
+		// Token type must be "access"
+		if claims.TokenType != "access" {
+			rt.Fatalf("token type mismatch: got %q, want %q", claims.TokenType, "access")
+		}
+
 		// Subject claim must match username
 		if claims.Subject != username {
 			rt.Fatalf("subject mismatch: got %q, want %q", claims.Subject, username)
@@ -98,4 +103,49 @@ func TestValidateToken_WrongSecret(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error for token signed with different secret, got nil")
 	}
+}
+
+// Property 7: Token type round-trip
+// For any username, generating an access token and parsing it should yield
+// type = "access", and generating a refresh token and parsing it should yield
+// type = "refresh".
+// **Validates: Requirements 6.1, 6.2, 6.4**
+// Feature: code-review-hardening, Property 7: Token type round-trip
+func TestProperty_TokenTypeRoundTrip(t *testing.T) {
+	rapid.Check(t, func(rt *rapid.T) {
+		username := usernameGen().Draw(rt, "username")
+		secret := secretGen().Draw(rt, "secret")
+
+		svc := NewTokenService(secret, 15*time.Minute, 7*24*time.Hour)
+
+		// Generate and validate access token
+		accessToken, err := svc.GenerateAccessToken(username)
+		if err != nil {
+			rt.Fatalf("GenerateAccessToken failed: %v", err)
+		}
+
+		accessClaims, err := svc.ValidateToken(accessToken)
+		if err != nil {
+			rt.Fatalf("ValidateToken(access) failed: %v", err)
+		}
+
+		if accessClaims.TokenType != "access" {
+			rt.Fatalf("access token type: got %q, want %q", accessClaims.TokenType, "access")
+		}
+
+		// Generate and validate refresh token
+		refreshToken, err := svc.GenerateRefreshToken(username)
+		if err != nil {
+			rt.Fatalf("GenerateRefreshToken failed: %v", err)
+		}
+
+		refreshClaims, err := svc.ValidateToken(refreshToken)
+		if err != nil {
+			rt.Fatalf("ValidateToken(refresh) failed: %v", err)
+		}
+
+		if refreshClaims.TokenType != "refresh" {
+			rt.Fatalf("refresh token type: got %q, want %q", refreshClaims.TokenType, "refresh")
+		}
+	})
 }

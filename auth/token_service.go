@@ -9,7 +9,8 @@ import (
 
 // TokenClaims represents the custom claims embedded in a JWT token.
 type TokenClaims struct {
-	Username string `json:"username"`
+	Username  string `json:"username"`
+	TokenType string `json:"type"`
 	jwt.RegisteredClaims
 }
 
@@ -32,20 +33,21 @@ func NewTokenService(secret string, accessTtl, refreshTtl time.Duration) *TokenS
 // GenerateAccessToken creates a signed JWT with the username claim and
 // the configured access token expiry.
 func (t *TokenService) GenerateAccessToken(username string) (string, error) {
-	return t.generateToken(username, t.accessTokenTtl)
+	return t.generateToken(username, "access", t.accessTokenTtl)
 }
 
 // GenerateRefreshToken creates a signed JWT with the username claim and
 // the configured refresh token expiry.
 func (t *TokenService) GenerateRefreshToken(username string) (string, error) {
-	return t.generateToken(username, t.refreshTokenTtl)
+	return t.generateToken(username, "refresh", t.refreshTokenTtl)
 }
 
-// generateToken creates a signed JWT with the given username and TTL.
-func (t *TokenService) generateToken(username string, ttl time.Duration) (string, error) {
+// generateToken creates a signed JWT with the given username, token type, and TTL.
+func (t *TokenService) generateToken(username, tokenType string, ttl time.Duration) (string, error) {
 	now := time.Now()
 	claims := TokenClaims{
-		Username: username,
+		Username:  username,
+		TokenType: tokenType,
 		RegisteredClaims: jwt.RegisteredClaims{
 			Subject:   username,
 			IssuedAt:  jwt.NewNumericDate(now),

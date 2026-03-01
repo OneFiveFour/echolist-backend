@@ -93,28 +93,28 @@ Harden the echolist-backend against 18 code review findings: security fixes (pat
 - [x] 9. Checkpoint — Ensure all refactoring and security fixes work
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 10. Token type differentiation
-  - [ ] 10.1 Add `TokenType string` field (JSON tag `"type"`) to `TokenClaims` in `auth/token_service.go`
+- [x] 10. Token type differentiation
+  - [x] 10.1 Add `TokenType string` field (JSON tag `"type"`) to `TokenClaims` in `auth/token_service.go`
     - _Requirements: 6.1, 6.2_
-  - [ ] 10.2 Update `GenerateAccessToken` to set `TokenType: "access"` and `GenerateRefreshToken` to set `TokenType: "refresh"`
+  - [x] 10.2 Update `GenerateAccessToken` to set `TokenType: "access"` and `GenerateRefreshToken` to set `TokenType: "refresh"`
     - _Requirements: 6.1, 6.2_
-  - [ ] 10.3 Update auth interceptor in `auth/interceptor.go` to reject tokens where `type` claim is not `"access"`
+  - [x] 10.3 Update auth interceptor in `auth/interceptor.go` to reject tokens where `type` claim is not `"access"`
     - _Requirements: 6.3_
-  - [ ] 10.4 Update `RefreshToken` handler in `auth/auth_server.go` to reject tokens where `type` claim is not `"refresh"`
+  - [x] 10.4 Update `RefreshToken` handler in `auth/auth_server.go` to reject tokens where `type` claim is not `"refresh"`
     - _Requirements: 7.1, 7.2_
-  - [ ] 10.5 Fix RefreshToken error message — change `"invalid credentials"` to `"invalid or expired refresh token"` in `auth/auth_server.go`
+  - [x] 10.5 Fix RefreshToken error message — change `"invalid credentials"` to `"invalid or expired refresh token"` in `auth/auth_server.go`
     - _Requirements: 9.1_
-  - [ ] 10.6 Update existing auth tests to account for new token type claim
+  - [x] 10.6 Update existing auth tests to account for new token type claim
     - _Requirements: 6.4, 7.3_
-  - [ ] 10.7 Write property test `TestProperty_TokenTypeRoundTrip` in `auth/token_service_test.go`
+  - [x] 10.7 Write property test `TestProperty_TokenTypeRoundTrip` in `auth/token_service_test.go`
     - **Property 7: Token type round-trip**
     - Generate random usernames, generate access and refresh tokens, parse them, verify type claims
     - **Validates: Requirements 6.1, 6.2, 6.4**
-  - [ ] 10.8 Write property test `TestProperty_InterceptorRejectsRefreshTokens` in `auth/interceptor_test.go`
+  - [x] 10.8 Write property test `TestProperty_InterceptorRejectsRefreshTokens` in `auth/interceptor_test.go`
     - **Property 8: Auth interceptor rejects non-access tokens**
     - Generate random usernames, generate refresh tokens, use as bearer token, verify `CodeUnauthenticated`
     - **Validates: Requirements 6.3**
-  - [ ] 10.9 Write property test `TestProperty_RefreshEndpointEnforcesTokenType` in `auth/auth_server_test.go`
+  - [x] 10.9 Write property test `TestProperty_RefreshEndpointEnforcesTokenType` in `auth/auth_server_test.go`
     - **Property 9: RefreshToken endpoint enforces token type**
     - Generate access tokens, call RefreshToken, verify rejection; generate refresh tokens, verify success
     - **Validates: Requirements 7.1, 7.2**
