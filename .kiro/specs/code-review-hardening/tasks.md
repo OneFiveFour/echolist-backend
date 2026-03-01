@@ -119,11 +119,11 @@ Harden the echolist-backend against 18 code review findings: security fixes (pat
     - Generate access tokens, call RefreshToken, verify rejection; generate refresh tokens, verify success
     - **Validates: Requirements 7.1, 7.2**
 
-- [ ] 11. Username enumeration prevention
-  - [ ] 11.1 Update `auth/user_store.go` — change `getUser` to return generic `"invalid credentials"` error instead of including the username
+- [x] 11. Username enumeration prevention
+  - [x] 11.1 Update `auth/user_store.go` — change `getUser` to return generic `"invalid credentials"` error instead of including the username
     - Ensure both "user not found" and "wrong password" paths return identical error messages
     - _Requirements: 18.1, 18.2, 18.3_
-  - [ ] 11.2 Write property test `TestProperty_AuthErrorUniformity` in `auth/user_store_test.go`
+  - [x] 11.2 Write property test `TestProperty_AuthErrorUniformity` in `auth/user_store_test.go`
     - **Property 10: Authentication error uniformity**
     - Generate random username/password pairs, authenticate with non-existent users and wrong passwords, verify all error messages are identical and contain no username
     - **Validates: Requirements 18.1, 18.2, 18.3**

@@ -243,3 +243,68 @@ func TestGetUser_NonExistent(t *testing.T) {
 		t.Fatal("expected error for non-existent user, got nil")
 	}
 }
+
+// Feature: code-review-hardening, Property 10: Authentication error uniformity
+// For any username/password pair that fails authentication (whether due to
+// non-existent username or incorrect password), the error message returned
+// by UserStore.Authenticate should be identical and should not contain the
+// attempted username.
+// **Validates: Requirements 18.1, 18.2, 18.3**
+func TestProperty_AuthErrorUniformity(t *testing.T) {
+	rapid.Check(t, func(rt *rapid.T) {
+		// Generate a registered user (min 3 chars to avoid false substring matches
+		// with the generic error message "invalid credentials")
+		regUsername := rapid.StringMatching(`[a-zA-Z][a-zA-Z0-9]{2,19}`).Draw(rt, "registeredUsername")
+		regPassword := passwordGen().Draw(rt, "registeredPassword")
+
+		// Set up a store with the registered user
+		dir := t.TempDir()
+		filePath := filepath.Join(dir, "users.json")
+		store := NewUserStore(filePath)
+		if err := store.LoadOrInitialize(regUsername, regPassword); err != nil {
+			rt.Fatal(err)
+		}
+
+		// Generate a non-existent username (guaranteed different from registered,
+		// min 3 chars to avoid false substring matches)
+		nonExistentUsername := rapid.StringMatching(`[a-zA-Z][a-zA-Z0-9]{2,19}`).Draw(rt, "nonExistentUsername")
+		for nonExistentUsername == regUsername {
+			nonExistentUsername = usernameGen().Draw(rt, "nonExistentUsernameRetry")
+		}
+
+		// Generate a wrong password (guaranteed different from registered)
+		wrongPassword := passwordGen().Draw(rt, "wrongPassword")
+		for wrongPassword == regPassword {
+			wrongPassword = passwordGen().Draw(rt, "wrongPasswordRetry")
+		}
+
+		// Case 1: Authenticate with non-existent username
+		_, errNonExistent := store.Authenticate(nonExistentUsername, regPassword)
+		if errNonExistent == nil {
+			rt.Fatal("expected error for non-existent user, got nil")
+		}
+
+		// Case 2: Authenticate with correct username but wrong password
+		_, errWrongPass := store.Authenticate(regUsername, wrongPassword)
+		if errWrongPass == nil {
+			rt.Fatal("expected error for wrong password, got nil")
+		}
+
+		// Both error messages must be identical
+		if errNonExistent.Error() != errWrongPass.Error() {
+			rt.Fatalf("error messages differ: non-existent=%q, wrong-password=%q",
+				errNonExistent.Error(), errWrongPass.Error())
+		}
+
+		// Neither error message should contain the attempted username
+		if stringContains(errNonExistent.Error(), nonExistentUsername) {
+			rt.Fatalf("error for non-existent user contains username %q: %q",
+				nonExistentUsername, errNonExistent.Error())
+		}
+		if stringContains(errWrongPass.Error(), regUsername) {
+			rt.Fatalf("error for wrong password contains username %q: %q",
+				regUsername, errWrongPass.Error())
+		}
+	})
+}
+

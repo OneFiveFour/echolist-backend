@@ -111,5 +111,5 @@ func (s *UserStore) getUser(username string) (*User, error) {
 		}
 	}
 
-	return nil, fmt.Errorf("user not found: %s", username)
+	return nil, fmt.Errorf("invalid credentials")
 }
