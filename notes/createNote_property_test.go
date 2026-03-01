@@ -1,4 +1,4 @@
-package server
+package notes
 
 import (
 	"context"
@@ -142,6 +142,11 @@ func uncleanPathGen(cleanPath string) *rapid.Generator[string] {
 // calling CreateNote with either form should produce a file at the same absolute
 // location and return the same relative file path.
 // **Validates: Requirements 1.1, 1.3**
+// Feature: code-review-hardening, Property 1: CreateNote path canonicalization
+// For any valid directory path and any equivalent unclean form of that path,
+// calling CreateNote with either form should produce a file at the same absolute
+// location and return the same relative file path.
+// **Validates: Requirements 1.1, 1.3**
 func TestProperty_CreateNotePathCanonicalization(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		tmp := t.TempDir()
@@ -152,6 +157,11 @@ func TestProperty_CreateNotePathCanonicalization(t *testing.T) {
 		uncleanDir := uncleanPathGen(cleanDir).Draw(rt, "uncleanDir")
 		title := nameGen().Draw(rt, "title")
 		content := rapid.StringMatching(`[a-zA-Z0-9 ]{0,50}`).Draw(rt, "content")
+
+		// Pre-create the parent directory (CreateNote no longer auto-creates intermediates)
+		if err := os.MkdirAll(filepath.Join(tmp, cleanDir), 0755); err != nil {
+			rt.Fatalf("failed to pre-create directory: %v", err)
+		}
 
 		// Create note with clean path
 		respClean, err := srv.CreateNote(ctx, &pb.CreateNoteRequest{

@@ -1,12 +1,10 @@
-package server
+package notes
 
 import (
 	"context"
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
-	"time"
 
 	"connectrpc.com/connect"
 
@@ -27,19 +25,14 @@ func (s *NotesServer) CreateNote(
 	}
 
 	title := req.GetTitle()
-	if title == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("title must not be empty"))
-	}
-	if strings.ContainsAny(title, "/\\") {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("title must not contain path separators"))
-	}
-	if strings.ContainsRune(title, 0) {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("title must not contain null bytes"))
+	if err := pathutil.ValidateName(title); err != nil {
+		return nil, err
 	}
 
-	err = os.MkdirAll(dirPath, 0755)
-	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to create directory: %w", err))
+	// Only allow creating notes in existing directories (depth limit = 1).
+	// Reject requests that would auto-create intermediate directories.
+	if info, err := os.Stat(dirPath); err != nil || !info.IsDir() {
+		return nil, connect.NewError(connect.CodeFailedPrecondition, fmt.Errorf("parent directory does not exist"))
 	}
 
 	filename := "note_" + title + ".md"
@@ -56,11 +49,16 @@ func (s *NotesServer) CreateNote(
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to write note: %w", err))
 	}
 
+	info, err := os.Stat(absoluteFilePath)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to stat note after create: %w", err))
+	}
+
 	note := &pb.Note{
 		FilePath:  relativeFilePath,
 		Title:     req.Title,
 		Content:   req.Content,
-		UpdatedAt: time.Now().UnixMilli(),
+		UpdatedAt: info.ModTime().UnixMilli(),
 	}
 
 	return &pb.CreateNoteResponse{Note: note}, nil

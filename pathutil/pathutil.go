@@ -108,3 +108,23 @@ func ValidateParentDir(dataDir, relativePath string) (string, error) {
 	}
 	return resolved, nil
 }
+
+// ValidateName checks that a user-supplied name is safe to use as a single
+// path component.  It rejects empty strings, path separators, dot-entries,
+// and null bytes.
+func ValidateName(name string) error {
+	if name == "" {
+		return connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("name must not be empty"))
+	}
+	if strings.ContainsAny(name, "/\\") {
+		return connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("name must not contain path separators"))
+	}
+	if name == "." || name == ".." {
+		return connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("name must not be '.' or '..'"))
+	}
+	if strings.ContainsRune(name, 0) {
+		return connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("name must not contain null bytes"))
+	}
+	return nil
+}
+

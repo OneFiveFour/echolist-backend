@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"connectrpc.com/connect"
 
@@ -17,7 +16,7 @@ func (s *FileServer) CreateFolder(
 	ctx context.Context,
 	req *filev1.CreateFolderRequest,
 ) (*filev1.CreateFolderResponse, error) {
-	if err := validateName(req.GetName()); err != nil {
+	if err := pathutil.ValidateName(req.GetName()); err != nil {
 		return nil, err
 	}
 
@@ -33,19 +32,12 @@ func (s *FileServer) CreateFolder(
 		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("parent directory does not exist"))
 	}
 
-	// Check case-insensitive duplicates
-	existing, err := os.ReadDir(parentDir)
-	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to read parent directory: %w", err))
-	}
-	for _, e := range existing {
-		if strings.EqualFold(e.Name(), req.GetName()) {
-			return nil, connect.NewError(connect.CodeAlreadyExists, fmt.Errorf("a folder or file with that name already exists (case-insensitive)"))
-		}
+	// Check for duplicate (case-sensitive)
+	newDir := filepath.Join(parentDir, req.GetName())
+	if _, err := os.Stat(newDir); err == nil {
+		return nil, connect.NewError(connect.CodeAlreadyExists, fmt.Errorf("a folder or file with that name already exists"))
 	}
 
-	// Create the folder
-	newDir := filepath.Join(parentDir, req.GetName())
 	if err := os.Mkdir(newDir, 0755); err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to create folder: %w", err))
 	}

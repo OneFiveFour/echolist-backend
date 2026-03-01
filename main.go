@@ -22,7 +22,7 @@ import (
 	filev1connect "echolist-backend/proto/gen/file/v1/filev1connect"
 	notesv1connect "echolist-backend/proto/gen/notes/v1/notesv1connect"
 	tasksv1connect "echolist-backend/proto/gen/tasks/v1/tasksv1connect"
-	"echolist-backend/server"
+	"echolist-backend/notes"
 	"echolist-backend/tasks"
 )
 
@@ -92,8 +92,14 @@ func main() {
 	// Register handlers
 	mux := http.NewServeMux()
 
+	// Health check endpoint (unauthenticated)
+	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("ok"))
+	})
+
 	notesPath, notesHandler := notesv1connect.NewNoteServiceHandler(
-		server.NewNotesServer(dataDir),
+		notes.NewNotesServer(dataDir),
 		interceptors,
 	)
 	mux.Handle(notesPath, notesHandler)
@@ -153,8 +159,10 @@ func main() {
 	}
 
 	srv := &http.Server{
-		Addr:    address,
-		Handler: h2c.NewHandler(handler, &http2.Server{}),
+		Addr:         address,
+		Handler:      h2c.NewHandler(handler, &http2.Server{}),
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
 	}
 
 	go func() {

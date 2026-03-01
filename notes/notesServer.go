@@ -1,4 +1,4 @@
-package server
+package notes
 
 import (
 	notesv1connect "echolist-backend/proto/gen/notes/v1/notesv1connect"

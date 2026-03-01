@@ -1,0 +1,13 @@
+# 2026/03/01 21:59:05.677816 [TestProperty8_UpdateFolderCaseInsensitiveConflict] [rapid] draw nameA: "0"
+# 2026/03/01 21:59:05.677835 [TestProperty8_UpdateFolderCaseInsensitiveConflict] [rapid] draw nameB: "A"
+# 2026/03/01 21:59:05.678379 [TestProperty8_UpdateFolderCaseInsensitiveConflict] expected AlreadyExists error for case-variant "a" of "A"
+# 
+v0.4.8#17426802810050945196
+0x0
+0x0
+0x0
+0x0
+0x0
+0x9867f1f40f739
+0xa
+0x0

@@ -1,4 +1,4 @@
-package server
+package notes
 
 import (
 	"context"
@@ -30,7 +30,7 @@ func (s *NotesServer) ListNotes(
 
 	var notes []*pb.Note
 
-	prefix := req.ParentDir
+	prefix := req.GetParentDir()
 	if prefix != "" && !strings.HasSuffix(prefix, "/") {
 		prefix += "/"
 	}

@@ -66,6 +66,49 @@ func TestComputeNextDueDate_WithInterval(t *testing.T) {
 	}
 }
 
+func TestComputeNextDueDate_CountRespected(t *testing.T) {
+	// DTSTART defaults to epoch; FREQ=DAILY;COUNT=3 from 2026-01-01 means
+	// occurrences at Jan 1, Jan 2, Jan 3 only.
+	rule := "DTSTART:20260101T000000Z\nRRULE:FREQ=DAILY;COUNT=3"
+	after := time.Date(2026, 1, 2, 0, 0, 0, 0, time.UTC)
+
+	// Should return Jan 3 (the last occurrence)
+	next, err := ComputeNextDueDate(rule, after)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	expected := time.Date(2026, 1, 3, 0, 0, 0, 0, time.UTC)
+	if !next.Equal(expected) {
+		t.Errorf("expected %s, got %s", expected.Format("2006-01-02"), next.Format("2006-01-02"))
+	}
+
+	// After Jan 3 there should be no more occurrences
+	_, err = ComputeNextDueDate(rule, time.Date(2026, 1, 3, 0, 0, 0, 0, time.UTC))
+	if err == nil {
+		t.Error("expected error for exhausted COUNT, got nil")
+	}
+}
+
+func TestComputeNextDueDate_UntilRespected(t *testing.T) {
+	rule := "DTSTART:20260101T000000Z\nRRULE:FREQ=DAILY;UNTIL=20260103T000000Z"
+	after := time.Date(2026, 1, 2, 0, 0, 0, 0, time.UTC)
+
+	next, err := ComputeNextDueDate(rule, after)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	expected := time.Date(2026, 1, 3, 0, 0, 0, 0, time.UTC)
+	if !next.Equal(expected) {
+		t.Errorf("expected %s, got %s", expected.Format("2006-01-02"), next.Format("2006-01-02"))
+	}
+
+	// After the UNTIL date, no more occurrences
+	_, err = ComputeNextDueDate(rule, time.Date(2026, 1, 3, 0, 0, 0, 0, time.UTC))
+	if err == nil {
+		t.Error("expected error for past UNTIL date, got nil")
+	}
+}
+
 func TestComputeNextDueDate_InvalidRRule(t *testing.T) {
 	_, err := ComputeNextDueDate("NOT_A_VALID_RRULE", time.Now())
 	if err == nil {

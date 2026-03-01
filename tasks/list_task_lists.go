@@ -47,7 +47,7 @@ func (s *TaskServer) ListTaskLists(
 		}
 
 		entryPath := prefix + name
-		listName := strings.TrimPrefix(strings.TrimSuffix(name, ".md"), "tasks_")
+		listName := ExtractTaskListName(name)
 
 		absPath := filepath.Join(dirPath, name)
 		data, err := os.ReadFile(absPath)

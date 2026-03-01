@@ -1,6 +1,7 @@
 package tasks
 
 import (
+	"strings"
 	"time"
 
 	pb "echolist-backend/proto/gen/tasks/v1"
@@ -84,4 +85,9 @@ func subtasksToProto(subs []Subtask) []*pb.Subtask {
 // nowMillis returns the current time in Unix milliseconds.
 func nowMillis() int64 {
 	return time.Now().UnixMilli()
+}
+// ExtractTaskListName extracts the human-readable name from a task-list
+// filename (e.g. "tasks_Shopping.md" → "Shopping").
+func ExtractTaskListName(filename string) string {
+	return strings.TrimPrefix(strings.TrimSuffix(filename, ".md"), "tasks_")
 }

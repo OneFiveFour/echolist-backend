@@ -44,8 +44,8 @@ func TestProperty5_UpdateFolderReturnsRenamedFolder(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		oldName := folderNameGen().Draw(rt, "oldName")
 		newName := folderNameGen().Draw(rt, "newName")
-		if strings.EqualFold(oldName, newName) {
-			rt.Skip("old and new names are case-insensitively equal")
+		if oldName == newName {
+			rt.Skip("old and new names are equal")
 		}
 		dataDir := t.TempDir()
 		srv := NewFileServer(dataDir)
@@ -83,10 +83,10 @@ func TestProperty6_ListFilesReturnsImmediateChildren(t *testing.T) {
 		created := make(map[string]bool)
 		for i := 0; i < numChildren; i++ {
 			name := folderNameGen().Draw(rt, "childName")
-			if created[strings.ToLower(name)] {
+			if created[name] {
 				continue
 			}
-			created[strings.ToLower(name)] = true
+			created[name] = true
 			_, err := srv.CreateFolder(context.Background(), &filev1.CreateFolderRequest{
 				Name: name,
 			})
@@ -105,7 +105,7 @@ func TestProperty6_ListFilesReturnsImmediateChildren(t *testing.T) {
 		var dirEntries []string
 		for _, e := range resp.Entries {
 			if strings.HasSuffix(e, "/") {
-				dirEntries = append(dirEntries, strings.ToLower(strings.TrimSuffix(e, "/")))
+				dirEntries = append(dirEntries, strings.TrimSuffix(e, "/"))
 			}
 		}
 		sort.Strings(dirEntries)
@@ -171,12 +171,12 @@ func TestProperty7_NonExistentFolderReturnsNotFound(t *testing.T) {
 	})
 }
 
-func TestProperty8_UpdateFolderCaseInsensitiveConflict(t *testing.T) {
+func TestProperty8_UpdateFolderExactConflict(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		nameA := folderNameGen().Draw(rt, "nameA")
 		nameB := folderNameGen().Draw(rt, "nameB")
-		if strings.EqualFold(nameA, nameB) {
-			rt.Skip("names are case-insensitively equal")
+		if nameA == nameB {
+			rt.Skip("names are equal")
 		}
 		dataDir := t.TempDir()
 		srv := NewFileServer(dataDir)
@@ -192,13 +192,13 @@ func TestProperty8_UpdateFolderCaseInsensitiveConflict(t *testing.T) {
 		if err != nil {
 			rt.Fatalf("CreateFolder B failed: %v", err)
 		}
-		variant := swapCase(nameB)
+		// Renaming to exact name of sibling should fail
 		_, err = srv.UpdateFolder(context.Background(), &filev1.UpdateFolderRequest{
 			FolderPath: nameA,
-			NewName:    variant,
+			NewName:    nameB,
 		})
 		if err == nil {
-			rt.Fatalf("expected AlreadyExists error for case-variant %q of %q", variant, nameB)
+			rt.Fatalf("expected AlreadyExists error for exact duplicate %q", nameB)
 		}
 		var connErr *connect.Error
 		if errors.As(err, &connErr) {

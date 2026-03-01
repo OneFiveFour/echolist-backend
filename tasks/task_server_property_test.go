@@ -459,40 +459,36 @@ func TestProperty3_ListTaskListsExcludesNonTaskFiles(t *testing.T) {
 
 // Feature: task-management, Property 15: Auto-create folders on task list creation
 // **Validates: Requirements 8.2**
-func TestProperty15_AutoCreateFoldersOnCreation(t *testing.T) {
+// Feature: task-management, Property 15: Non-existent parent directory is rejected
+// Creating a task list in a directory that doesn't exist should return FailedPrecondition.
+// **Validates: Requirements 8.2, 9.4**
+func TestProperty15_NonExistentParentDirRejected(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		tmp := t.TempDir()
 		srv := NewTaskServer(tmp)
 		name := validNameGen().Draw(rt, "name")
 
-		// Generate a nested path that doesn't exist yet
+		// Generate a nested path that doesn't exist
 		seg1 := validNameGen().Draw(rt, "seg1")
 		seg2 := validNameGen().Draw(rt, "seg2")
 		nestedPath := filepath.Join(seg1, seg2)
 
-		resp, err := srv.CreateTaskList(context.Background(), &pb.CreateTaskListRequest{
-			Name:  name,
-			ParentDir:  nestedPath,
-			Tasks: []*pb.MainTask{{Description: "task in nested dir"}},
+		_, err := srv.CreateTaskList(context.Background(), &pb.CreateTaskListRequest{
+			Name:      name,
+			ParentDir: nestedPath,
+			Tasks:     []*pb.MainTask{{Description: "task in nested dir"}},
 		})
-		if err != nil {
-			rt.Fatalf("CreateTaskList with nested path failed: %v", err)
+		if err == nil {
+			rt.Fatalf("expected FailedPrecondition for non-existent parent dir %q, got nil", nestedPath)
+		}
+		if connect.CodeOf(err) != connect.CodeFailedPrecondition {
+			rt.Fatalf("expected FailedPrecondition, got %v", connect.CodeOf(err))
 		}
 
-		// Verify directories were created
-		dirPath := filepath.Join(tmp, seg1, seg2)
-		info, err := os.Stat(dirPath)
-		if err != nil {
-			rt.Fatalf("expected directory %q to exist: %v", dirPath, err)
-		}
-		if !info.IsDir() {
-			rt.Fatalf("expected %q to be a directory", dirPath)
-		}
-
-		// Verify file exists
-		expectedFile := filepath.Join(nestedPath, "tasks_"+name+".md")
-		if resp.TaskList.FilePath != expectedFile {
-			rt.Fatalf("expected file_path %q, got %q", expectedFile, resp.TaskList.FilePath)
+		// Verify directories were NOT created
+		dirPath := filepath.Join(tmp, seg1)
+		if _, err := os.Stat(dirPath); !os.IsNotExist(err) {
+			rt.Fatalf("directory %q should not have been created", dirPath)
 		}
 	})
 }

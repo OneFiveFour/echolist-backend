@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"connectrpc.com/connect"
@@ -27,11 +26,8 @@ func (s *TaskServer) CreateTaskList(
 
 	// Validate name
 	name := req.GetName()
-	if name == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("name must not be empty"))
-	}
-	if strings.ContainsAny(name, "/\\") {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("name must not contain path separators"))
+	if err := pathutil.ValidateName(name); err != nil {
+		return nil, err
 	}
 
 	// Validate tasks
@@ -49,9 +45,10 @@ func (s *TaskServer) CreateTaskList(
 		}
 	}
 
-	// Create intermediate directories
-	if err := os.MkdirAll(dirPath, 0755); err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to create directory: %w", err))
+	// Only allow creating task lists in existing directories (depth limit = 1).
+	// Reject requests that would auto-create intermediate directories.
+	if info, err := os.Stat(dirPath); err != nil || !info.IsDir() {
+		return nil, connect.NewError(connect.CodeFailedPrecondition, fmt.Errorf("parent directory does not exist"))
 	}
 
 	// Build file path

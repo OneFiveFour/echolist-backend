@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package file.v1;
 
-option go_package = "gen/file;file";
+option go_package = "echolist-backend/proto/gen/file/v1;filev1";
 
 service FileService {
   rpc CreateFolder (CreateFolderRequest) returns (CreateFolderResponse);

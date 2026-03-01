@@ -1,0 +1,8 @@
+# 2026/03/01 22:01:16.934868 [TestProperty2b_CaseVariantAllowed] [rapid] draw folderName: "A"
+# 2026/03/01 22:01:16.935030 [TestProperty2b_CaseVariantAllowed] case-variant "a" of "A" should be allowed: already_exists: a folder or file with that name already exists (case-insensitive)
+# 
+v0.4.8#6045238399031956167
+0x0
+0x9867f1f40f739
+0xa
+0x0

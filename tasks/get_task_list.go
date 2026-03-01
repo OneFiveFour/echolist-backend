@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"connectrpc.com/connect"
 
@@ -41,7 +40,7 @@ func (s *TaskServer) GetTaskList(
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to parse task file: %w", err))
 	}
 
-	name := strings.TrimPrefix(strings.TrimSuffix(filepath.Base(absPath), ".md"), "tasks_")
+	name := ExtractTaskListName(filepath.Base(absPath))
 
 	return &pb.GetTaskListResponse{
 		TaskList: buildTaskList(req.GetFilePath(), name, domainTasks, info.ModTime().UnixMilli()),

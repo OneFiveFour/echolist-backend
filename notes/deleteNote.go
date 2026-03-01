@@ -1,4 +1,4 @@
-package server
+package notes
 
 import (
 	"context"
@@ -22,9 +22,7 @@ func (s *NotesServer) DeleteNote(
 		return nil, err
 	}
 
-	fullPath := absPath
-
-	if err := os.Remove(fullPath); err != nil {
+	if err := os.Remove(absPath); err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("note not found"))
 		}

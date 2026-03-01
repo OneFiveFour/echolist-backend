@@ -6,7 +6,6 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
-	"strings"
 	"testing"
 
 	"connectrpc.com/connect"
@@ -19,8 +18,8 @@ func TestProperty4_RenamePreservesContents(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		oldName := folderNameGen().Draw(rt, "oldName")
 		newName := folderNameGen().Draw(rt, "newName")
-		if strings.EqualFold(oldName, newName) {
-			rt.Skip("old and new names are case-insensitively equal")
+		if oldName == newName {
+			rt.Skip("old and new names are equal")
 		}
 		dataDir := t.TempDir()
 		srv := NewFileServer(dataDir)
@@ -75,12 +74,12 @@ func TestProperty4_RenamePreservesContents(t *testing.T) {
 	})
 }
 
-func TestProperty5_CaseInsensitiveDuplicateRejectionOnRename(t *testing.T) {
+func TestProperty5_ExactDuplicateRejectionOnRename(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		nameA := folderNameGen().Draw(rt, "nameA")
 		nameB := folderNameGen().Draw(rt, "nameB")
-		if strings.EqualFold(nameA, nameB) {
-			rt.Skip("names are case-insensitively equal")
+		if nameA == nameB {
+			rt.Skip("names are equal")
 		}
 		dataDir := t.TempDir()
 		srv := NewFileServer(dataDir)
@@ -96,13 +95,13 @@ func TestProperty5_CaseInsensitiveDuplicateRejectionOnRename(t *testing.T) {
 		if err != nil {
 			rt.Fatalf("CreateFolder B failed: %v", err)
 		}
-		variant := swapCase(nameB)
+		// Renaming to exact name of sibling should fail
 		_, err = srv.UpdateFolder(context.Background(), &filev1.UpdateFolderRequest{
 			FolderPath: nameA,
-			NewName:    variant,
+			NewName:    nameB,
 		})
 		if err == nil {
-			rt.Fatalf("expected AlreadyExists error renaming to case-variant %q of %q", variant, nameB)
+			rt.Fatalf("expected AlreadyExists error renaming to existing sibling %q", nameB)
 		}
 		var connErr *connect.Error
 		if errors.As(err, &connErr) {
@@ -112,6 +111,40 @@ func TestProperty5_CaseInsensitiveDuplicateRejectionOnRename(t *testing.T) {
 		}
 	})
 }
+
+func TestProperty5b_RenameToCaseVariantOfSiblingAllowed(t *testing.T) {
+	rapid.Check(t, func(rt *rapid.T) {
+		nameA := folderNameGen().Draw(rt, "nameA")
+		nameB := folderNameGen().Draw(rt, "nameB")
+		variant := swapCase(nameB)
+		if nameA == nameB || nameA == variant || nameB == variant {
+			rt.Skip("names collide")
+		}
+		dataDir := t.TempDir()
+		srv := NewFileServer(dataDir)
+		_, err := srv.CreateFolder(context.Background(), &filev1.CreateFolderRequest{
+			Name: nameA,
+		})
+		if err != nil {
+			rt.Fatalf("CreateFolder A failed: %v", err)
+		}
+		_, err = srv.CreateFolder(context.Background(), &filev1.CreateFolderRequest{
+			Name: nameB,
+		})
+		if err != nil {
+			rt.Fatalf("CreateFolder B failed: %v", err)
+		}
+		// Renaming to a case-variant of sibling should succeed (case-sensitive)
+		_, err = srv.UpdateFolder(context.Background(), &filev1.UpdateFolderRequest{
+			FolderPath: nameA,
+			NewName:    variant,
+		})
+		if err != nil {
+			rt.Fatalf("rename to case-variant %q of sibling %q should be allowed: %v", variant, nameB, err)
+		}
+	})
+}
+
 
 func TestProperty6_DeleteRemovesFolderAndContents(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {

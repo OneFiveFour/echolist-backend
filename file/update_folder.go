@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"connectrpc.com/connect"
 
@@ -17,7 +16,7 @@ func (s *FileServer) UpdateFolder(
 	ctx context.Context,
 	req *filev1.UpdateFolderRequest,
 ) (*filev1.UpdateFolderResponse, error) {
-	if err := validateName(req.GetNewName()); err != nil {
+	if err := pathutil.ValidateName(req.GetNewName()); err != nil {
 		return nil, err
 	}
 	if req.GetFolderPath() == "" {
@@ -35,17 +34,14 @@ func (s *FileServer) UpdateFolder(
 		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("path is not a directory"))
 	}
 	parentDir := filepath.Dir(oldPath)
-	existing, err := os.ReadDir(parentDir)
-	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to read parent directory: %w", err))
-	}
+	newPath := filepath.Join(parentDir, req.GetNewName())
 	oldBase := filepath.Base(oldPath)
-	for _, e := range existing {
-		if strings.EqualFold(e.Name(), req.GetNewName()) && !strings.EqualFold(e.Name(), oldBase) {
-			return nil, connect.NewError(connect.CodeAlreadyExists, fmt.Errorf("a folder or file with that name already exists (case-insensitive)"))
+	// Check for exact duplicate sibling (case-sensitive)
+	if req.GetNewName() != oldBase {
+		if _, err := os.Stat(newPath); err == nil {
+			return nil, connect.NewError(connect.CodeAlreadyExists, fmt.Errorf("a folder or file with that name already exists"))
 		}
 	}
-	newPath := filepath.Join(parentDir, req.GetNewName())
 	if err := os.Rename(oldPath, newPath); err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to rename folder: %w", err))
 	}
