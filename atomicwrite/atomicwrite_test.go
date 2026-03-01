@@ -1,4 +1,4 @@
-package server
+package atomicwrite
 
 import (
 	"os"
@@ -17,8 +17,8 @@ func TestAtomicWriteFile_Success(t *testing.T) {
 	path := filepath.Join(targetDir, "note.md")
 	data := []byte("hello-atomic")
 
-	if err := atomicWriteFile(path, data); err != nil {
-		t.Fatalf("atomicWriteFile failed: %v", err)
+	if err := File(path, data); err != nil {
+		t.Fatalf("File failed: %v", err)
 	}
 
 	b, err := os.ReadFile(path)
@@ -45,7 +45,7 @@ func TestAtomicWriteFile_NoDir(t *testing.T) {
 	tmp := t.TempDir()
 	// do not create the directory
 	path := filepath.Join(tmp, "doesnotexist", "note.md")
-	if err := atomicWriteFile(path, []byte("x")); err == nil {
+	if err := File(path, []byte("x")); err == nil {
 		t.Fatalf("expected error when directory does not exist")
 	}
 }

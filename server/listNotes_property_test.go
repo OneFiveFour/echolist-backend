@@ -18,8 +18,7 @@ func nameGen() *rapid.Generator[string] {
 
 // Property 7: ListNotes returns all immediate children with correct formatting
 // For any set of folders and .md files created in a directory, ListNotes returns
-// entries where folders have trailing "/" and notes don't, and every immediate
-// child is represented.
+// only Note objects for note_-prefixed .md files, excluding directories.
 // **Validates: Requirements 4.1, 4.2**
 func TestProperty7_ListNotesImmediateChildrenFormatting(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
@@ -59,44 +58,9 @@ func TestProperty7_ListNotesImmediateChildrenFormatting(t *testing.T) {
 			rt.Fatalf("ListNotes failed: %v", err)
 		}
 
-		// Build a set of returned entries
-		entrySet := make(map[string]bool)
-		for _, e := range resp.Entries {
-			entrySet[e] = true
-		}
-
-		// Every folder must appear with trailing "/"
-		for name := range folderNames {
-			if !entrySet[name+"/"] {
-				rt.Fatalf("folder %q missing from entries (expected %q)", name, name+"/")
-			}
-		}
-
-		// Every note must appear without trailing "/"
-		for name := range noteNames {
-			if !entrySet["note_"+name+".md"] {
-				rt.Fatalf("note %q missing from entries (expected %q)", name, "note_"+name+".md")
-			}
-		}
-
-		// Entries count should match folders + notes (no extra entries)
-		expectedCount := len(folderNames) + len(noteNames)
-		if len(resp.Entries) != expectedCount {
-			rt.Fatalf("expected %d entries, got %d: %v", expectedCount, len(resp.Entries), resp.Entries)
-		}
-
-		// Notes slice should match note count
+		// Notes slice should match note count (directories are excluded)
 		if len(resp.Notes) != len(noteNames) {
 			rt.Fatalf("expected %d notes, got %d", len(noteNames), len(resp.Notes))
-		}
-
-		// Folder entries must end with "/", note entries must not
-		for _, e := range resp.Entries {
-			if folderNames[strings.TrimSuffix(e, "/")] {
-				if !strings.HasSuffix(e, "/") {
-					rt.Fatalf("folder entry %q should end with /", e)
-				}
-			}
 		}
 	})
 }
@@ -150,25 +114,16 @@ func TestProperty8_ListNotesShallowListing(t *testing.T) {
 			}
 		}
 
-		// The nested note path (folder/note_name.md) must NOT appear in root entries
-		nestedPath := folderName + "/note_" + nestedNoteName + ".md"
-		for _, e := range resp.Entries {
-			if e == nestedPath {
-				rt.Fatalf("nested note path %q should not appear in root entries: %v", nestedPath, resp.Entries)
-			}
-		}
-
-		// Root listing should have exactly 2 entries: the folder and the root note
-		if len(resp.Entries) != 2 {
-			rt.Fatalf("expected 2 entries, got %d: %v", len(resp.Entries), resp.Entries)
+		// Root listing should have exactly 1 note (the root note only)
+		if len(resp.Notes) != 1 {
+			rt.Fatalf("expected 1 note, got %d", len(resp.Notes))
 		}
 	})
 }
 
 // Feature: task-management, Property 2: ListNotes excludes non-note files
 // For any directory containing a mix of note_*.md, tasks_*.md, other .md, and non-.md files,
-// ListNotes should return only note_-prefixed .md files in its notes list,
-// and entries should include those files plus subdirectories.
+// ListNotes should return only note_-prefixed .md files in its notes list.
 // **Validates: Requirements 2.1, 2.2**
 func TestProperty2_ListNotesExcludesNonNoteFiles(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
@@ -255,11 +210,76 @@ func TestProperty2_ListNotesExcludesNonNoteFiles(t *testing.T) {
 				rt.Fatalf("unexpected note title %q in response", n.Title)
 			}
 		}
+	})
+}
 
-		// Entries must contain note files + directories only
-		expectedEntries := len(noteNames) + len(dirNames)
-		if len(resp.Entries) != expectedEntries {
-			rt.Fatalf("expected %d entries (notes+dirs), got %d: %v", expectedEntries, len(resp.Entries), resp.Entries)
+// Feature: api-hardening-cleanup, Property 2: ListNotes returns only notes, no directory entries
+// For any directory containing a mix of note files and subdirectories, calling ListNotes
+// should return only Note objects corresponding to note files, and should not include any
+// subdirectory entries in the response.
+// **Validates: Requirements 2.2, 2.3**
+func TestProperty_ListNotesExcludesDirectories(t *testing.T) {
+	rapid.Check(t, func(rt *rapid.T) {
+		tmp := t.TempDir()
+
+		numNotes := rapid.IntRange(0, 5).Draw(rt, "numNotes")
+		numDirs := rapid.IntRange(0, 5).Draw(rt, "numDirs")
+
+		usedNames := make(map[string]bool)
+
+		// Create random note_*.md files
+		noteCount := 0
+		noteNames := make(map[string]bool)
+		for i := 0; i < numNotes; i++ {
+			name := nameGen().Draw(rt, "noteName")
+			if usedNames[name] {
+				continue
+			}
+			usedNames[name] = true
+			noteNames[name] = true
+			noteCount++
+			if err := os.WriteFile(filepath.Join(tmp, "note_"+name+".md"), []byte("content"), 0644); err != nil {
+				rt.Fatal(err)
+			}
+		}
+
+		// Create random subdirectories
+		dirNames := make(map[string]bool)
+		for i := 0; i < numDirs; i++ {
+			name := nameGen().Draw(rt, "dirName")
+			if usedNames[name] {
+				continue
+			}
+			usedNames[name] = true
+			dirNames[name] = true
+			if err := os.MkdirAll(filepath.Join(tmp, name), 0755); err != nil {
+				rt.Fatal(err)
+			}
+		}
+
+		srv := NewNotesServer(tmp)
+		resp, err := srv.ListNotes(context.Background(), &pb.ListNotesRequest{})
+		if err != nil {
+			rt.Fatalf("ListNotes failed: %v", err)
+		}
+
+		// Verify: only Note objects are returned, count matches note files
+		if len(resp.Notes) != noteCount {
+			rt.Fatalf("expected %d notes, got %d", noteCount, len(resp.Notes))
+		}
+
+		// Verify: every returned note corresponds to a note file, not a directory
+		for _, n := range resp.Notes {
+			if !noteNames[n.Title] {
+				rt.Fatalf("unexpected note title %q — may be a directory entry", n.Title)
+			}
+			// FilePath must not match any directory name
+			for dirName := range dirNames {
+				if n.FilePath == dirName || n.FilePath == dirName+"/" {
+					rt.Fatalf("directory %q appeared as a note entry", dirName)
+				}
+			}
 		}
 	})
 }
+

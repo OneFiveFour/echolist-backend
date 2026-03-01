@@ -4,9 +4,12 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 
+	"connectrpc.com/connect"
+
+	"echolist-backend/atomicwrite"
+	"echolist-backend/pathutil"
 	pb "echolist-backend/proto/gen/notes/v1"
 )
 
@@ -15,21 +18,26 @@ func (s *NotesServer) UpdateNote(
 	req *pb.UpdateNoteRequest,
 ) (*pb.UpdateNoteResponse, error) {
 
-	fullPath := filepath.Join(s.dataDir, req.FilePath)
-
-	err := atomicWriteFile(fullPath, []byte(req.Content))
+	absPath, err := pathutil.ValidatePath(s.dataDir, req.GetFilePath())
 	if err != nil {
-		return nil, fmt.Errorf("failed to update note: %w", err)
+		return nil, err
+	}
+
+	fullPath := absPath
+
+	err = atomicwrite.File(fullPath, []byte(req.Content))
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to update note: %w", err))
 	}
 
 	info, err := os.Stat(fullPath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to stat note after update: %w", err)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to stat note after update: %w", err))
 	}
 
 	content, err := os.ReadFile(fullPath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read note after update: %w", err)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to read note after update: %w", err))
 	}
 
 	note := &pb.Note{

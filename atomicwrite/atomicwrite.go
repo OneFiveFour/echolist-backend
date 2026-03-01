@@ -1,11 +1,12 @@
-package server
+package atomicwrite
 
 import (
 	"os"
 	"path/filepath"
 )
 
-func atomicWriteFile(path string, data []byte) error {
+// File writes data to path atomically via temp file + rename.
+func File(path string, data []byte) error {
 	dir := filepath.Dir(path)
 
 	tmp, err := os.CreateTemp(dir, ".tmp-*")
@@ -25,4 +26,3 @@ func atomicWriteFile(path string, data []byte) error {
 
 	return os.Rename(tmp.Name(), path)
 }
-

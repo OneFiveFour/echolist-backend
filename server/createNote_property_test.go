@@ -2,9 +2,12 @@ package server
 
 import (
 	"context"
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"connectrpc.com/connect"
 
 	pb "echolist-backend/proto/gen/notes/v1"
 	"pgregory.net/rapid"
@@ -47,3 +50,45 @@ func TestProperty4_CreatedNotesUseNotePrefix(t *testing.T) {
 		}
 	})
 }
+
+// titleWithPathSepGen generates a random string that contains at least one `/` or `\`.
+// Strategy: generate a base string, pick a random separator, and insert it at a random position.
+func titleWithPathSepGen() *rapid.Generator[string] {
+	return rapid.Custom(func(rt *rapid.T) string {
+		base := rapid.StringMatching(`[a-zA-Z0-9]{0,20}`).Draw(rt, "base")
+		sep := rapid.SampledFrom([]string{"/", "\\"}).Draw(rt, "sep")
+		pos := rapid.IntRange(0, len(base)).Draw(rt, "pos")
+		return base[:pos] + sep + base[pos:]
+	})
+}
+
+// Feature: api-hardening-cleanup, Property 5: Titles containing path separators are rejected
+// For any title string containing `/` or `\` characters, calling CreateNote
+// should return a Connect error with code CodeInvalidArgument.
+// **Validates: Requirements 5.2**
+func TestProperty_TitleWithPathSeparatorsRejected(t *testing.T) {
+	rapid.Check(t, func(rt *rapid.T) {
+		title := titleWithPathSepGen().Draw(rt, "title")
+		tmpDir := t.TempDir()
+		srv := NewNotesServer(tmpDir)
+		ctx := context.Background()
+
+		_, err := srv.CreateNote(ctx, &pb.CreateNoteRequest{
+			Path:    "",
+			Title:   title,
+			Content: "test content",
+		})
+
+		if err == nil {
+			rt.Fatalf("CreateNote: expected error for title %q containing path separator, got nil", title)
+		}
+		var connErr *connect.Error
+		if !errors.As(err, &connErr) {
+			rt.Fatalf("CreateNote: expected connect.Error for title %q, got %T: %v", title, err, err)
+		}
+		if connErr.Code() != connect.CodeInvalidArgument {
+			rt.Fatalf("CreateNote: expected CodeInvalidArgument for title %q, got %v", title, connErr.Code())
+		}
+	})
+}
+

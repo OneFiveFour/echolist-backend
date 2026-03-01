@@ -5,8 +5,13 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
+	"connectrpc.com/connect"
+
+	"echolist-backend/atomicwrite"
+	"echolist-backend/pathutil"
 	pb "echolist-backend/proto/gen/notes/v1"
 )
 
@@ -15,19 +20,33 @@ func (s *NotesServer) CreateNote(
 	req *pb.CreateNoteRequest,
 ) (*pb.CreateNoteResponse, error) {
 
+	// Validate path
+	dirPath := filepath.Clean(filepath.Join(s.dataDir, req.GetPath()))
+	if dirPath != s.dataDir && !pathutil.IsSubPath(s.dataDir, dirPath) {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("path escapes data directory"))
+	}
+
+	title := req.GetTitle()
+	if title == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("title must not be empty"))
+	}
+	if strings.ContainsAny(title, "/\\") {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("title must not contain path separators"))
+	}
+
 	destination := filepath.Join(s.dataDir, req.Path)
 
 	err := os.MkdirAll(destination, 0755)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create folder: %w", err)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to create directory: %w", err))
 	}
 
 	relativeFilePath := filepath.Join(req.Path, "note_"+req.Title+".md")
 	absoluteFilePath := filepath.Join(s.dataDir, relativeFilePath)
 
-	err = atomicWriteFile(absoluteFilePath, []byte(req.Content))
+	err = atomicwrite.File(absoluteFilePath, []byte(req.Content))
 	if err != nil {
-		return nil, fmt.Errorf("failed to write note: %w", err)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to write note: %w", err))
 	}
 
 	note := &pb.Note{

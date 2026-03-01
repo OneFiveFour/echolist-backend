@@ -11,6 +11,7 @@ import (
 
 	"connectrpc.com/connect"
 
+	"echolist-backend/atomicwrite"
 	"echolist-backend/pathutil"
 	pb "echolist-backend/proto/gen/tasks/v1"
 )
@@ -81,7 +82,7 @@ func (s *TaskServer) UpdateTaskList(
 
 	// Write updated file atomically
 	data := PrintTaskFile(domainTasks)
-	if err := atomicWriteFile(absPath, data); err != nil {
+	if err := atomicwrite.File(absPath, data); err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to write task file: %w", err))
 	}
 

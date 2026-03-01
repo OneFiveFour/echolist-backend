@@ -7,6 +7,9 @@ import (
 	"path/filepath"
 	"strings"
 
+	"connectrpc.com/connect"
+
+	"echolist-backend/pathutil"
 	pb "echolist-backend/proto/gen/notes/v1"
 )
 
@@ -15,18 +18,19 @@ func (s *NotesServer) ListNotes(
 	req *pb.ListNotesRequest,
 ) (*pb.ListNotesResponse, error) {
 
-	root := s.dataDir
-	if req.Path != "" {
-		root = filepath.Join(s.dataDir, req.Path)
+	dirPath := filepath.Clean(filepath.Join(s.dataDir, req.GetPath()))
+	if dirPath != s.dataDir && !pathutil.IsSubPath(s.dataDir, dirPath) {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("path escapes data directory"))
 	}
+
+	root := dirPath
 
 	dirEntries, err := os.ReadDir(root)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read directory: %w", err)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to read directory: %w", err))
 	}
 
 	var notes []*pb.Note
-	var entries []string
 
 	prefix := req.Path
 	if prefix != "" && !strings.HasSuffix(prefix, "/") {
@@ -34,29 +38,27 @@ func (s *NotesServer) ListNotes(
 	}
 
 	for _, e := range dirEntries {
-		name := e.Name()
-
 		if e.IsDir() {
-			entries = append(entries, prefix+name+"/")
 			continue
 		}
+
+		name := e.Name()
 
 		if filepath.Ext(name) != ".md" || !strings.HasPrefix(name, "note_") {
 			continue
 		}
 
 		entryPath := prefix + name
-		entries = append(entries, entryPath)
 
 		fullPath := filepath.Join(root, name)
 		info, err := e.Info()
 		if err != nil {
-			return nil, fmt.Errorf("failed to stat %s: %w", fullPath, err)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to stat %s: %w", fullPath, err))
 		}
 
 		content, err := os.ReadFile(fullPath)
 		if err != nil {
-			return nil, fmt.Errorf("failed to read %s: %w", fullPath, err)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to read %s: %w", fullPath, err))
 		}
 
 		notes = append(notes, &pb.Note{
@@ -67,5 +69,5 @@ func (s *NotesServer) ListNotes(
 		})
 	}
 
-	return &pb.ListNotesResponse{Notes: notes, Entries: entries}, nil
+	return &pb.ListNotesResponse{Notes: notes}, nil
 }

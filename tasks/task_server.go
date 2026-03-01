@@ -1,8 +1,6 @@
 package tasks
 
 import (
-	"os"
-	"path/filepath"
 	"time"
 
 	pb "echolist-backend/proto/gen/tasks/v1"
@@ -81,24 +79,6 @@ func subtasksToProto(subs []Subtask) []*pb.Subtask {
 		pbSubs[i] = &pb.Subtask{Description: s.Description, Done: s.Done}
 	}
 	return pbSubs
-}
-
-// atomicWriteFile writes data to path atomically via temp file + rename.
-func atomicWriteFile(path string, data []byte) error {
-	dir := filepath.Dir(path)
-	tmp, err := os.CreateTemp(dir, ".tmp-*")
-	if err != nil {
-		return err
-	}
-	defer os.Remove(tmp.Name())
-	if _, err := tmp.Write(data); err != nil {
-		tmp.Close()
-		return err
-	}
-	if err := tmp.Close(); err != nil {
-		return err
-	}
-	return os.Rename(tmp.Name(), path)
 }
 
 // nowMillis returns the current time in Unix milliseconds.

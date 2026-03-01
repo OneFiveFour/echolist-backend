@@ -83,7 +83,7 @@ func TestProperty1_ListFilesReturnsImmediateChildren(t *testing.T) {
 			name := e.Name()
 			if e.IsDir() {
 				name += "/"
-			} else if !strings.HasPrefix(name, "note_") && !strings.HasPrefix(name, "task_") {
+			} else if !strings.HasPrefix(name, "note_") && !strings.HasPrefix(name, "tasks_") {
 				continue
 			}
 			expected = append(expected, name)
@@ -253,7 +253,7 @@ func TestListFiles_RootPath(t *testing.T) {
 	// Create some children in the data directory
 	os.Mkdir(filepath.Join(dataDir, "folderA"), 0755)
 	os.WriteFile(filepath.Join(dataDir, "note_hello.txt"), []byte("hello"), 0644)
-	os.WriteFile(filepath.Join(dataDir, "task_todo.txt"), []byte("todo"), 0644)
+	os.WriteFile(filepath.Join(dataDir, "tasks_todo.txt"), []byte("todo"), 0644)
 	os.WriteFile(filepath.Join(dataDir, "users.json"), []byte("{}"), 0644) // should be filtered
 
 	resp, err := srv.ListFiles(context.Background(), &filev1.ListFilesRequest{
@@ -274,8 +274,8 @@ func TestListFiles_RootPath(t *testing.T) {
 	if !entries["note_hello.txt"] {
 		t.Fatal("expected 'note_hello.txt' in entries")
 	}
-	if !entries["task_todo.txt"] {
-		t.Fatal("expected 'task_todo.txt' in entries")
+	if !entries["tasks_todo.txt"] {
+		t.Fatal("expected 'tasks_todo.txt' in entries")
 	}
 	if entries["users.json"] {
 		t.Fatal("'users.json' should be filtered out")

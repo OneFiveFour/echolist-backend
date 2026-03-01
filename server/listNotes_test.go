@@ -4,7 +4,6 @@ import (
 	"context"
 	"os"
 	"path/filepath"
-	"sort"
 	"testing"
 
 	pb "echolist-backend/proto/gen/notes/v1"
@@ -24,7 +23,7 @@ func TestListNotes_ShallowListing(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(tmp, "sub", "note_note2.md"), []byte("content2"), 0644); err != nil {
 		t.Fatal(err)
 	}
-	// Create a non-.md file (should not appear in entries)
+	// Create a non-.md file (should not appear in notes)
 	if err := os.WriteFile(filepath.Join(tmp, "ignore.txt"), []byte("nope"), 0644); err != nil {
 		t.Fatal(err)
 	}
@@ -48,18 +47,6 @@ func TestListNotes_ShallowListing(t *testing.T) {
 	}
 	if resp.Notes[0].Content != "content1" {
 		t.Fatalf("unexpected content: %s", resp.Notes[0].Content)
-	}
-
-	// Entries should contain folder "sub/" and note "note_note1.md" (not ignore.txt)
-	sort.Strings(resp.Entries)
-	expected := []string{"note_note1.md", "sub/"}
-	if len(resp.Entries) != len(expected) {
-		t.Fatalf("expected entries %v, got %v", expected, resp.Entries)
-	}
-	for i, e := range expected {
-		if resp.Entries[i] != e {
-			t.Fatalf("entry[%d]: expected %q, got %q", i, e, resp.Entries[i])
-		}
 	}
 }
 
@@ -85,42 +72,5 @@ func TestListNotes_SubfolderPath(t *testing.T) {
 	if resp.Notes[0].FilePath != "sub/note_note2.md" {
 		t.Fatalf("unexpected FilePath: %s", resp.Notes[0].FilePath)
 	}
-
-	// Entries should include the note with sub/ prefix
-	if len(resp.Entries) != 1 || resp.Entries[0] != "sub/note_note2.md" {
-		t.Fatalf("expected entries [sub/note_note2.md], got %v", resp.Entries)
-	}
 }
 
-func TestListNotes_FolderEntriesTrailingSlash(t *testing.T) {
-	tmp := t.TempDir()
-
-	if err := os.MkdirAll(filepath.Join(tmp, "FolderA"), 0755); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.MkdirAll(filepath.Join(tmp, "FolderB"), 0755); err != nil {
-		t.Fatal(err)
-	}
-
-	s := NewNotesServer(tmp)
-
-	resp, err := s.ListNotes(context.Background(), &pb.ListNotesRequest{})
-	if err != nil {
-		t.Fatalf("ListNotes failed: %v", err)
-	}
-
-	if len(resp.Notes) != 0 {
-		t.Fatalf("expected 0 notes, got %d", len(resp.Notes))
-	}
-
-	sort.Strings(resp.Entries)
-	expected := []string{"FolderA/", "FolderB/"}
-	if len(resp.Entries) != len(expected) {
-		t.Fatalf("expected entries %v, got %v", expected, resp.Entries)
-	}
-	for i, e := range expected {
-		if resp.Entries[i] != e {
-			t.Fatalf("entry[%d]: expected %q, got %q", i, e, resp.Entries[i])
-		}
-	}
-}

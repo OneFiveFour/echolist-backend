@@ -2,9 +2,13 @@ package server
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"os"
-	"path/filepath"
 
+	"connectrpc.com/connect"
+
+	"echolist-backend/pathutil"
 	pb "echolist-backend/proto/gen/notes/v1"
 )
 
@@ -13,10 +17,18 @@ func (s *NotesServer) DeleteNote(
 	req *pb.DeleteNoteRequest,
 ) (*pb.DeleteNoteResponse, error) {
 
-	fullPath := filepath.Join(s.dataDir, req.FilePath)
+	absPath, err := pathutil.ValidatePath(s.dataDir, req.GetFilePath())
+	if err != nil {
+		return nil, err
+	}
+
+	fullPath := absPath
 
 	if err := os.Remove(fullPath); err != nil {
-		return nil, err
+		if errors.Is(err, os.ErrNotExist) {
+			return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("note not found"))
+		}
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to delete note: %w", err))
 	}
 
 	return &pb.DeleteNoteResponse{}, nil
