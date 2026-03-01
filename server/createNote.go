@@ -21,9 +21,9 @@ func (s *NotesServer) CreateNote(
 ) (*pb.CreateNoteResponse, error) {
 
 	// Validate path
-	dirPath := filepath.Clean(filepath.Join(s.dataDir, req.GetParentDir()))
-	if dirPath != s.dataDir && !pathutil.IsSubPath(s.dataDir, dirPath) {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("path escapes data directory"))
+	dirPath, err := pathutil.ValidateParentDir(s.dataDir, req.GetParentDir())
+	if err != nil {
+		return nil, err
 	}
 
 	title := req.GetTitle()
@@ -37,7 +37,7 @@ func (s *NotesServer) CreateNote(
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("title must not contain null bytes"))
 	}
 
-	err := os.MkdirAll(dirPath, 0755)
+	err = os.MkdirAll(dirPath, 0755)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to create directory: %w", err))
 	}

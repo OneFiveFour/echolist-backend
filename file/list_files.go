@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"connectrpc.com/connect"
@@ -18,9 +17,9 @@ func (s *FileServer) ListFiles(
 	req *filev1.ListFilesRequest,
 ) (*filev1.ListFilesResponse, error) {
 
-	parentDir := filepath.Clean(filepath.Join(s.dataDir, req.GetParentDir()))
-	if parentDir != s.dataDir && !pathutil.IsSubPath(s.dataDir, parentDir) {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("parent path escapes data directory"))
+	parentDir, err := pathutil.ValidateParentDir(s.dataDir, req.GetParentDir())
+	if err != nil {
+		return nil, err
 	}
 
 	info, err := os.Stat(parentDir)

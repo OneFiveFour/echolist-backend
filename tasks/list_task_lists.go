@@ -17,9 +17,9 @@ func (s *TaskServer) ListTaskLists(
 	ctx context.Context,
 	req *pb.ListTaskListsRequest,
 ) (*pb.ListTaskListsResponse, error) {
-	dirPath := filepath.Clean(filepath.Join(s.dataDir, req.GetParentDir()))
-	if dirPath != s.dataDir && !pathutil.IsSubPath(s.dataDir, dirPath) {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("path escapes data directory"))
+	dirPath, err := pathutil.ValidateParentDir(s.dataDir, req.GetParentDir())
+	if err != nil {
+		return nil, err
 	}
 
 	dirEntries, err := os.ReadDir(dirPath)

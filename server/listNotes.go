@@ -18,12 +18,10 @@ func (s *NotesServer) ListNotes(
 	req *pb.ListNotesRequest,
 ) (*pb.ListNotesResponse, error) {
 
-	dirPath := filepath.Clean(filepath.Join(s.dataDir, req.GetParentDir()))
-	if dirPath != s.dataDir && !pathutil.IsSubPath(s.dataDir, dirPath) {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("path escapes data directory"))
+	root, err := pathutil.ValidateParentDir(s.dataDir, req.GetParentDir())
+	if err != nil {
+		return nil, err
 	}
-
-	root := dirPath
 
 	dirEntries, err := os.ReadDir(root)
 	if err != nil {

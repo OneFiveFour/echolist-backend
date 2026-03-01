@@ -23,9 +23,9 @@ func (s *FileServer) UpdateFolder(
 	if req.GetFolderPath() == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("folder_path must not be empty"))
 	}
-	oldPath := filepath.Clean(filepath.Join(s.dataDir, req.GetFolderPath()))
-	if !pathutil.IsSubPath(s.dataDir, oldPath) {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("folder path escapes data directory"))
+	oldPath, err := pathutil.ValidatePath(s.dataDir, req.GetFolderPath())
+	if err != nil {
+		return nil, err
 	}
 	info, err := os.Stat(oldPath)
 	if err != nil {

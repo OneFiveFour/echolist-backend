@@ -26,3 +26,12 @@ func ValidatePath(dataDir, relativePath string) (string, error) {
 	}
 	return cleaned, nil
 }
+// ValidateParentDir validates a directory path, allowing the data directory root itself.
+// Unlike ValidatePath, this permits relativePath="" which resolves to dataDir.
+func ValidateParentDir(dataDir, relativePath string) (string, error) {
+	cleaned := filepath.Clean(filepath.Join(dataDir, relativePath))
+	if cleaned != dataDir && !IsSubPath(dataDir, cleaned) {
+		return "", connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("path escapes data directory"))
+	}
+	return cleaned, nil
+}

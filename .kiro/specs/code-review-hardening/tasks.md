@@ -66,20 +66,20 @@ Harden the echolist-backend against 18 code review findings: security fixes (pat
     - Generate random non-existent file paths, call UpdateNote, verify `CodeNotFound` and no file created
     - **Validates: Requirements 3.1, 3.2**
 
-- [ ] 6. GetNote cleanup
-  - [ ] 6.1 Remove no-op `fullPath := absPath` assignment in `server/getNote.go` — use `absPath` directly
+- [x] 6. GetNote cleanup
+  - [x] 6.1 Remove no-op `fullPath := absPath` assignment in `server/getNote.go` — use `absPath` directly
     - _Requirements: 14.1_
 
-- [ ] 7. Consolidate path validation across services
-  - [ ] 7.1 Add `ValidateParentDir` helper to `pathutil/pathutil.go` for directory path validation (allows data directory root)
+- [x] 7. Consolidate path validation across services
+  - [x] 7.1 Add `ValidateParentDir` helper to `pathutil/pathutil.go` for directory path validation (allows data directory root)
     - _Requirements: 12.1, 12.2, 12.3_
-  - [ ] 7.2 Replace inline path validation in `server/listNotes.go` with `pathutil.ValidateParentDir`
+  - [x] 7.2 Replace inline path validation in `server/listNotes.go` with `pathutil.ValidateParentDir`
     - _Requirements: 12.2_
-  - [ ] 7.3 Replace inline path validation in `file/list_files.go`, `file/create_folder.go`, `file/update_folder.go`, `file/delete_folder.go` with `pathutil.ValidatePath` or `pathutil.ValidateParentDir`
+  - [x] 7.3 Replace inline path validation in `file/list_files.go`, `file/create_folder.go`, `file/update_folder.go`, `file/delete_folder.go` with `pathutil.ValidatePath` or `pathutil.ValidateParentDir`
     - _Requirements: 12.3_
-  - [ ] 7.4 Replace inline path validation in `tasks/create_task_list.go` with `pathutil.ValidatePath` or `pathutil.ValidateParentDir`
+  - [x] 7.4 Replace inline path validation in `tasks/create_task_list.go` with `pathutil.ValidatePath` or `pathutil.ValidateParentDir`
     - _Requirements: 12.4_
-  - [ ] 7.5 Verify all existing tests for affected handlers still pass
+  - [x] 7.5 Verify all existing tests for affected handlers still pass
     - _Requirements: 12.5_
 
 - [ ] 8. Shared task validation

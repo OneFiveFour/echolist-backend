@@ -22,9 +22,7 @@ func (s *NotesServer) GetNote(
 		return nil, err
 	}
 
-	fullPath := absPath
-
-	info, err := os.Stat(fullPath)
+	info, err := os.Stat(absPath)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("note not found"))
@@ -32,7 +30,7 @@ func (s *NotesServer) GetNote(
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to stat note: %w", err))
 	}
 
-	content, err := os.ReadFile(fullPath)
+	content, err := os.ReadFile(absPath)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to read note: %w", err))
 	}

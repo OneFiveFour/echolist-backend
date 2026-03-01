@@ -22,12 +22,9 @@ func (s *FileServer) CreateFolder(
 	}
 
 	// Resolve parent directory
-	parentDir := filepath.Join(s.dataDir, req.GetParentDir())
-	parentDir = filepath.Clean(parentDir)
-
-	// Ensure parent is within the data directory (or is the root itself)
-	if parentDir != s.dataDir && !pathutil.IsSubPath(s.dataDir, parentDir) {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("parent path escapes data directory"))
+	parentDir, err := pathutil.ValidateParentDir(s.dataDir, req.GetParentDir())
+	if err != nil {
+		return nil, err
 	}
 
 	// Check parent exists

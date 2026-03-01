@@ -20,9 +20,9 @@ func (s *TaskServer) CreateTaskList(
 	req *pb.CreateTaskListRequest,
 ) (*pb.CreateTaskListResponse, error) {
 	// Validate path
-	dirPath := filepath.Clean(filepath.Join(s.dataDir, req.GetParentDir()))
-	if dirPath != s.dataDir && !pathutil.IsSubPath(s.dataDir, dirPath) {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("path escapes data directory"))
+	dirPath, err := pathutil.ValidateParentDir(s.dataDir, req.GetParentDir())
+	if err != nil {
+		return nil, err
 	}
 
 	// Validate name

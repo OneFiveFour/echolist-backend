@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"path/filepath"
 
 	"connectrpc.com/connect"
 
@@ -21,11 +20,9 @@ func (s *FileServer) DeleteFolder(
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("folder_path must not be empty"))
 	}
 
-	target := filepath.Clean(filepath.Join(s.dataDir, req.GetFolderPath()))
-	
-	// Ensure target is within data directory
-	if !pathutil.IsSubPath(s.dataDir, target) {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("folder path escapes data directory"))
+	target, err := pathutil.ValidatePath(s.dataDir, req.GetFolderPath())
+	if err != nil {
+		return nil, err
 	}
 
 	// Check folder exists and is a directory
