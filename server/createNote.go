@@ -33,16 +33,23 @@ func (s *NotesServer) CreateNote(
 	if strings.ContainsAny(title, "/\\") {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("title must not contain path separators"))
 	}
+	if strings.ContainsRune(title, 0) {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("title must not contain null bytes"))
+	}
 
-	destination := filepath.Join(s.dataDir, req.ParentDir)
-
-	err := os.MkdirAll(destination, 0755)
+	err := os.MkdirAll(dirPath, 0755)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to create directory: %w", err))
 	}
 
-	relativeFilePath := filepath.Join(req.ParentDir, "note_"+req.Title+".md")
-	absoluteFilePath := filepath.Join(s.dataDir, relativeFilePath)
+	filename := "note_" + title + ".md"
+	absoluteFilePath := filepath.Join(dirPath, filename)
+	relativeFilePath, _ := filepath.Rel(s.dataDir, absoluteFilePath)
+
+	// Check for existing file
+	if _, err := os.Stat(absoluteFilePath); err == nil {
+		return nil, connect.NewError(connect.CodeAlreadyExists, fmt.Errorf("note already exists"))
+	}
 
 	err = atomicwrite.File(absoluteFilePath, []byte(req.Content))
 	if err != nil {

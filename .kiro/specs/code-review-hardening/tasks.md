@@ -36,22 +36,22 @@ Harden the echolist-backend against 18 code review findings: security fixes (pat
 - [x] 3. Checkpoint — Ensure proto rename and title extraction work
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 4. CreateNote security hardening
-  - [ ] 4.1 Fix path traversal in `server/createNote.go` — use validated `dirPath` from `pathutil.ValidatePath` for `os.MkdirAll` and file path construction instead of raw `req.GetParentDir()`
+- [x] 4. CreateNote security hardening
+  - [x] 4.1 Fix path traversal in `server/createNote.go` — use validated `dirPath` from `pathutil.ValidatePath` for `os.MkdirAll` and file path construction instead of raw `req.GetParentDir()`
     - _Requirements: 1.1, 1.2, 1.3, 12.1_
-  - [ ] 4.2 Add null byte validation for title in `server/createNote.go` — reject titles containing null bytes with `CodeInvalidArgument`
+  - [x] 4.2 Add null byte validation for title in `server/createNote.go` — reject titles containing null bytes with `CodeInvalidArgument`
     - _Requirements: 5.1, 5.2_
-  - [ ] 4.3 Add duplicate detection in `server/createNote.go` — check if file already exists before writing, return `CodeAlreadyExists` if so
+  - [x] 4.3 Add duplicate detection in `server/createNote.go` — check if file already exists before writing, return `CodeAlreadyExists` if so
     - _Requirements: 4.1, 4.2, 4.3_
-  - [ ]* 4.4 Write property test `TestProperty_CreateNotePathCanonicalization` in `server/createNote_property_test.go`
+  - [x]* 4.4 Write property test `TestProperty_CreateNotePathCanonicalization` in `server/createNote_property_test.go`
     - **Property 1: CreateNote path canonicalization**
     - Generate valid directory paths and equivalent unclean forms, verify identical outcomes
     - **Validates: Requirements 1.1, 1.3**
-  - [ ]* 4.5 Write property test `TestProperty_NullByteTitlesRejected` in `server/createNote_property_test.go`
+  - [x]* 4.5 Write property test `TestProperty_NullByteTitlesRejected` in `server/createNote_property_test.go`
     - **Property 6: Null byte titles are rejected**
     - Generate strings containing null bytes, call CreateNote, verify `CodeInvalidArgument`
     - **Validates: Requirements 5.1**
-  - [ ]* 4.6 Write property test `TestProperty_CreateNoteDuplicateDetection` in `server/createNote_property_test.go`
+  - [x]* 4.6 Write property test `TestProperty_CreateNoteDuplicateDetection` in `server/createNote_property_test.go`
     - **Property 5: CreateNote duplicate detection**
     - Generate valid titles, call CreateNote twice, verify first succeeds and second returns `CodeAlreadyExists`
     - **Validates: Requirements 4.1, 4.2**
