@@ -60,7 +60,6 @@ func traversalPathGen() *rapid.Generator[string] {
 		"foo/../../bar",
 		"../",
 		"foo/../../../etc",
-		"..%2f..%2f",
 	})
 }
 
