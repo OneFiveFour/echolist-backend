@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 
@@ -22,19 +23,24 @@ func (s *NotesServer) UpdateNote(
 		return nil, err
 	}
 
-	fullPath := absPath
+	if _, err := os.Stat(absPath); err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("note not found"))
+		}
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to stat note: %w", err))
+	}
 
-	err = atomicwrite.File(fullPath, []byte(req.Content))
+	err = atomicwrite.File(absPath, []byte(req.Content))
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to update note: %w", err))
 	}
 
-	info, err := os.Stat(fullPath)
+	info, err := os.Stat(absPath)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to stat note after update: %w", err))
 	}
 
-	content, err := os.ReadFile(fullPath)
+	content, err := os.ReadFile(absPath)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to read note after update: %w", err))
 	}

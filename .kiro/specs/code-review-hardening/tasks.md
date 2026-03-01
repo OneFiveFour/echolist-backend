@@ -24,11 +24,11 @@ Harden the echolist-backend against 18 code review findings: security fixes (pat
   - [x] 2.2 Replace inline title extraction in `server/getNote.go`, `server/updateNote.go`, and `server/listNotes.go` with calls to `ExtractNoteTitle`
     - In GetNote and UpdateNote, return `connect.NewError(connect.CodeInternal, ...)` when extraction fails
     - _Requirements: 2.1, 2.2, 11.2, 11.3_
-  - [x]* 2.3 Write property test `TestProperty_ExtractNoteTitleNeverPanics` in `server/title_test.go`
+  - [x] 2.3 Write property test `TestProperty_ExtractNoteTitleNeverPanics` in `server/title_test.go`
     - **Property 2: Title extraction never panics**
     - Generate random strings of all lengths (including empty), call `ExtractNoteTitle`, verify no panic
     - **Validates: Requirements 2.1, 2.2, 2.3**
-  - [x]* 2.4 Write property test `TestProperty_TitleExtractionRoundTrip` in `server/title_test.go`
+  - [x] 2.4 Write property test `TestProperty_TitleExtractionRoundTrip` in `server/title_test.go`
     - **Property 3: Title extraction round-trip**
     - Generate valid titles (non-empty, no path separators, no null bytes), build filename as `"note_" + title + ".md"`, extract title, verify round-trip
     - **Validates: Requirements 11.4**
@@ -43,25 +43,25 @@ Harden the echolist-backend against 18 code review findings: security fixes (pat
     - _Requirements: 5.1, 5.2_
   - [x] 4.3 Add duplicate detection in `server/createNote.go` — check if file already exists before writing, return `CodeAlreadyExists` if so
     - _Requirements: 4.1, 4.2, 4.3_
-  - [x]* 4.4 Write property test `TestProperty_CreateNotePathCanonicalization` in `server/createNote_property_test.go`
+  - [x] 4.4 Write property test `TestProperty_CreateNotePathCanonicalization` in `server/createNote_property_test.go`
     - **Property 1: CreateNote path canonicalization**
     - Generate valid directory paths and equivalent unclean forms, verify identical outcomes
     - **Validates: Requirements 1.1, 1.3**
-  - [x]* 4.5 Write property test `TestProperty_NullByteTitlesRejected` in `server/createNote_property_test.go`
+  - [x] 4.5 Write property test `TestProperty_NullByteTitlesRejected` in `server/createNote_property_test.go`
     - **Property 6: Null byte titles are rejected**
     - Generate strings containing null bytes, call CreateNote, verify `CodeInvalidArgument`
     - **Validates: Requirements 5.1**
-  - [x]* 4.6 Write property test `TestProperty_CreateNoteDuplicateDetection` in `server/createNote_property_test.go`
+  - [x] 4.6 Write property test `TestProperty_CreateNoteDuplicateDetection` in `server/createNote_property_test.go`
     - **Property 5: CreateNote duplicate detection**
     - Generate valid titles, call CreateNote twice, verify first succeeds and second returns `CodeAlreadyExists`
     - **Validates: Requirements 4.1, 4.2**
 
-- [ ] 5. UpdateNote existence check and cleanup
-  - [ ] 5.1 Add existence check in `server/updateNote.go` — return `CodeNotFound` if file does not exist, before writing
+- [x] 5. UpdateNote existence check and cleanup
+  - [x] 5.1 Add existence check in `server/updateNote.go` — return `CodeNotFound` if file does not exist, before writing
     - _Requirements: 3.1, 3.2_
-  - [ ] 5.2 Remove no-op `fullPath := absPath` assignment in `server/updateNote.go` — use `absPath` directly
+  - [x] 5.2 Remove no-op `fullPath := absPath` assignment in `server/updateNote.go` — use `absPath` directly
     - _Requirements: 14.2_
-  - [ ]* 5.3 Write property test `TestProperty_UpdateNoteRejectsNonExistent` in `server/updateNote_property_test.go`
+  - [x] 5.3 Write property test `TestProperty_UpdateNoteRejectsNonExistent` in `server/updateNote_property_test.go`
     - **Property 4: UpdateNote rejects non-existent files**
     - Generate random non-existent file paths, call UpdateNote, verify `CodeNotFound` and no file created
     - **Validates: Requirements 3.1, 3.2**
@@ -106,15 +106,15 @@ Harden the echolist-backend against 18 code review findings: security fixes (pat
     - _Requirements: 9.1_
   - [ ] 10.6 Update existing auth tests to account for new token type claim
     - _Requirements: 6.4, 7.3_
-  - [ ]* 10.7 Write property test `TestProperty_TokenTypeRoundTrip` in `auth/token_service_test.go`
+  - [ ] 10.7 Write property test `TestProperty_TokenTypeRoundTrip` in `auth/token_service_test.go`
     - **Property 7: Token type round-trip**
     - Generate random usernames, generate access and refresh tokens, parse them, verify type claims
     - **Validates: Requirements 6.1, 6.2, 6.4**
-  - [ ]* 10.8 Write property test `TestProperty_InterceptorRejectsRefreshTokens` in `auth/interceptor_test.go`
+  - [ ] 10.8 Write property test `TestProperty_InterceptorRejectsRefreshTokens` in `auth/interceptor_test.go`
     - **Property 8: Auth interceptor rejects non-access tokens**
     - Generate random usernames, generate refresh tokens, use as bearer token, verify `CodeUnauthenticated`
     - **Validates: Requirements 6.3**
-  - [ ]* 10.9 Write property test `TestProperty_RefreshEndpointEnforcesTokenType` in `auth/auth_server_test.go`
+  - [ ] 10.9 Write property test `TestProperty_RefreshEndpointEnforcesTokenType` in `auth/auth_server_test.go`
     - **Property 9: RefreshToken endpoint enforces token type**
     - Generate access tokens, call RefreshToken, verify rejection; generate refresh tokens, verify success
     - **Validates: Requirements 7.1, 7.2**
@@ -123,7 +123,7 @@ Harden the echolist-backend against 18 code review findings: security fixes (pat
   - [ ] 11.1 Update `auth/user_store.go` — change `getUser` to return generic `"invalid credentials"` error instead of including the username
     - Ensure both "user not found" and "wrong password" paths return identical error messages
     - _Requirements: 18.1, 18.2, 18.3_
-  - [ ]* 11.2 Write property test `TestProperty_AuthErrorUniformity` in `auth/user_store_test.go`
+  - [ ] 11.2 Write property test `TestProperty_AuthErrorUniformity` in `auth/user_store_test.go`
     - **Property 10: Authentication error uniformity**
     - Generate random username/password pairs, authenticate with non-existent users and wrong passwords, verify all error messages are identical and contain no username
     - **Validates: Requirements 18.1, 18.2, 18.3**

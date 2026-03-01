@@ -13,8 +13,12 @@ func TestUpdateNote(t *testing.T) {
 	tmp := t.TempDir()
 	s := NewNotesServer(tmp)
 
-	// Ensure target directory exists because atomicWriteFile requires it
+	// Ensure target directory and file exist
 	if err := os.MkdirAll(filepath.Join(tmp, "a"), 0755); err != nil {
+		t.Fatal(err)
+	}
+	notePath := filepath.Join(tmp, "a", "note_b.md")
+	if err := os.WriteFile(notePath, []byte("old content"), 0644); err != nil {
 		t.Fatal(err)
 	}
 
