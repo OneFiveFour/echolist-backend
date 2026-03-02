@@ -2,6 +2,7 @@ package notes
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -43,13 +44,12 @@ func (s *NotesServer) CreateNote(
 	absoluteFilePath := filepath.Join(dirPath, filename)
 	relativeFilePath, _ := filepath.Rel(s.dataDir, absoluteFilePath)
 
-	// Check for existing file
-	if _, err := os.Stat(absoluteFilePath); err == nil {
-		return nil, connect.NewError(connect.CodeAlreadyExists, fmt.Errorf("note already exists"))
-	}
-
-	err = atomicwrite.File(absoluteFilePath, []byte(req.Content))
+	// Use exclusive create to avoid TOCTOU race between existence check and write.
+	err = atomicwrite.CreateExclusive(absoluteFilePath, []byte(req.Content))
 	if err != nil {
+		if errors.Is(err, os.ErrExist) {
+			return nil, connect.NewError(connect.CodeAlreadyExists, fmt.Errorf("note already exists"))
+		}
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to write note: %w", err))
 	}
 

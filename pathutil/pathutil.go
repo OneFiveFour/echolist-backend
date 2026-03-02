@@ -69,7 +69,9 @@ func resolveSymlinks(path string) (string, error) {
 
 // ValidatePath ensures a path doesn't escape the data directory root.
 // Returns the cleaned, symlink-resolved absolute path or an error.
-func ValidatePath(dataDir, relativePath string) (string, error) {
+// validatePath is the shared implementation for path validation.
+// When allowRoot is true, resolved == resolvedBase is permitted (for directory listing).
+func validatePath(dataDir, relativePath string, allowRoot bool) (string, error) {
 	cleaned := filepath.Join(dataDir, filepath.Clean(relativePath))
 
 	resolved, err := resolveSymlinks(cleaned)
@@ -82,31 +84,30 @@ func ValidatePath(dataDir, relativePath string) (string, error) {
 		return "", connect.NewError(connect.CodeInternal, fmt.Errorf("cannot resolve data directory: %w", err))
 	}
 
-	if !IsSubPath(resolvedBase, resolved) {
-		return "", connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("path escapes data directory"))
+	if allowRoot {
+		if resolved != resolvedBase && !IsSubPath(resolvedBase, resolved) {
+			return "", connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("path escapes data directory"))
+		}
+	} else {
+		if !IsSubPath(resolvedBase, resolved) {
+			return "", connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("path escapes data directory"))
+		}
 	}
 	return resolved, nil
 }
 
+// ValidatePath ensures a path doesn't escape the data directory root.
+// Returns the cleaned, symlink-resolved absolute path or an error.
+func ValidatePath(dataDir, relativePath string) (string, error) {
+	return validatePath(dataDir, relativePath, false)
+}
+
+// ValidateParentDir validates a directory path, allowing the data directory root itself.
+// Unlike ValidatePath, this permits relativePath="" which resolves to dataDir.
 // ValidateParentDir validates a directory path, allowing the data directory root itself.
 // Unlike ValidatePath, this permits relativePath="" which resolves to dataDir.
 func ValidateParentDir(dataDir, relativePath string) (string, error) {
-	cleaned := filepath.Clean(filepath.Join(dataDir, relativePath))
-
-	resolved, err := resolveSymlinks(cleaned)
-	if err != nil {
-		return "", connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("cannot resolve path: %w", err))
-	}
-
-	resolvedBase, err := resolveSymlinks(dataDir)
-	if err != nil {
-		return "", connect.NewError(connect.CodeInternal, fmt.Errorf("cannot resolve data directory: %w", err))
-	}
-
-	if resolved != resolvedBase && !IsSubPath(resolvedBase, resolved) {
-		return "", connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("path escapes data directory"))
-	}
-	return resolved, nil
+	return validatePath(dataDir, relativePath, true)
 }
 
 // ValidateName checks that a user-supplied name is safe to use as a single

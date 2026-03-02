@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"connectrpc.com/connect"
@@ -11,6 +12,14 @@ import (
 	"echolist-backend/pathutil"
 	filev1 "echolist-backend/proto/gen/file/v1"
 )
+
+// matchesFileType returns true if name has both the correct prefix and suffix
+// for the given file type, with at least one character between them.
+func matchesFileType(name string, ft pathutil.FileType) bool {
+	return strings.HasPrefix(name, ft.Prefix) &&
+		filepath.Ext(name) == ft.Suffix &&
+		len(name) > len(ft.Prefix)+len(ft.Suffix)
+}
 
 func (s *FileServer) ListFiles(
 	ctx context.Context,
@@ -36,7 +45,7 @@ func (s *FileServer) ListFiles(
 		name := e.Name()
 		if e.IsDir() {
 			name += "/"
-		} else if !strings.HasPrefix(name, pathutil.NoteFileType.Prefix) && !strings.HasPrefix(name, pathutil.TaskListFileType.Prefix) {
+		} else if !matchesFileType(name, pathutil.NoteFileType) && !matchesFileType(name, pathutil.TaskListFileType) {
 			continue
 		}
 		result = append(result, name)

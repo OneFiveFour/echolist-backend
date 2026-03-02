@@ -11,6 +11,7 @@ import (
 
 	"connectrpc.com/connect"
 
+	"echolist-backend/pathutil"
 	filev1 "echolist-backend/proto/gen/file/v1"
 	"pgregory.net/rapid"
 )
@@ -42,7 +43,7 @@ func TestProperty1_ListFilesReturnsImmediateChildren(t *testing.T) {
 		}
 
 		for i := 0; i < numFiles; i++ {
-			name := "note_" + folderNameGen().Draw(rt, "fileName")
+			name := "note_" + folderNameGen().Draw(rt, "fileName") + ".md"
 			lower := strings.ToLower(name)
 			if createdDirs[lower] || createdFiles[lower] {
 				continue
@@ -83,7 +84,7 @@ func TestProperty1_ListFilesReturnsImmediateChildren(t *testing.T) {
 			name := e.Name()
 			if e.IsDir() {
 				name += "/"
-			} else if !strings.HasPrefix(name, "note_") && !strings.HasPrefix(name, "tasks_") {
+			} else if !matchesFileType(name, pathutil.NoteFileType) && !matchesFileType(name, pathutil.TaskListFileType) {
 				continue
 			}
 			expected = append(expected, name)
@@ -252,9 +253,11 @@ func TestListFiles_RootPath(t *testing.T) {
 
 	// Create some children in the data directory
 	os.Mkdir(filepath.Join(dataDir, "folderA"), 0755)
-	os.WriteFile(filepath.Join(dataDir, "note_hello.txt"), []byte("hello"), 0644)
-	os.WriteFile(filepath.Join(dataDir, "tasks_todo.txt"), []byte("todo"), 0644)
-	os.WriteFile(filepath.Join(dataDir, "users.json"), []byte("{}"), 0644) // should be filtered
+	os.WriteFile(filepath.Join(dataDir, "note_hello.md"), []byte("hello"), 0644)
+	os.WriteFile(filepath.Join(dataDir, "tasks_todo.md"), []byte("todo"), 0644)
+	os.WriteFile(filepath.Join(dataDir, "note_hello.txt"), []byte("hello"), 0644)  // wrong suffix, should be filtered
+	os.WriteFile(filepath.Join(dataDir, "tasks_todo.txt"), []byte("todo"), 0644)   // wrong suffix, should be filtered
+	os.WriteFile(filepath.Join(dataDir, "users.json"), []byte("{}"), 0644)         // no matching prefix, should be filtered
 
 	resp, err := srv.ListFiles(context.Background(), &filev1.ListFilesRequest{
 		ParentDir: "",
@@ -271,11 +274,17 @@ func TestListFiles_RootPath(t *testing.T) {
 	if !entries["folderA/"] {
 		t.Fatal("expected 'folderA/' in entries")
 	}
-	if !entries["note_hello.txt"] {
-		t.Fatal("expected 'note_hello.txt' in entries")
+	if !entries["note_hello.md"] {
+		t.Fatal("expected 'note_hello.md' in entries")
 	}
-	if !entries["tasks_todo.txt"] {
-		t.Fatal("expected 'tasks_todo.txt' in entries")
+	if !entries["tasks_todo.md"] {
+		t.Fatal("expected 'tasks_todo.md' in entries")
+	}
+	if entries["note_hello.txt"] {
+		t.Fatal("'note_hello.txt' should be filtered out (wrong suffix)")
+	}
+	if entries["tasks_todo.txt"] {
+		t.Fatal("'tasks_todo.txt' should be filtered out (wrong suffix)")
 	}
 	if entries["users.json"] {
 		t.Fatal("'users.json' should be filtered out")

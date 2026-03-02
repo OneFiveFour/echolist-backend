@@ -2,6 +2,7 @@ package tasks
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -55,14 +56,12 @@ func (s *TaskServer) CreateTaskList(
 	filename := pathutil.TaskListFileType.Prefix + title + pathutil.TaskListFileType.Suffix
 	absPath := filepath.Join(dirPath, filename)
 
-	// Check for existing file
-	if _, err := os.Stat(absPath); err == nil {
-		return nil, connect.NewError(connect.CodeAlreadyExists, fmt.Errorf("task list already exists"))
-	}
-
-	// Write file atomically
+	// Use exclusive create to avoid TOCTOU race between existence check and write.
 	data := PrintTaskFile(domainTasks)
-	if err := atomicwrite.File(absPath, data); err != nil {
+	if err := atomicwrite.CreateExclusive(absPath, data); err != nil {
+		if errors.Is(err, os.ErrExist) {
+			return nil, connect.NewError(connect.CodeAlreadyExists, fmt.Errorf("task list already exists"))
+		}
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to write task file: %w", err))
 	}
 
