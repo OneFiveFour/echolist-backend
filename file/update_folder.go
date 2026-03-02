@@ -43,6 +43,7 @@ func (s *FileServer) UpdateFolder(
 		}
 	}
 	if err := os.Rename(oldPath, newPath); err != nil {
+		s.logger.Error("failed to rename folder", "path", req.GetFolderPath(), "newName", req.GetNewName(), "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to rename folder: %w", err))
 	}
 	relParent, err := filepath.Rel(s.dataDir, parentDir)

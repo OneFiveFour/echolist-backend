@@ -32,7 +32,7 @@ func TestProperty4_ValidCredentialsProduceValidTokens(t *testing.T) {
 		}
 
 		tokenService := NewTokenService(secret, 15*time.Minute, 7*24*time.Hour)
-		server := NewAuthServer(store, tokenService)
+		server := NewAuthServer(store, tokenService, nopLogger())
 
 		resp, err := server.Login(nil, loginRequest(username, password))
 		if err != nil {
@@ -102,7 +102,7 @@ func TestProperty8_ValidRefreshTokenProducesNewAccessToken(t *testing.T) {
 			rt.Fatal(err)
 		}
 
-		server := NewAuthServer(store, tokenService)
+		server := NewAuthServer(store, tokenService, nopLogger())
 
 		resp, err := server.RefreshToken(nil, refreshTokenRequest(refreshToken))
 		if err != nil {
@@ -136,7 +136,7 @@ func TestLogin_InvalidUsername(t *testing.T) {
 	}
 
 	tokenService := NewTokenService("testsecret123456", 15*time.Minute, 7*24*time.Hour)
-	server := NewAuthServer(store, tokenService)
+	server := NewAuthServer(store, tokenService, nopLogger())
 
 	_, err := server.Login(nil, loginRequest("nonexistent", "password123"))
 	if err == nil {
@@ -155,7 +155,7 @@ func TestLogin_WrongPassword(t *testing.T) {
 	}
 
 	tokenService := NewTokenService("testsecret123456", 15*time.Minute, 7*24*time.Hour)
-	server := NewAuthServer(store, tokenService)
+	server := NewAuthServer(store, tokenService, nopLogger())
 
 	_, err := server.Login(nil, loginRequest("admin", "wrongpassword"))
 	if err == nil {
@@ -174,7 +174,7 @@ func TestLogin_ErrorMessagesIdentical(t *testing.T) {
 	}
 
 	tokenService := NewTokenService("testsecret123456", 15*time.Minute, 7*24*time.Hour)
-	server := NewAuthServer(store, tokenService)
+	server := NewAuthServer(store, tokenService, nopLogger())
 
 	_, errBadUser := server.Login(nil, loginRequest("nonexistent", "password123"))
 	_, errBadPass := server.Login(nil, loginRequest("admin", "wrongpassword"))
@@ -209,7 +209,7 @@ func TestRefreshToken_ExpiredToken(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	server := NewAuthServer(store, serverTokenService)
+	server := NewAuthServer(store, serverTokenService, nopLogger())
 
 	// Wait briefly to ensure the token is expired
 	time.Sleep(10 * time.Millisecond)
@@ -234,7 +234,7 @@ func TestRefreshToken_MalformedToken(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	server := NewAuthServer(store, tokenService)
+	server := NewAuthServer(store, tokenService, nopLogger())
 
 	_, err := server.RefreshToken(nil, refreshTokenRequest("not-a-valid-jwt"))
 	if err == nil {
@@ -293,7 +293,7 @@ func TestProperty_RefreshEndpointEnforcesTokenType(t *testing.T) {
 			rt.Fatal(err)
 		}
 
-		server := NewAuthServer(store, tokenService)
+		server := NewAuthServer(store, tokenService, nopLogger())
 
 		// Part 1: Access token should be rejected by RefreshToken endpoint
 		accessToken, err := tokenService.GenerateAccessToken(username)

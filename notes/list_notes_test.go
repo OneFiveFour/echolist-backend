@@ -28,7 +28,7 @@ func TestListNotes_ShallowListing(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	s := NewNotesServer(tmp)
+	s := NewNotesServer(tmp, nopLogger())
 
 	resp, err := s.ListNotes(context.Background(), &pb.ListNotesRequest{})
 	if err != nil {
@@ -60,7 +60,7 @@ func TestListNotes_SubfolderPath(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	s := NewNotesServer(tmp)
+	s := NewNotesServer(tmp, nopLogger())
 
 	resp, err := s.ListNotes(context.Background(), &pb.ListNotesRequest{ParentDir: "sub"})
 	if err != nil {

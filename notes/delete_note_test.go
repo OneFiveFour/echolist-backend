@@ -11,7 +11,7 @@ import (
 
 func TestDeleteNote(t *testing.T) {
 	tmp := t.TempDir()
-	s := NewNotesServer(tmp)
+	s := NewNotesServer(tmp, nopLogger())
 
 	path := filepath.Join(tmp, "note_todelete.md")
 	if err := os.WriteFile(path, []byte("bye"), 0644); err != nil {

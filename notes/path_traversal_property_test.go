@@ -37,7 +37,7 @@ func TestProperty_PathTraversalRejection(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		traversalPath := traversalPathGen().Draw(rt, "traversalPath")
 		tmpDir := t.TempDir()
-		srv := NewNotesServer(tmpDir)
+		srv := NewNotesServer(tmpDir, nopLogger())
 		ctx := context.Background()
 
 		// CreateNote: path field is the directory

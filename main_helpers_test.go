@@ -2,11 +2,16 @@ package main
 
 import (
 	"io"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 )
+
+func testLogger() *slog.Logger {
+	return slog.New(slog.NewTextHandler(io.Discard, nil))
+}
 
 // ---------------------------------------------------------------------------
 // envOrDefault
@@ -33,7 +38,7 @@ func TestEnvOrDefault_Unset(t *testing.T) {
 
 func TestParseDurationMinutesEnv_Default(t *testing.T) {
 	t.Setenv("TEST_PARSE_DUR", "")
-	d := parseDurationMinutesEnv("TEST_PARSE_DUR", 30)
+	d := parseDurationMinutesEnv(testLogger(), "TEST_PARSE_DUR", 30)
 	if d.Minutes() != 30 {
 		t.Errorf("expected 30m, got %v", d)
 	}
@@ -41,7 +46,7 @@ func TestParseDurationMinutesEnv_Default(t *testing.T) {
 
 func TestParseDurationMinutesEnv_CustomValue(t *testing.T) {
 	t.Setenv("TEST_PARSE_DUR2", "120")
-	d := parseDurationMinutesEnv("TEST_PARSE_DUR2", 15)
+	d := parseDurationMinutesEnv(testLogger(), "TEST_PARSE_DUR2", 15)
 	if d.Minutes() != 120 {
 		t.Errorf("expected 120m, got %v", d)
 	}

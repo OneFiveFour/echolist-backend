@@ -29,7 +29,7 @@ func TestProperty_NotFoundReturnsCodeNotFound(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		filePath := nonExistentFilePathGen().Draw(rt, "filePath")
 		tmpDir := t.TempDir()
-		srv := NewNotesServer(tmpDir)
+		srv := NewNotesServer(tmpDir, nopLogger())
 		ctx := context.Background()
 
 		// GetNote with non-existent file should return CodeNotFound

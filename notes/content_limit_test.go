@@ -16,7 +16,7 @@ import (
 
 func TestCreateNote_ContentTooLarge(t *testing.T) {
 	dataDir := t.TempDir()
-	server := NewNotesServer(dataDir)
+	server := NewNotesServer(dataDir, nopLogger())
 
 	oversized := strings.Repeat("x", pathutil.MaxNoteContentBytes+1)
 
@@ -40,7 +40,7 @@ func TestCreateNote_ContentTooLarge(t *testing.T) {
 
 func TestCreateNote_ContentAtLimit(t *testing.T) {
 	dataDir := t.TempDir()
-	server := NewNotesServer(dataDir)
+	server := NewNotesServer(dataDir, nopLogger())
 
 	content := strings.Repeat("x", pathutil.MaxNoteContentBytes)
 
@@ -59,7 +59,7 @@ func TestCreateNote_ContentAtLimit(t *testing.T) {
 
 func TestUpdateNote_ContentTooLarge(t *testing.T) {
 	dataDir := t.TempDir()
-	server := NewNotesServer(dataDir)
+	server := NewNotesServer(dataDir, nopLogger())
 
 	// Create a note file to update
 	notePath := filepath.Join(dataDir, "note_test.md")
@@ -94,7 +94,7 @@ func TestUpdateNote_ContentTooLarge(t *testing.T) {
 
 func TestCreateNote_TitleTooLong(t *testing.T) {
 	dataDir := t.TempDir()
-	server := NewNotesServer(dataDir)
+	server := NewNotesServer(dataDir, nopLogger())
 
 	longTitle := strings.Repeat("a", pathutil.MaxNameLen+1)
 

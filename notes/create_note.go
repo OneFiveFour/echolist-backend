@@ -53,11 +53,13 @@ func (s *NotesServer) CreateNote(
 		if errors.Is(err, os.ErrExist) {
 			return nil, connect.NewError(connect.CodeAlreadyExists, fmt.Errorf("note already exists"))
 		}
+		s.logger.Error("failed to write note", "path", relativeFilePath, "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to write note: %w", err))
 	}
 
 	info, err := os.Stat(absoluteFilePath)
 	if err != nil {
+		s.logger.Error("failed to stat note after create", "path", relativeFilePath, "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to stat note after create: %w", err))
 	}
 

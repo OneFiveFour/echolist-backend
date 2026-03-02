@@ -11,7 +11,7 @@ import (
 
 func TestGetNote(t *testing.T) {
 	tmp := t.TempDir()
-	s := NewNotesServer(tmp)
+	s := NewNotesServer(tmp, nopLogger())
 
 	if err := os.WriteFile(filepath.Join(tmp, "note_mytest.md"), []byte("abc"), 0644); err != nil {
 		t.Fatal(err)

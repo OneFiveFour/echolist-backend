@@ -52,7 +52,7 @@ func TestProperty7_ListNotesImmediateChildrenFormatting(t *testing.T) {
 			}
 		}
 
-		srv := NewNotesServer(tmp)
+		srv := NewNotesServer(tmp, nopLogger())
 		resp, err := srv.ListNotes(context.Background(), &pb.ListNotesRequest{})
 		if err != nil {
 			rt.Fatalf("ListNotes failed: %v", err)
@@ -101,7 +101,7 @@ func TestProperty8_ListNotesShallowListing(t *testing.T) {
 			rt.Fatal(err)
 		}
 
-		srv := NewNotesServer(tmp)
+		srv := NewNotesServer(tmp, nopLogger())
 		resp, err := srv.ListNotes(context.Background(), &pb.ListNotesRequest{})
 		if err != nil {
 			rt.Fatalf("ListNotes failed: %v", err)
@@ -195,7 +195,7 @@ func TestProperty2_ListNotesExcludesNonNoteFiles(t *testing.T) {
 			os.MkdirAll(filepath.Join(tmp, name), 0755)
 		}
 
-		srv := NewNotesServer(tmp)
+		srv := NewNotesServer(tmp, nopLogger())
 		resp, err := srv.ListNotes(context.Background(), &pb.ListNotesRequest{})
 		if err != nil {
 			rt.Fatalf("ListNotes failed: %v", err)
@@ -257,7 +257,7 @@ func TestProperty_ListNotesExcludesDirectories(t *testing.T) {
 			}
 		}
 
-		srv := NewNotesServer(tmp)
+		srv := NewNotesServer(tmp, nopLogger())
 		resp, err := srv.ListNotes(context.Background(), &pb.ListNotesRequest{})
 		if err != nil {
 			rt.Fatalf("ListNotes failed: %v", err)

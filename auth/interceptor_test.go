@@ -42,7 +42,7 @@ func authHeaderInterceptor(token string) connect.UnaryInterceptorFunc {
 // setupTestServer creates an httptest.Server with both auth and notes handlers,
 // wired through the auth interceptor.
 func setupTestServer(tokenService *TokenService) (*httptest.Server, *contextCapturingNotesHandler) {
-	interceptor := NewAuthInterceptor(tokenService)
+	interceptor := NewAuthInterceptor(tokenService, nopLogger())
 	interceptors := connect.WithInterceptors(interceptor)
 
 	mux := http.NewServeMux()

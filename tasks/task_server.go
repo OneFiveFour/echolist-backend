@@ -1,6 +1,7 @@
 package tasks
 
 import (
+	"log/slog"
 	"time"
 
 	"echolist-backend/pathlock"
@@ -14,11 +15,12 @@ type TaskServer struct {
 	tasksv1connect.UnimplementedTaskListServiceHandler
 	dataDir string
 	locks   pathlock.Locker
+	logger  *slog.Logger
 }
 
 // NewTaskServer creates a new TaskServer rooted at dataDir.
-func NewTaskServer(dataDir string) *TaskServer {
-	return &TaskServer{dataDir: dataDir}
+func NewTaskServer(dataDir string, logger *slog.Logger) *TaskServer {
+	return &TaskServer{dataDir: dataDir, logger: logger.With("service", "tasks")}
 }
 
 // protoToMainTasks converts proto MainTask messages to domain types.

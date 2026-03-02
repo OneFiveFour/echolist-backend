@@ -68,7 +68,7 @@ func traversalPathGen() *rapid.Generator[string] {
 func TestProperty5_CreatedTaskListsUseTasksPrefix(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		tmp := t.TempDir()
-		srv := NewTaskServer(tmp)
+		srv := NewTaskServer(tmp, nopLogger())
 		name := validNameGen().Draw(rt, "name")
 		tasks := simpleTaskListGen().Draw(rt, "tasks")
 
@@ -95,7 +95,7 @@ func TestProperty5_CreatedTaskListsUseTasksPrefix(t *testing.T) {
 func TestProperty6_TaskListCreateThenGetRoundTrip(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		tmp := t.TempDir()
-		srv := NewTaskServer(tmp)
+		srv := NewTaskServer(tmp, nopLogger())
 		name := validNameGen().Draw(rt, "name")
 		tasks := simpleTaskListGen().Draw(rt, "tasks")
 
@@ -146,7 +146,7 @@ func TestProperty6_TaskListCreateThenGetRoundTrip(t *testing.T) {
 func TestProperty7_DuplicateNameReturnsAlreadyExists(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		tmp := t.TempDir()
-		srv := NewTaskServer(tmp)
+		srv := NewTaskServer(tmp, nopLogger())
 		name := validNameGen().Draw(rt, "name")
 		tasks := simpleTaskListGen().Draw(rt, "tasks")
 
@@ -176,7 +176,7 @@ func TestProperty7_DuplicateNameReturnsAlreadyExists(t *testing.T) {
 func TestProperty8_NonExistentPathsReturnNotFound(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		tmp := t.TempDir()
-		srv := NewTaskServer(tmp)
+		srv := NewTaskServer(tmp, nopLogger())
 		name := validNameGen().Draw(rt, "name")
 		fakePath := "tasks_" + name + ".md"
 
@@ -203,7 +203,7 @@ func TestProperty8_NonExistentPathsReturnNotFound(t *testing.T) {
 func TestProperty9_MutualExclusionDueDateAndRecurrence(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		tmp := t.TempDir()
-		srv := NewTaskServer(tmp)
+		srv := NewTaskServer(tmp, nopLogger())
 		name := validNameGen().Draw(rt, "name")
 		dueDate := validDueDateGen().Draw(rt, "due")
 		rrule := validRRuleGen().Draw(rt, "rrule")
@@ -230,7 +230,7 @@ func TestProperty9_MutualExclusionDueDateAndRecurrence(t *testing.T) {
 func TestProperty10_ValidRRuleProducesComputedDueDate(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		tmp := t.TempDir()
-		srv := NewTaskServer(tmp)
+		srv := NewTaskServer(tmp, nopLogger())
 		name := validNameGen().Draw(rt, "name")
 		rrule := validRRuleGen().Draw(rt, "rrule")
 
@@ -263,7 +263,7 @@ func TestProperty10_ValidRRuleProducesComputedDueDate(t *testing.T) {
 func TestProperty11_RecurringTaskDoneAdvanceCycle(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		tmp := t.TempDir()
-		srv := NewTaskServer(tmp)
+		srv := NewTaskServer(tmp, nopLogger())
 		name := validNameGen().Draw(rt, "name")
 		rrule := validRRuleGen().Draw(rt, "rrule")
 
@@ -308,7 +308,7 @@ func TestProperty11_RecurringTaskDoneAdvanceCycle(t *testing.T) {
 func TestProperty12_InvalidRRuleRejected(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		tmp := t.TempDir()
-		srv := NewTaskServer(tmp)
+		srv := NewTaskServer(tmp, nopLogger())
 		name := validNameGen().Draw(rt, "name")
 		badRule := invalidRRuleGen().Draw(rt, "badRule")
 
@@ -333,7 +333,7 @@ func TestProperty12_InvalidRRuleRejected(t *testing.T) {
 func TestProperty13_PathTraversalPrevention(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		tmp := t.TempDir()
-		srv := NewTaskServer(tmp)
+		srv := NewTaskServer(tmp, nopLogger())
 		badPath := traversalPathGen().Draw(rt, "badPath")
 
 		// CreateTaskList
@@ -386,7 +386,7 @@ func TestProperty13_PathTraversalPrevention(t *testing.T) {
 func TestProperty3_ListTaskListsExcludesNonTaskFiles(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		tmp := t.TempDir()
-		srv := NewTaskServer(tmp)
+		srv := NewTaskServer(tmp, nopLogger())
 
 		usedNames := make(map[string]bool)
 
@@ -465,7 +465,7 @@ func TestProperty3_ListTaskListsExcludesNonTaskFiles(t *testing.T) {
 func TestProperty15_NonExistentParentDirRejected(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		tmp := t.TempDir()
-		srv := NewTaskServer(tmp)
+		srv := NewTaskServer(tmp, nopLogger())
 		name := validNameGen().Draw(rt, "name")
 
 		// Generate a nested path that doesn't exist
@@ -498,7 +498,7 @@ func TestProperty15_NonExistentParentDirRejected(t *testing.T) {
 func TestProperty16_DeleteRemovesTaskListFromDisk(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		tmp := t.TempDir()
-		srv := NewTaskServer(tmp)
+		srv := NewTaskServer(tmp, nopLogger())
 		name := validNameGen().Draw(rt, "name")
 
 		createResp, err := srv.CreateTaskList(context.Background(), &pb.CreateTaskListRequest{

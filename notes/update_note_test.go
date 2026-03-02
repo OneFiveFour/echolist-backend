@@ -11,7 +11,7 @@ import (
 
 func TestUpdateNote(t *testing.T) {
 	tmp := t.TempDir()
-	s := NewNotesServer(tmp)
+	s := NewNotesServer(tmp, nopLogger())
 
 	// Ensure target directory and file exist
 	if err := os.MkdirAll(filepath.Join(tmp, "a"), 0755); err != nil {

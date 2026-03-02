@@ -19,7 +19,7 @@ import (
 func TestProperty_UpdateNoteRejectsNonExistent(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		tmp := t.TempDir()
-		srv := NewNotesServer(tmp)
+		srv := NewNotesServer(tmp, nopLogger())
 		ctx := context.Background()
 
 		// Generate a valid-looking note file path that doesn't exist on disk.

@@ -38,21 +38,25 @@ func (s *NotesServer) UpdateNote(
 		if errors.Is(err, os.ErrNotExist) {
 			return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("note not found"))
 		}
+		s.logger.Error("failed to stat note", "path", req.GetFilePath(), "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to stat note: %w", err))
 	}
 
 	err = atomicwrite.File(absPath, []byte(req.Content))
 	if err != nil {
+		s.logger.Error("failed to update note", "path", req.GetFilePath(), "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to update note: %w", err))
 	}
 
 	info, err := os.Stat(absPath)
 	if err != nil {
+		s.logger.Error("failed to stat note after update", "path", req.GetFilePath(), "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to stat note after update: %w", err))
 	}
 
 	title, err := ExtractNoteTitle(info.Name())
 	if err != nil {
+		s.logger.Error("failed to extract note title", "path", req.GetFilePath(), "error", err)
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 

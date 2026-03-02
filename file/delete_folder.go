@@ -35,6 +35,7 @@ func (s *FileServer) DeleteFolder(
 
 	// Remove folder and all contents
 	if err := os.RemoveAll(target); err != nil {
+		s.logger.Error("failed to delete folder", "path", req.GetFolderPath(), "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to delete folder: %w", err))
 	}
 	

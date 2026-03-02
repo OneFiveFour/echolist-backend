@@ -14,7 +14,7 @@ import (
 func TestProperty_CreateGetRoundTripTaskListMessage(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		tmp := t.TempDir()
-		srv := NewTaskServer(tmp)
+		srv := NewTaskServer(tmp, nopLogger())
 		name := validNameGen().Draw(rt, "name")
 		tasks := simpleTaskListGen().Draw(rt, "tasks")
 
@@ -95,7 +95,7 @@ func TestProperty_CreateGetRoundTripTaskListMessage(t *testing.T) {
 func TestProperty_UpdateReturnsTaskListMessage(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		tmp := t.TempDir()
-		srv := NewTaskServer(tmp)
+		srv := NewTaskServer(tmp, nopLogger())
 		name := validNameGen().Draw(rt, "name")
 		initialTasks := simpleTaskListGen().Draw(rt, "initialTasks")
 
@@ -162,7 +162,7 @@ func TestProperty_UpdateReturnsTaskListMessage(t *testing.T) {
 func TestProperty_ListReturnsFullTaskListMessages(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		tmp := t.TempDir()
-		srv := NewTaskServer(tmp)
+		srv := NewTaskServer(tmp, nopLogger())
 
 		// Create 1-4 task lists with unique names
 		numLists := rapid.IntRange(1, 4).Draw(rt, "numLists")

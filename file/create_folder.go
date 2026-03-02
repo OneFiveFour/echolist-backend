@@ -42,6 +42,7 @@ func (s *FileServer) CreateFolder(
 	}
 
 	if err := os.Mkdir(newDir, 0755); err != nil {
+		s.logger.Error("failed to create folder", "path", req.GetParentDir()+"/"+req.GetName(), "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to create folder: %w", err))
 	}
 

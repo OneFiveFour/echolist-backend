@@ -21,7 +21,7 @@ import (
 func TestProperty1_ListFilesReturnsImmediateChildren(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		dataDir := t.TempDir()
-		srv := NewFileServer(dataDir)
+		srv := NewFileServer(dataDir, nopLogger())
 
 		// Generate a random number of subdirectories and files
 		numDirs := rapid.IntRange(0, 5).Draw(rt, "numDirs")
@@ -138,7 +138,7 @@ func TestProperty2_ListFilesNonExistentPathNotFound(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		name := folderNameGen().Draw(rt, "nonExistentPath")
 		dataDir := t.TempDir()
-		srv := NewFileServer(dataDir)
+		srv := NewFileServer(dataDir, nopLogger())
 
 		_, err := srv.ListFiles(context.Background(), &filev1.ListFilesRequest{
 			ParentDir: name,
@@ -162,7 +162,7 @@ func TestProperty3_ListFilesFilePathNotFound(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		fileName := folderNameGen().Draw(rt, "fileName")
 		dataDir := t.TempDir()
-		srv := NewFileServer(dataDir)
+		srv := NewFileServer(dataDir, nopLogger())
 
 		// Create a regular file
 		filePath := filepath.Join(dataDir, fileName)
@@ -206,7 +206,7 @@ func TestProperty4_ListFilesPathTraversalInvalidArgument(t *testing.T) {
 		traversalPath += suffix
 
 		dataDir := t.TempDir()
-		srv := NewFileServer(dataDir)
+		srv := NewFileServer(dataDir, nopLogger())
 
 		_, err := srv.ListFiles(context.Background(), &filev1.ListFilesRequest{
 			ParentDir: traversalPath,
@@ -227,7 +227,7 @@ func TestProperty4_ListFilesPathTraversalInvalidArgument(t *testing.T) {
 // Validates: Requirements 3.1, 3.4
 func TestListFiles_EmptyDirectory(t *testing.T) {
 	dataDir := t.TempDir()
-	srv := NewFileServer(dataDir)
+	srv := NewFileServer(dataDir, nopLogger())
 
 	// Create an empty subdirectory
 	emptyDir := "emptydir"
@@ -249,7 +249,7 @@ func TestListFiles_EmptyDirectory(t *testing.T) {
 // Validates: Requirements 3.1, 3.4
 func TestListFiles_RootPath(t *testing.T) {
 	dataDir := t.TempDir()
-	srv := NewFileServer(dataDir)
+	srv := NewFileServer(dataDir, nopLogger())
 
 	// Create some children in the data directory
 	os.Mkdir(filepath.Join(dataDir, "folderA"), 0755)

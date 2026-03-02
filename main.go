@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -18,6 +18,7 @@ import (
 
 	"echolist-backend/auth"
 	"echolist-backend/file"
+	"echolist-backend/logging"
 	authv1connect "echolist-backend/proto/gen/auth/v1/authv1connect"
 	filev1connect "echolist-backend/proto/gen/file/v1/filev1connect"
 	notesv1connect "echolist-backend/proto/gen/notes/v1/notesv1connect"
@@ -39,14 +40,15 @@ func envOrDefault(key, defaultVal string) string {
 // parseDurationMinutesEnv reads an environment variable as an integer number
 // of minutes and returns it as a time.Duration. If the variable is not set,
 // defaultMinutes is used. The program exits fatally on parse errors.
-func parseDurationMinutesEnv(key string, defaultMinutes int) time.Duration {
+func parseDurationMinutesEnv(logger *slog.Logger, key string, defaultMinutes int) time.Duration {
 	raw := os.Getenv(key)
 	if raw == "" {
 		return time.Duration(defaultMinutes) * time.Minute
 	}
 	minutes, err := strconv.Atoi(raw)
 	if err != nil {
-		log.Fatalf("Invalid value for %s: %q (expected integer minutes)", key, raw)
+		logger.Error("invalid env value", "key", key, "value", raw, "expected", "integer minutes")
+		os.Exit(1)
 	}
 	return time.Duration(minutes) * time.Minute
 }
@@ -60,6 +62,12 @@ func maxBytesMiddleware(maxBytes int64, next http.Handler) http.Handler {
 }
 
 func main() {
+	// Initialize structured logger
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+		Level: slog.LevelInfo,
+	}))
+	slog.SetDefault(logger)
+
 	// Get data directory from environment variable, default to "./data"
 	dataDir := os.Getenv("DATA_DIR")
 	if dataDir == "" {
@@ -69,11 +77,12 @@ func main() {
 	// Auth configuration
 	jwtSecret := os.Getenv("JWT_SECRET")
 	if jwtSecret == "" {
-		log.Fatal("JWT_SECRET environment variable is required")
+		logger.Error("JWT_SECRET environment variable is required")
+		os.Exit(1)
 	}
 
-	accessTtl := parseDurationMinutesEnv("ACCESS_TOKEN_EXPIRY_MINUTES", 15)
-	refreshTtl := parseDurationMinutesEnv("REFRESH_TOKEN_EXPIRY_MINUTES", 10080) // 7 days
+	accessTtl := parseDurationMinutesEnv(logger, "ACCESS_TOKEN_EXPIRY_MINUTES", 15)
+	refreshTtl := parseDurationMinutesEnv(logger, "REFRESH_TOKEN_EXPIRY_MINUTES", 10080) // 7 days
 
 	// Initialize auth components — users.json lives outside the data directory
 	userStore := auth.NewUserStore(filepath.Join("auth", "users.json"))
@@ -82,12 +91,14 @@ func main() {
 		os.Getenv("AUTH_DEFAULT_PASSWORD"),
 	)
 	if err != nil {
-		log.Fatalf("Failed to initialize user store: %v", err)
+		logger.Error("failed to initialize user store", "error", err)
+		os.Exit(1)
 	}
 
 	tokenService := auth.NewTokenService(jwtSecret, accessTtl, refreshTtl)
-	authInterceptor := auth.NewAuthInterceptor(tokenService)
-	interceptors := connect.WithInterceptors(authInterceptor)
+	authInterceptor := auth.NewAuthInterceptor(tokenService, logger)
+	loggingInterceptor := logging.NewRequestLoggingInterceptor(logger)
+	interceptors := connect.WithInterceptors(loggingInterceptor, authInterceptor)
 
 	// Register handlers
 	mux := http.NewServeMux()
@@ -102,25 +113,25 @@ func main() {
 	mux.HandleFunc("/healthz", healthzHandler(dataDir, userStore))
 
 	notesPath, notesHandler := notesv1connect.NewNoteServiceHandler(
-		notes.NewNotesServer(dataDir),
+		notes.NewNotesServer(dataDir, logger),
 		interceptors,
 	)
 	mux.Handle(notesPath, notesHandler)
 
 	authPath, authHandler := authv1connect.NewAuthServiceHandler(
-		auth.NewAuthServer(userStore, tokenService),
+		auth.NewAuthServer(userStore, tokenService, logger),
 		interceptors,
 	)
 	mux.Handle(authPath, authHandler)
 
 	filePath, fileHandler := filev1connect.NewFileServiceHandler(
-		file.NewFileServer(dataDir),
+		file.NewFileServer(dataDir, logger),
 		interceptors,
 	)
 	mux.Handle(filePath, fileHandler)
 
 	tasksPath, tasksHandler := tasksv1connect.NewTaskListServiceHandler(
-		tasks.NewTaskServer(dataDir),
+		tasks.NewTaskServer(dataDir, logger),
 		interceptors,
 	)
 	mux.Handle(tasksPath, tasksHandler)
@@ -136,15 +147,19 @@ func main() {
 	mux.Handle(grpcreflect.NewHandlerV1Alpha(reflector))
 
 	address := ":8080"
-	log.Printf("Authentication enabled. Access token TTL: %v, Refresh token TTL: %v", accessTtl, refreshTtl)
-	log.Println("ConnectRPC Server listening on", address)
+	logger.Info("server starting",
+		"address", address,
+		"accessTokenTTL", accessTtl.String(),
+		"refreshTokenTTL", refreshTtl.String(),
+	)
 
 	// Request size limit
 	maxBodyBytes := int64(4194304) // 4MB default
 	if raw := os.Getenv("MAX_REQUEST_BODY_BYTES"); raw != "" {
 		parsed, err := strconv.ParseInt(raw, 10, 64)
 		if err != nil {
-			log.Fatalf("Invalid value for MAX_REQUEST_BODY_BYTES: %q", raw)
+			logger.Error("invalid env value", "key", "MAX_REQUEST_BODY_BYTES", "value", raw)
+			os.Exit(1)
 		}
 		maxBodyBytes = parsed
 	}
@@ -156,7 +171,8 @@ func main() {
 	if raw := os.Getenv("SHUTDOWN_TIMEOUT_SECONDS"); raw != "" {
 		secs, err := strconv.Atoi(raw)
 		if err != nil {
-			log.Fatalf("Invalid value for SHUTDOWN_TIMEOUT_SECONDS: %q", raw)
+			logger.Error("invalid env value", "key", "SHUTDOWN_TIMEOUT_SECONDS", "value", raw)
+			os.Exit(1)
 		}
 		shutdownTimeout = time.Duration(secs) * time.Second
 	}
@@ -173,18 +189,19 @@ func main() {
 		sigCh := make(chan os.Signal, 1)
 		signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
 		<-sigCh
-		log.Println("Shutting down server...")
+		logger.Info("shutting down server")
 		ctx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
 		defer cancel()
 		if err := srv.Shutdown(ctx); err != nil {
-			log.Printf("Shutdown error: %v", err)
+			logger.Error("shutdown error", "error", err)
 		}
-		log.Println("Server shutdown complete")
+		logger.Info("server shutdown complete")
 	}()
 
 	// Enable HTTP/2 support for gRPC clients
 	if err := srv.ListenAndServe(); err != http.ErrServerClosed {
-		log.Fatal(err)
+		logger.Error("server failed", "error", err)
+		os.Exit(1)
 	}
 }
 

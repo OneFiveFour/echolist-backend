@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"strings"
 
 	"connectrpc.com/connect"
@@ -29,7 +30,7 @@ var publicProcedures = map[string]bool{
 
 // NewAuthInterceptor returns a connect.UnaryInterceptorFunc that validates
 // JWT tokens for all non-public procedures.
-func NewAuthInterceptor(tokenService *TokenService) connect.UnaryInterceptorFunc {
+func NewAuthInterceptor(tokenService *TokenService, logger *slog.Logger) connect.UnaryInterceptorFunc {
 	return connect.UnaryInterceptorFunc(func(next connect.UnaryFunc) connect.UnaryFunc {
 		return connect.UnaryFunc(func(ctx context.Context, req connect.AnyRequest) (connect.AnyResponse, error) {
 			// Allow public procedures without authentication.
@@ -40,11 +41,13 @@ func NewAuthInterceptor(tokenService *TokenService) connect.UnaryInterceptorFunc
 			// Extract Authorization header.
 			authHeader := req.Header().Get("Authorization")
 			if authHeader == "" {
+				logger.Warn("missing authorization header", "procedure", req.Spec().Procedure)
 				return nil, connect.NewError(connect.CodeUnauthenticated, fmt.Errorf("missing authorization header"))
 			}
 
 			// Validate Bearer prefix.
 			if !strings.HasPrefix(authHeader, "Bearer ") {
+				logger.Warn("malformed authorization header", "procedure", req.Spec().Procedure)
 				return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("malformed authorization header, expected: Bearer <token>"))
 			}
 
@@ -54,13 +57,16 @@ func NewAuthInterceptor(tokenService *TokenService) connect.UnaryInterceptorFunc
 			claims, err := tokenService.ValidateToken(tokenStr)
 			if err != nil {
 				if strings.Contains(err.Error(), "expired") {
+					logger.Debug("expired token", "procedure", req.Spec().Procedure)
 					return nil, connect.NewError(connect.CodeUnauthenticated, fmt.Errorf("token expired"))
 				}
+				logger.Warn("invalid token", "procedure", req.Spec().Procedure, "error", err)
 				return nil, connect.NewError(connect.CodeUnauthenticated, fmt.Errorf("invalid token"))
 			}
 
 			// Reject non-access tokens.
 			if claims.TokenType != "access" {
+				logger.Warn("invalid token type", "procedure", req.Spec().Procedure, "tokenType", claims.TokenType)
 				return nil, connect.NewError(connect.CodeUnauthenticated, fmt.Errorf("invalid token type"))
 			}
 

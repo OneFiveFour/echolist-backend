@@ -65,6 +65,7 @@ func (s *TaskServer) CreateTaskList(
 		if errors.Is(err, os.ErrExist) {
 			return nil, connect.NewError(connect.CodeAlreadyExists, fmt.Errorf("task list already exists"))
 		}
+		s.logger.Error("failed to write task file", "path", absPath, "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to write task file: %w", err))
 	}
 

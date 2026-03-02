@@ -31,21 +31,25 @@ func (s *TaskServer) GetTaskList(
 		if errors.Is(err, os.ErrNotExist) {
 			return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("task list not found"))
 		}
+		s.logger.Error("failed to read task file", "path", req.GetFilePath(), "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to read task file: %w", err))
 	}
 
 	data, err := os.ReadFile(absPath)
 	if err != nil {
+		s.logger.Error("failed to read task file", "path", req.GetFilePath(), "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to read task file: %w", err))
 	}
 
 	domainTasks, err := ParseTaskFile(data)
 	if err != nil {
+		s.logger.Error("failed to parse task file", "path", req.GetFilePath(), "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to parse task file: %w", err))
 	}
 
 	title, err := ExtractTaskListTitle(filepath.Base(absPath))
 	if err != nil {
+		s.logger.Error("invalid task list filename", "path", req.GetFilePath(), "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("invalid task list filename: %w", err))
 	}
 

@@ -19,7 +19,7 @@ func TestProperty3_CreateFolderReturnsCorrectFolder(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		name := folderNameGen().Draw(rt, "folderName")
 		dataDir := t.TempDir()
-		srv := NewFileServer(dataDir)
+		srv := NewFileServer(dataDir, nopLogger())
 		resp, err := srv.CreateFolder(context.Background(), &filev1.CreateFolderRequest{
 			ParentDir: "",
 			Name:       name,
@@ -48,7 +48,7 @@ func TestProperty5_UpdateFolderReturnsRenamedFolder(t *testing.T) {
 			rt.Skip("old and new names are equal")
 		}
 		dataDir := t.TempDir()
-		srv := NewFileServer(dataDir)
+		srv := NewFileServer(dataDir, nopLogger())
 		_, err := srv.CreateFolder(context.Background(), &filev1.CreateFolderRequest{
 			Name: oldName,
 		})
@@ -79,7 +79,7 @@ func TestProperty6_ListFilesReturnsImmediateChildren(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		numChildren := rapid.IntRange(0, 5).Draw(rt, "numChildren")
 		dataDir := t.TempDir()
-		srv := NewFileServer(dataDir)
+		srv := NewFileServer(dataDir, nopLogger())
 		created := make(map[string]bool)
 		for i := 0; i < numChildren; i++ {
 			name := folderNameGen().Draw(rt, "childName")
@@ -140,7 +140,7 @@ func TestProperty7_NonExistentFolderReturnsNotFound(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		name := folderNameGen().Draw(rt, "nonExistentName")
 		dataDir := t.TempDir()
-		srv := NewFileServer(dataDir)
+		srv := NewFileServer(dataDir, nopLogger())
 		assertNotFound := func(label string, err error) {
 			if err == nil {
 				rt.Fatalf("%s: expected error, got nil", label)
@@ -179,7 +179,7 @@ func TestProperty8_UpdateFolderExactConflict(t *testing.T) {
 			rt.Skip("names are equal")
 		}
 		dataDir := t.TempDir()
-		srv := NewFileServer(dataDir)
+		srv := NewFileServer(dataDir, nopLogger())
 		_, err := srv.CreateFolder(context.Background(), &filev1.CreateFolderRequest{
 			Name: nameA,
 		})

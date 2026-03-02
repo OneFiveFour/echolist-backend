@@ -14,7 +14,7 @@ import (
 
 func TestCreateTaskList_NonExistentParentDirRejected(t *testing.T) {
 	dataDir := t.TempDir()
-	srv := NewTaskServer(dataDir)
+	srv := NewTaskServer(dataDir, nopLogger())
 
 	_, err := srv.CreateTaskList(context.Background(), &pb.CreateTaskListRequest{
 		Title:     "test",
@@ -41,7 +41,7 @@ func TestCreateTaskList_NonExistentParentDirRejected(t *testing.T) {
 
 func TestCreateTaskList_ExistingParentDirSucceeds(t *testing.T) {
 	dataDir := t.TempDir()
-	srv := NewTaskServer(dataDir)
+	srv := NewTaskServer(dataDir, nopLogger())
 
 	// Pre-create the parent directory
 	parentDir := filepath.Join(dataDir, "existing")

@@ -25,7 +25,7 @@ func TestProperty4_CreatedNotesUseNotePrefix(t *testing.T) {
 		title := nameGen().Draw(rt, "title")
 		content := rapid.StringMatching(`[a-zA-Z0-9 ]{0,100}`).Draw(rt, "content")
 
-		srv := NewNotesServer(tmp)
+		srv := NewNotesServer(tmp, nopLogger())
 		resp, err := srv.CreateNote(context.Background(), &pb.CreateNoteRequest{
 			Title:   title,
 			Content: content,
@@ -72,7 +72,7 @@ func TestProperty_TitleWithPathSeparatorsRejected(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		title := titleWithPathSepGen().Draw(rt, "title")
 		tmpDir := t.TempDir()
-		srv := NewNotesServer(tmpDir)
+		srv := NewNotesServer(tmpDir, nopLogger())
 		ctx := context.Background()
 
 		_, err := srv.CreateNote(ctx, &pb.CreateNoteRequest{
@@ -150,7 +150,7 @@ func uncleanPathGen(cleanPath string) *rapid.Generator[string] {
 func TestProperty_CreateNotePathCanonicalization(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		tmp := t.TempDir()
-		srv := NewNotesServer(tmp)
+		srv := NewNotesServer(tmp, nopLogger())
 		ctx := context.Background()
 
 		cleanDir := cleanDirPathGen().Draw(rt, "cleanDir")
@@ -236,7 +236,7 @@ func TestProperty_NullByteTitlesRejected(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		title := titleWithNullByteGen().Draw(rt, "title")
 		tmpDir := t.TempDir()
-		srv := NewNotesServer(tmpDir)
+		srv := NewNotesServer(tmpDir, nopLogger())
 		ctx := context.Background()
 
 		_, err := srv.CreateNote(ctx, &pb.CreateNoteRequest{
@@ -266,7 +266,7 @@ func TestProperty_NullByteTitlesRejected(t *testing.T) {
 func TestProperty_CreateNoteDuplicateDetection(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		tmp := t.TempDir()
-		srv := NewNotesServer(tmp)
+		srv := NewNotesServer(tmp, nopLogger())
 		ctx := context.Background()
 
 		title := nameGen().Draw(rt, "title")

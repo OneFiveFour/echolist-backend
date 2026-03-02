@@ -33,6 +33,7 @@ func (s *NotesServer) DeleteNote(
 		if errors.Is(err, os.ErrNotExist) {
 			return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("note not found: %w", err))
 		}
+		s.logger.Error("failed to delete note", "path", req.GetFilePath(), "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to delete note: %w", err))
 	}
 

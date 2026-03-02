@@ -28,6 +28,7 @@ func (s *TaskServer) ListTaskLists(
 
 	dirEntries, err := os.ReadDir(dirPath)
 	if err != nil {
+		s.logger.Error("failed to read directory", "path", req.GetParentDir(), "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to read directory: %w", err))
 	}
 

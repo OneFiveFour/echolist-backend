@@ -17,7 +17,7 @@ import (
 func TestProperty1_NoteCreateThenGetRoundTrip(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		tmp := t.TempDir()
-		srv := NewNotesServer(tmp)
+		srv := NewNotesServer(tmp, nopLogger())
 
 		title := nameGen().Draw(rt, "title")
 		content := rapid.StringMatching(`[a-zA-Z0-9 ]{0,100}`).Draw(rt, "content")
@@ -78,7 +78,7 @@ func TestProperty1_NoteCreateThenGetRoundTrip(t *testing.T) {
 func TestProperty2_UpdateNoteReturnsFullNote(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		tmp := t.TempDir()
-		srv := NewNotesServer(tmp)
+		srv := NewNotesServer(tmp, nopLogger())
 
 		title := nameGen().Draw(rt, "title")
 		origContent := rapid.StringMatching(`[a-zA-Z0-9 ]{0,100}`).Draw(rt, "origContent")
