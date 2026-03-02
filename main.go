@@ -163,6 +163,7 @@ func main() {
 		Handler:      h2c.NewHandler(handler, &http2.Server{}),
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
+		IdleTimeout:  120 * time.Second,
 	}
 
 	go func() {

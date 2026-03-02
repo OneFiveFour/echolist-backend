@@ -40,9 +40,12 @@ func (s *TaskServer) GetTaskList(
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to parse task file: %w", err))
 	}
 
-	name := ExtractTaskListName(filepath.Base(absPath))
+	title, err := ExtractTaskListTitle(filepath.Base(absPath))
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("invalid task list filename: %w", err))
+	}
 
 	return &pb.GetTaskListResponse{
-		TaskList: buildTaskList(req.GetFilePath(), name, domainTasks, info.ModTime().UnixMilli()),
+		TaskList: buildTaskList(req.GetFilePath(), title, domainTasks, info.ModTime().UnixMilli()),
 	}, nil
 }

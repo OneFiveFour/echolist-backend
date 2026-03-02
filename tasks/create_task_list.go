@@ -24,9 +24,9 @@ func (s *TaskServer) CreateTaskList(
 		return nil, err
 	}
 
-	// Validate name
-	name := req.GetName()
-	if err := pathutil.ValidateName(name); err != nil {
+	// Validate title
+	title := req.GetTitle()
+	if err := pathutil.ValidateName(title); err != nil {
 		return nil, err
 	}
 
@@ -52,7 +52,7 @@ func (s *TaskServer) CreateTaskList(
 	}
 
 	// Build file path
-	filename := "tasks_" + name + ".md"
+	filename := "tasks_" + title + ".md"
 	absPath := filepath.Join(dirPath, filename)
 
 	// Check for existing file
@@ -68,6 +68,6 @@ func (s *TaskServer) CreateTaskList(
 
 	relPath := filepath.Join(req.GetParentDir(), filename)
 	return &pb.CreateTaskListResponse{
-		TaskList: buildTaskList(relPath, name, domainTasks, nowMillis()),
+		TaskList: buildTaskList(relPath, title, domainTasks, nowMillis()),
 	}, nil
 }

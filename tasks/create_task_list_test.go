@@ -17,7 +17,7 @@ func TestCreateTaskList_NonExistentParentDirRejected(t *testing.T) {
 	srv := NewTaskServer(dataDir)
 
 	_, err := srv.CreateTaskList(context.Background(), &pb.CreateTaskListRequest{
-		Name:      "test",
+		Title:     "test",
 		ParentDir: "nonexistent/deep/path",
 		Tasks:     []*pb.MainTask{{Description: "a task"}},
 	})
@@ -50,7 +50,7 @@ func TestCreateTaskList_ExistingParentDirSucceeds(t *testing.T) {
 	}
 
 	resp, err := srv.CreateTaskList(context.Background(), &pb.CreateTaskListRequest{
-		Name:      "groceries",
+		Title:     "groceries",
 		ParentDir: "existing",
 		Tasks:     []*pb.MainTask{{Description: "buy milk"}},
 	})

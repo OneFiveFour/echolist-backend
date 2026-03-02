@@ -73,7 +73,7 @@ func TestProperty5_CreatedTaskListsUseTasksPrefix(t *testing.T) {
 		tasks := simpleTaskListGen().Draw(rt, "tasks")
 
 		resp, err := srv.CreateTaskList(context.Background(), &pb.CreateTaskListRequest{
-			Name:  name,
+			Title: name,
 			Tasks: tasks,
 		})
 		if err != nil {
@@ -100,7 +100,7 @@ func TestProperty6_TaskListCreateThenGetRoundTrip(t *testing.T) {
 		tasks := simpleTaskListGen().Draw(rt, "tasks")
 
 		createResp, err := srv.CreateTaskList(context.Background(), &pb.CreateTaskListRequest{
-			Name:  name,
+			Title: name,
 			Tasks: tasks,
 		})
 		if err != nil {
@@ -114,8 +114,8 @@ func TestProperty6_TaskListCreateThenGetRoundTrip(t *testing.T) {
 			rt.Fatalf("GetTaskList failed: %v", err)
 		}
 
-		if getResp.TaskList.Name != name {
-			rt.Fatalf("name mismatch: expected %q, got %q", name, getResp.TaskList.Name)
+		if getResp.TaskList.Title != name {
+			rt.Fatalf("name mismatch: expected %q, got %q", name, getResp.TaskList.Title)
 		}
 		if len(getResp.TaskList.Tasks) != len(tasks) {
 			rt.Fatalf("task count mismatch: expected %d, got %d", len(tasks), len(getResp.TaskList.Tasks))
@@ -151,7 +151,7 @@ func TestProperty7_DuplicateNameReturnsAlreadyExists(t *testing.T) {
 		tasks := simpleTaskListGen().Draw(rt, "tasks")
 
 		_, err := srv.CreateTaskList(context.Background(), &pb.CreateTaskListRequest{
-			Name:  name,
+			Title: name,
 			Tasks: tasks,
 		})
 		if err != nil {
@@ -159,7 +159,7 @@ func TestProperty7_DuplicateNameReturnsAlreadyExists(t *testing.T) {
 		}
 
 		_, err = srv.CreateTaskList(context.Background(), &pb.CreateTaskListRequest{
-			Name:  name,
+			Title: name,
 			Tasks: tasks,
 		})
 		if err == nil {
@@ -209,7 +209,7 @@ func TestProperty9_MutualExclusionDueDateAndRecurrence(t *testing.T) {
 		rrule := validRRuleGen().Draw(rt, "rrule")
 
 		_, err := srv.CreateTaskList(context.Background(), &pb.CreateTaskListRequest{
-			Name: name,
+			Title: name,
 			Tasks: []*pb.MainTask{{
 				Description: "test task",
 				DueDate:     dueDate,
@@ -235,7 +235,7 @@ func TestProperty10_ValidRRuleProducesComputedDueDate(t *testing.T) {
 		rrule := validRRuleGen().Draw(rt, "rrule")
 
 		resp, err := srv.CreateTaskList(context.Background(), &pb.CreateTaskListRequest{
-			Name: name,
+			Title: name,
 			Tasks: []*pb.MainTask{{
 				Description: "recurring task",
 				Recurrence:  rrule,
@@ -268,7 +268,7 @@ func TestProperty11_RecurringTaskDoneAdvanceCycle(t *testing.T) {
 		rrule := validRRuleGen().Draw(rt, "rrule")
 
 		createResp, err := srv.CreateTaskList(context.Background(), &pb.CreateTaskListRequest{
-			Name: name,
+			Title: name,
 			Tasks: []*pb.MainTask{{
 				Description: "recurring task",
 				Recurrence:  rrule,
@@ -313,7 +313,7 @@ func TestProperty12_InvalidRRuleRejected(t *testing.T) {
 		badRule := invalidRRuleGen().Draw(rt, "badRule")
 
 		_, err := srv.CreateTaskList(context.Background(), &pb.CreateTaskListRequest{
-			Name: name,
+			Title: name,
 			Tasks: []*pb.MainTask{{
 				Description: "bad recurring",
 				Recurrence:  badRule,
@@ -338,7 +338,7 @@ func TestProperty13_PathTraversalPrevention(t *testing.T) {
 
 		// CreateTaskList
 		_, err := srv.CreateTaskList(context.Background(), &pb.CreateTaskListRequest{
-			Name: "test",
+			Title: "test",
 			ParentDir: badPath,
 			Tasks: []*pb.MainTask{{Description: "task"}},
 		})
@@ -450,8 +450,8 @@ func TestProperty3_ListTaskListsExcludesNonTaskFiles(t *testing.T) {
 			rt.Fatalf("expected %d task lists, got %d", len(taskNames), len(resp.TaskLists))
 		}
 		for _, tl := range resp.TaskLists {
-			if !taskNames[tl.Name] {
-				rt.Fatalf("unexpected task list name %q", tl.Name)
+			if !taskNames[tl.Title] {
+				rt.Fatalf("unexpected task list name %q", tl.Title)
 			}
 		}
 	})
@@ -474,7 +474,7 @@ func TestProperty15_NonExistentParentDirRejected(t *testing.T) {
 		nestedPath := filepath.Join(seg1, seg2)
 
 		_, err := srv.CreateTaskList(context.Background(), &pb.CreateTaskListRequest{
-			Name:      name,
+			Title:     name,
 			ParentDir: nestedPath,
 			Tasks:     []*pb.MainTask{{Description: "task in nested dir"}},
 		})
@@ -502,7 +502,7 @@ func TestProperty16_DeleteRemovesTaskListFromDisk(t *testing.T) {
 		name := validNameGen().Draw(rt, "name")
 
 		createResp, err := srv.CreateTaskList(context.Background(), &pb.CreateTaskListRequest{
-			Name:  name,
+			Title: name,
 			Tasks: []*pb.MainTask{{Description: "to be deleted"}},
 		})
 		if err != nil {

@@ -1,6 +1,7 @@
 package tasks
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -61,10 +62,10 @@ func mainTasksToProto(tasks []MainTask) []*pb.MainTask {
 }
 
 // buildTaskList constructs a pb.TaskList from the given parameters.
-func buildTaskList(filePath, name string, tasks []MainTask, updatedAt int64) *pb.TaskList {
+func buildTaskList(filePath, title string, tasks []MainTask, updatedAt int64) *pb.TaskList {
 	return &pb.TaskList{
 		FilePath:  filePath,
-		Name:      name,
+		Title:     title,
 		Tasks:     mainTasksToProto(tasks),
 		UpdatedAt: updatedAt,
 	}
@@ -86,8 +87,17 @@ func subtasksToProto(subs []Subtask) []*pb.Subtask {
 func nowMillis() int64 {
 	return time.Now().UnixMilli()
 }
-// ExtractTaskListName extracts the human-readable name from a task-list
+// ExtractTaskListTitle extracts the human-readable title from a task-list
 // filename (e.g. "tasks_Shopping.md" → "Shopping").
-func ExtractTaskListName(filename string) string {
-	return strings.TrimPrefix(strings.TrimSuffix(filename, ".md"), "tasks_")
+// Returns an error if the filename is too short or doesn't match the expected pattern.
+func ExtractTaskListTitle(filename string) (string, error) {
+	const prefix = "tasks_"
+	const suffix = ".md"
+	if len(filename) < len(prefix)+len(suffix)+1 {
+		return "", fmt.Errorf("filename too short to extract task list title: %q", filename)
+	}
+	if !strings.HasPrefix(filename, prefix) || !strings.HasSuffix(filename, suffix) {
+		return "", fmt.Errorf("filename does not match task list pattern: %q", filename)
+	}
+	return filename[len(prefix) : len(filename)-len(suffix)], nil
 }

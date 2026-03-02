@@ -19,7 +19,7 @@ func TestProperty_CreateGetRoundTripTaskListMessage(t *testing.T) {
 		tasks := simpleTaskListGen().Draw(rt, "tasks")
 
 		createResp, err := srv.CreateTaskList(context.Background(), &pb.CreateTaskListRequest{
-			Name:  name,
+			Title: name,
 			Tasks: tasks,
 		})
 		if err != nil {
@@ -49,11 +49,11 @@ func TestProperty_CreateGetRoundTripTaskListMessage(t *testing.T) {
 		}
 
 		// Both must share the same name
-		if createResp.TaskList.Name != getResp.TaskList.Name {
-			rt.Fatalf("name mismatch: create=%q get=%q", createResp.TaskList.Name, getResp.TaskList.Name)
+		if createResp.TaskList.Title != getResp.TaskList.Title {
+			rt.Fatalf("name mismatch: create=%q get=%q", createResp.TaskList.Title, getResp.TaskList.Title)
 		}
-		if getResp.TaskList.Name != name {
-			rt.Fatalf("name mismatch: expected %q, got %q", name, getResp.TaskList.Name)
+		if getResp.TaskList.Title != name {
+			rt.Fatalf("name mismatch: expected %q, got %q", name, getResp.TaskList.Title)
 		}
 
 		// Both must contain the same tasks
@@ -100,7 +100,7 @@ func TestProperty_UpdateReturnsTaskListMessage(t *testing.T) {
 		initialTasks := simpleTaskListGen().Draw(rt, "initialTasks")
 
 		createResp, err := srv.CreateTaskList(context.Background(), &pb.CreateTaskListRequest{
-			Name:  name,
+			Title: name,
 			Tasks: initialTasks,
 		})
 		if err != nil {
@@ -129,8 +129,8 @@ func TestProperty_UpdateReturnsTaskListMessage(t *testing.T) {
 		}
 
 		// name must match the original
-		if updateResp.TaskList.Name != name {
-			rt.Fatalf("name mismatch: expected %q, got %q", name, updateResp.TaskList.Name)
+		if updateResp.TaskList.Title != name {
+			rt.Fatalf("name mismatch: expected %q, got %q", name, updateResp.TaskList.Title)
 		}
 
 		// tasks must reflect the update
@@ -182,7 +182,7 @@ func TestProperty_ListReturnsFullTaskListMessages(t *testing.T) {
 			tasks := simpleTaskListGen().Draw(rt, fmt.Sprintf("tasks-%d", i))
 
 			_, err := srv.CreateTaskList(context.Background(), &pb.CreateTaskListRequest{
-				Name:  name,
+				Title: name,
 				Tasks: tasks,
 			})
 			if err != nil {
@@ -204,7 +204,7 @@ func TestProperty_ListReturnsFullTaskListMessages(t *testing.T) {
 		// Build a lookup by name for verification
 		tlByName := make(map[string]*pb.TaskList)
 		for _, tl := range listResp.TaskLists {
-			tlByName[tl.Name] = tl
+			tlByName[tl.Title] = tl
 		}
 
 		for _, c := range createdLists {

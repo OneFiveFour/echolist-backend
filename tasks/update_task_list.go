@@ -78,9 +78,12 @@ func (s *TaskServer) UpdateTaskList(
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to write task file: %w", err))
 	}
 
-	name := ExtractTaskListName(filepath.Base(absPath))
+	title, err := ExtractTaskListTitle(filepath.Base(absPath))
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("invalid task list filename: %w", err))
+	}
 
 	return &pb.UpdateTaskListResponse{
-		TaskList: buildTaskList(req.GetFilePath(), name, domainTasks, nowMillis()),
+		TaskList: buildTaskList(req.GetFilePath(), title, domainTasks, nowMillis()),
 	}, nil
 }

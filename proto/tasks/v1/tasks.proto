@@ -27,13 +27,13 @@ message MainTask {
 
 message TaskList {
   string file_path = 1;
-  string name = 2;
+  string title = 2;
   repeated MainTask tasks = 3;
   int64 updated_at = 4;
 }
 
 message CreateTaskListRequest {
-  string name = 1;
+  string title = 1;
   string parent_dir = 2;
   repeated MainTask tasks = 3;
 }

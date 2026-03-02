@@ -47,7 +47,10 @@ func (s *TaskServer) ListTaskLists(
 		}
 
 		entryPath := prefix + name
-		listName := ExtractTaskListName(name)
+		listName, err := ExtractTaskListTitle(name)
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("invalid task list filename %s: %w", name, err))
+		}
 
 		absPath := filepath.Join(dirPath, name)
 		data, err := os.ReadFile(absPath)
