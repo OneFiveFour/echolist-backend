@@ -44,6 +44,9 @@ func (s *NotesServer) CreateNote(
 	absoluteFilePath := filepath.Join(dirPath, filename)
 	relativeFilePath, _ := filepath.Rel(s.dataDir, absoluteFilePath)
 
+	unlock := s.locks.Lock(absoluteFilePath)
+	defer unlock()
+
 	// Use exclusive create to avoid TOCTOU race between existence check and write.
 	err = atomicwrite.CreateExclusive(absoluteFilePath, []byte(req.Content))
 	if err != nil {

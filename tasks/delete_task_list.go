@@ -25,6 +25,9 @@ func (s *TaskServer) DeleteTaskList(
 		return nil, err
 	}
 
+	unlock := s.locks.Lock(absPath)
+	defer unlock()
+
 	if err := os.Remove(absPath); err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("task list not found: %w", err))

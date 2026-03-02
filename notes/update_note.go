@@ -31,6 +31,9 @@ func (s *NotesServer) UpdateNote(
 		return nil, err
 	}
 
+	unlock := s.locks.Lock(absPath)
+	defer unlock()
+
 	if _, err := os.Stat(absPath); err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("note not found"))

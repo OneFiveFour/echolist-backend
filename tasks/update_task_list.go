@@ -28,6 +28,9 @@ func (s *TaskServer) UpdateTaskList(
 		return nil, err
 	}
 
+	unlock := s.locks.Lock(absPath)
+	defer unlock()
+
 	// Read existing file to compare recurring task state
 	existingData, err := os.ReadFile(absPath)
 	if err != nil {

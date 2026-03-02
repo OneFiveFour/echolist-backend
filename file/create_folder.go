@@ -33,6 +33,10 @@ func (s *FileServer) CreateFolder(
 
 	// Check for duplicate (case-sensitive)
 	newDir := filepath.Join(parentDir, req.GetName())
+
+	unlock := s.locks.Lock(newDir)
+	defer unlock()
+
 	if _, err := os.Stat(newDir); err == nil {
 		return nil, connect.NewError(connect.CodeAlreadyExists, fmt.Errorf("a folder or file with that name already exists"))
 	}

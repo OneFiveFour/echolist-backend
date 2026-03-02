@@ -3,6 +3,7 @@ package tasks
 import (
 	"time"
 
+	"echolist-backend/pathlock"
 	"echolist-backend/pathutil"
 	pb "echolist-backend/proto/gen/tasks/v1"
 	tasksv1connect "echolist-backend/proto/gen/tasks/v1/tasksv1connect"
@@ -12,6 +13,7 @@ import (
 type TaskServer struct {
 	tasksv1connect.UnimplementedTaskListServiceHandler
 	dataDir string
+	locks   pathlock.Locker
 }
 
 // NewTaskServer creates a new TaskServer rooted at dataDir.

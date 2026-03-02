@@ -32,6 +32,10 @@ func (s *FileServer) UpdateFolder(
 	parentDir := filepath.Dir(oldPath)
 	newPath := filepath.Join(parentDir, req.GetNewName())
 	oldBase := filepath.Base(oldPath)
+
+	unlock := s.locks.Lock(oldPath)
+	defer unlock()
+
 	// Check for exact duplicate sibling (case-sensitive)
 	if req.GetNewName() != oldBase {
 		if _, err := os.Stat(newPath); err == nil {

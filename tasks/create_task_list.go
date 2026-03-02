@@ -56,6 +56,9 @@ func (s *TaskServer) CreateTaskList(
 	filename := pathutil.TaskListFileType.Prefix + title + pathutil.TaskListFileType.Suffix
 	absPath := filepath.Join(dirPath, filename)
 
+	unlock := s.locks.Lock(absPath)
+	defer unlock()
+
 	// Use exclusive create to avoid TOCTOU race between existence check and write.
 	data := PrintTaskFile(domainTasks)
 	if err := atomicwrite.CreateExclusive(absPath, data); err != nil {

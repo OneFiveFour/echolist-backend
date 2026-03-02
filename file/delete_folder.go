@@ -30,6 +30,9 @@ func (s *FileServer) DeleteFolder(
 		return nil, err
 	}
 
+	unlock := s.locks.Lock(target)
+	defer unlock()
+
 	// Remove folder and all contents
 	if err := os.RemoveAll(target); err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to delete folder: %w", err))
