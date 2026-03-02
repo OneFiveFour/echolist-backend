@@ -1,8 +1,6 @@
 package tasks
 
 import (
-	"fmt"
-	"strings"
 	"time"
 
 	"echolist-backend/pathutil"
@@ -92,13 +90,5 @@ func nowMillis() int64 {
 // filename (e.g. "tasks_Shopping.md" → "Shopping").
 // Returns an error if the filename is too short or doesn't match the expected pattern.
 func ExtractTaskListTitle(filename string) (string, error) {
-	prefix := pathutil.TaskListFileType.Prefix
-	suffix := pathutil.TaskListFileType.Suffix
-	if len(filename) < len(prefix)+len(suffix)+1 {
-		return "", fmt.Errorf("filename too short to extract task list title: %q", filename)
-	}
-	if !strings.HasPrefix(filename, prefix) || !strings.HasSuffix(filename, suffix) {
-		return "", fmt.Errorf("filename does not match task list pattern: %q", filename)
-	}
-	return filename[len(prefix) : len(filename)-len(suffix)], nil
+	return pathutil.ExtractTitle(filename, pathutil.TaskListFileType.Prefix, pathutil.TaskListFileType.Suffix, pathutil.TaskListFileType.Label)
 }

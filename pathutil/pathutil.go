@@ -165,6 +165,19 @@ func ValidateFileType(absPath string, ft FileType) error {
 	}
 	return nil
 }
+// ExtractTitle extracts the human-readable title from a filename by stripping
+// the given prefix and suffix. Returns an error if the filename is too short
+// or doesn't match the expected pattern.
+func ExtractTitle(filename, prefix, suffix, label string) (string, error) {
+	if len(filename) < len(prefix)+len(suffix)+1 {
+		return "", fmt.Errorf("filename too short to extract %s title: %q", label, filename)
+	}
+	if !strings.HasPrefix(filename, prefix) || !strings.HasSuffix(filename, suffix) {
+		return "", fmt.Errorf("filename does not match %s pattern: %q", label, filename)
+	}
+	return filename[len(prefix) : len(filename)-len(suffix)], nil
+}
+
 // RequireDir stats path and verifies it is an existing directory.
 // label is used in error messages (e.g. "parent directory", "folder").
 // Returns a connect-coded NotFound error if the path is missing or not a dir.

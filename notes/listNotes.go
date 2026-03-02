@@ -23,6 +23,10 @@ func (s *NotesServer) ListNotes(
 		return nil, err
 	}
 
+	if err := pathutil.RequireDir(root, "parent directory"); err != nil {
+		return nil, err
+	}
+
 	dirEntries, err := os.ReadDir(root)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to read directory: %w", err))
