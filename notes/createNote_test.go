@@ -128,8 +128,8 @@ func TestCreateNote_NonExistentParentDirRejected(t *testing.T) {
 	if !errors.As(err, &connectErr) {
 		t.Fatalf("expected connect.Error, got %T: %v", err, err)
 	}
-	if connectErr.Code() != connect.CodeFailedPrecondition {
-		t.Fatalf("expected CodeFailedPrecondition, got %v", connectErr.Code())
+	if connectErr.Code() != connect.CodeNotFound {
+		t.Fatalf("expected CodeNotFound, got %v", connectErr.Code())
 	}
 
 	// Verify no directories were created

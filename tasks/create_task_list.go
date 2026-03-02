@@ -48,7 +48,7 @@ func (s *TaskServer) CreateTaskList(
 	// Only allow creating task lists in existing directories (depth limit = 1).
 	// Reject requests that would auto-create intermediate directories.
 	if info, err := os.Stat(dirPath); err != nil || !info.IsDir() {
-		return nil, connect.NewError(connect.CodeFailedPrecondition, fmt.Errorf("parent directory does not exist"))
+		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("parent directory does not exist"))
 	}
 
 	// Build file path

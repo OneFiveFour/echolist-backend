@@ -479,10 +479,10 @@ func TestProperty15_NonExistentParentDirRejected(t *testing.T) {
 			Tasks:     []*pb.MainTask{{Description: "task in nested dir"}},
 		})
 		if err == nil {
-			rt.Fatalf("expected FailedPrecondition for non-existent parent dir %q, got nil", nestedPath)
+			rt.Fatalf("expected NotFound for non-existent parent dir %q, got nil", nestedPath)
 		}
-		if connect.CodeOf(err) != connect.CodeFailedPrecondition {
-			rt.Fatalf("expected FailedPrecondition, got %v", connect.CodeOf(err))
+		if connect.CodeOf(err) != connect.CodeNotFound {
+			rt.Fatalf("expected NotFound, got %v", connect.CodeOf(err))
 		}
 
 		// Verify directories were NOT created
