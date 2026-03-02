@@ -44,15 +44,25 @@ func (s *TaskServer) UpdateTaskList(
 		return nil, err
 	}
 
+	// Build a lookup of existing tasks keyed by (description, recurrence)
+	// so recurring task matching is order-independent.
+	type taskKey struct{ desc, recurrence string }
+	existingByKey := make(map[taskKey]MainTask, len(existingTasks))
+	for _, et := range existingTasks {
+		if et.Recurrence != "" {
+			existingByKey[taskKey{et.Description, et.Recurrence}] = et
+		}
+	}
+
 	// Handle recurring tasks marked done: reset to open, advance due date
 	for i, t := range domainTasks {
 		if t.Recurrence == "" || !t.Done {
 			continue
 		}
-		// Find matching existing task to get previous due date
+		// Find matching existing task by identity, not position
 		var prevDue string
-		if i < len(existingTasks) && existingTasks[i].Recurrence == t.Recurrence {
-			prevDue = existingTasks[i].DueDate
+		if et, ok := existingByKey[taskKey{t.Description, t.Recurrence}]; ok {
+			prevDue = et.DueDate
 		} else {
 			prevDue = t.DueDate
 		}

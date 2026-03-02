@@ -27,9 +27,8 @@ func (s *FileServer) CreateFolder(
 	}
 
 	// Check parent exists
-	info, err := os.Stat(parentDir)
-	if err != nil || !info.IsDir() {
-		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("parent directory does not exist"))
+	if err := pathutil.RequireDir(parentDir, "parent directory"); err != nil {
+		return nil, err
 	}
 
 	// Check for duplicate (case-sensitive)

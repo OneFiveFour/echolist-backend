@@ -29,10 +29,14 @@ func (s *NotesServer) CreateNote(
 		return nil, err
 	}
 
+	if err := pathutil.ValidateContentLength(req.GetContent(), pathutil.MaxNoteContentBytes, "content"); err != nil {
+		return nil, err
+	}
+
 	// Only allow creating notes in existing directories (depth limit = 1).
 	// Reject requests that would auto-create intermediate directories.
-	if info, err := os.Stat(dirPath); err != nil || !info.IsDir() {
-		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("parent directory does not exist"))
+	if err := pathutil.RequireDir(dirPath, "parent directory"); err != nil {
+		return nil, err
 	}
 
 	filename := "note_" + title + ".md"

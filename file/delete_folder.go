@@ -26,12 +26,8 @@ func (s *FileServer) DeleteFolder(
 	}
 
 	// Check folder exists and is a directory
-	info, err := os.Stat(target)
-	if err != nil {
-		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("folder does not exist"))
-	}
-	if !info.IsDir() {
-		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("path is not a directory"))
+	if err := pathutil.RequireDir(target, "folder"); err != nil {
+		return nil, err
 	}
 
 	// Remove folder and all contents

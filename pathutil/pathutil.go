@@ -116,6 +116,9 @@ func ValidateName(name string) error {
 	if name == "" {
 		return connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("name must not be empty"))
 	}
+	if len(name) > MaxNameLen {
+		return connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("name too long: %d bytes exceeds %d byte limit", len(name), MaxNameLen))
+	}
 	if strings.ContainsAny(name, "/\\") {
 		return connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("name must not contain path separators"))
 	}
@@ -127,4 +130,66 @@ func ValidateName(name string) error {
 	}
 	return nil
 }
+
+
+// FileType represents a known file type with its naming convention.
+type FileType struct {
+	Prefix string // e.g. "note_", "tasks_"
+	Suffix string // e.g. ".md"
+	Label  string // human-readable label for error messages, e.g. "note"
+}
+
+// ValidateFileType checks that the file at absPath exists, is a regular file
+// (not a directory), and matches the expected naming convention.
+// Returns a connect-coded error suitable for direct use in RPC handlers.
+func ValidateFileType(absPath string, ft FileType) error {
+	info, err := os.Stat(absPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return connect.NewError(connect.CodeNotFound, fmt.Errorf("%s not found", ft.Label))
+		}
+		return connect.NewError(connect.CodeInternal, fmt.Errorf("failed to stat %s: %w", ft.Label, err))
+	}
+	if info.IsDir() {
+		return connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("path is a directory, not a %s", ft.Label))
+	}
+	name := filepath.Base(absPath)
+	if !strings.HasPrefix(name, ft.Prefix) || !strings.HasSuffix(name, ft.Suffix) || len(name) <= len(ft.Prefix)+len(ft.Suffix) {
+		return connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("file is not a %s", ft.Label))
+	}
+	return nil
+}
+// RequireDir stats path and verifies it is an existing directory.
+// label is used in error messages (e.g. "parent directory", "folder").
+// Returns a connect-coded NotFound error if the path is missing or not a dir.
+func RequireDir(path, label string) error {
+	info, err := os.Stat(path)
+	if err != nil {
+		return connect.NewError(connect.CodeNotFound, fmt.Errorf("%s does not exist", label))
+	}
+	if !info.IsDir() {
+		return connect.NewError(connect.CodeNotFound, fmt.Errorf("%s is not a directory", label))
+	}
+	return nil
+}
+// Content size limits for per-field validation.
+const (
+	MaxNoteContentBytes       = 1 << 20 // 1 MiB
+	MaxNameLen                = 255
+	MaxTaskDescriptionBytes   = 1024
+	MaxSubtaskDescriptionBytes = 1024
+	MaxTasksPerList           = 1000
+	MaxSubtasksPerTask        = 100
+)
+
+// ValidateContentLength returns an InvalidArgument error if len(data) exceeds max.
+// field is used in the error message (e.g. "content", "description").
+func ValidateContentLength(data string, max int, field string) error {
+	if len(data) > max {
+		return connect.NewError(connect.CodeInvalidArgument,
+			fmt.Errorf("%s too large: %d bytes exceeds %d byte limit", field, len(data), max))
+	}
+	return nil
+}
+
 

@@ -22,13 +22,8 @@ func (s *FileServer) ListFiles(
 		return nil, err
 	}
 
-	info, err := os.Stat(parentDir)
-	if err != nil {
-		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("parent directory does not exist"))
-	}
-
-	if !info.IsDir() {
-		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("parent path is not a directory"))
+	if err := pathutil.RequireDir(parentDir, "parent directory"); err != nil {
+		return nil, err
 	}
 
 	entries, err := os.ReadDir(parentDir)

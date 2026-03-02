@@ -92,11 +92,14 @@ func main() {
 	// Register handlers
 	mux := http.NewServeMux()
 
-	// Health check endpoint (unauthenticated)
-	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
+	// Liveness probe — process is up, that's it
+	mux.HandleFunc("/livez", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("ok"))
 	})
+
+	// Readiness probe — verify data dir is accessible and user store loaded
+	mux.HandleFunc("/healthz", healthzHandler(dataDir, userStore))
 
 	notesPath, notesHandler := notesv1connect.NewNoteServiceHandler(
 		notes.NewNotesServer(dataDir),
@@ -182,5 +185,45 @@ func main() {
 	// Enable HTTP/2 support for gRPC clients
 	if err := srv.ListenAndServe(); err != http.ErrServerClosed {
 		log.Fatal(err)
+	}
+}
+
+// healthzHandler returns an http.HandlerFunc that checks data directory
+// accessibility and user store state, returning 503 on failure.
+func healthzHandler(dataDir string, userStore *auth.UserStore) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var checks []string
+
+		// Check 1: data directory is stat-able
+		if _, err := os.Stat(dataDir); err != nil {
+			checks = append(checks, "data_dir: "+err.Error())
+		}
+
+		// Check 2: data directory is writable (create + remove temp file)
+		if len(checks) == 0 {
+			probe := filepath.Join(dataDir, ".healthz_probe")
+			if err := os.WriteFile(probe, []byte("ok"), 0600); err != nil {
+				checks = append(checks, "data_dir_write: "+err.Error())
+			} else {
+				os.Remove(probe)
+			}
+		}
+
+		// Check 3: user store has at least one user loaded
+		if !userStore.HasUsers() {
+			checks = append(checks, "user_store: no users loaded")
+		}
+
+		if len(checks) > 0 {
+			w.WriteHeader(http.StatusServiceUnavailable)
+			w.Write([]byte("unhealthy\n"))
+			for _, c := range checks {
+				w.Write([]byte("- " + c + "\n"))
+			}
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("ok"))
 	}
 }

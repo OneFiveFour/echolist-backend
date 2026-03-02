@@ -100,6 +100,14 @@ func (s *UserStore) Authenticate(username, password string) (*User, error) {
 	return user, nil
 }
 
+// HasUsers reports whether the store contains at least one user.
+// Intended for health-check use.
+func (s *UserStore) HasUsers() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return len(s.users) > 0
+}
+
 // getUser returns the user record for the given username, or an error if not found.
 func (s *UserStore) getUser(username string) (*User, error) {
 	s.mu.RLock()

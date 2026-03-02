@@ -26,12 +26,8 @@ func (s *FileServer) UpdateFolder(
 	if err != nil {
 		return nil, err
 	}
-	info, err := os.Stat(oldPath)
-	if err != nil {
-		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("folder does not exist"))
-	}
-	if !info.IsDir() {
-		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("path is not a directory"))
+	if err := pathutil.RequireDir(oldPath, "folder"); err != nil {
+		return nil, err
 	}
 	parentDir := filepath.Dir(oldPath)
 	newPath := filepath.Join(parentDir, req.GetNewName())
