@@ -52,7 +52,7 @@ func (s *TaskServer) CreateTaskList(
 	}
 
 	// Build file path
-	filename := "tasks_" + title + ".md"
+	filename := pathutil.TaskListFileType.Prefix + title + pathutil.TaskListFileType.Suffix
 	absPath := filepath.Join(dirPath, filename)
 
 	// Check for existing file

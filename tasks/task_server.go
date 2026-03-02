@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"echolist-backend/pathutil"
 	pb "echolist-backend/proto/gen/tasks/v1"
 	tasksv1connect "echolist-backend/proto/gen/tasks/v1/tasksv1connect"
 )
@@ -91,8 +92,8 @@ func nowMillis() int64 {
 // filename (e.g. "tasks_Shopping.md" → "Shopping").
 // Returns an error if the filename is too short or doesn't match the expected pattern.
 func ExtractTaskListTitle(filename string) (string, error) {
-	const prefix = "tasks_"
-	const suffix = ".md"
+	prefix := pathutil.TaskListFileType.Prefix
+	suffix := pathutil.TaskListFileType.Suffix
 	if len(filename) < len(prefix)+len(suffix)+1 {
 		return "", fmt.Errorf("filename too short to extract task list title: %q", filename)
 	}

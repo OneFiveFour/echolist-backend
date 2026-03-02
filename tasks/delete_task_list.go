@@ -2,6 +2,7 @@ package tasks
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 
@@ -20,13 +21,14 @@ func (s *TaskServer) DeleteTaskList(
 		return nil, err
 	}
 
-	if err := pathutil.ValidateFileType(absPath, pathutil.FileType{
-		Prefix: "tasks_", Suffix: ".md", Label: "task list",
-	}); err != nil {
+	if err := pathutil.ValidateFileType(absPath, pathutil.TaskListFileType); err != nil {
 		return nil, err
 	}
 
 	if err := os.Remove(absPath); err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("task list not found: %w", err))
+		}
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to delete task file: %w", err))
 	}
 

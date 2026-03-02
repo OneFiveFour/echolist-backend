@@ -37,7 +37,7 @@ func (s *TaskServer) ListTaskLists(
 	for _, e := range dirEntries {
 		name := e.Name()
 
-		if e.IsDir() || filepath.Ext(name) != ".md" || !strings.HasPrefix(name, "tasks_") {
+		if e.IsDir() || filepath.Ext(name) != pathutil.TaskListFileType.Suffix || !strings.HasPrefix(name, pathutil.TaskListFileType.Prefix) {
 			continue
 		}
 

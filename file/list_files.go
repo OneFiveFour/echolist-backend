@@ -36,7 +36,7 @@ func (s *FileServer) ListFiles(
 		name := e.Name()
 		if e.IsDir() {
 			name += "/"
-		} else if !strings.HasPrefix(name, "note_") && !strings.HasPrefix(name, "tasks_") {
+		} else if !strings.HasPrefix(name, pathutil.NoteFileType.Prefix) && !strings.HasPrefix(name, pathutil.TaskListFileType.Prefix) {
 			continue
 		}
 		result = append(result, name)

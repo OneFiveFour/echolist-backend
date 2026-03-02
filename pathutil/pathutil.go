@@ -139,6 +139,12 @@ type FileType struct {
 	Label  string // human-readable label for error messages, e.g. "note"
 }
 
+// Predefined file types used across the application.
+var (
+	NoteFileType     = FileType{Prefix: "note_", Suffix: ".md", Label: "note"}
+	TaskListFileType = FileType{Prefix: "tasks_", Suffix: ".md", Label: "task list"}
+)
+
 // ValidateFileType checks that the file at absPath exists, is a regular file
 // (not a directory), and matches the expected naming convention.
 // Returns a connect-coded error suitable for direct use in RPC handlers.

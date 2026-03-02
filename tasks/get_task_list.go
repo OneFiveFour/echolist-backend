@@ -22,6 +22,10 @@ func (s *TaskServer) GetTaskList(
 		return nil, err
 	}
 
+	if err := pathutil.ValidateFileType(absPath, pathutil.TaskListFileType); err != nil {
+		return nil, err
+	}
+
 	info, err := os.Stat(absPath)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {

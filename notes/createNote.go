@@ -39,7 +39,7 @@ func (s *NotesServer) CreateNote(
 		return nil, err
 	}
 
-	filename := "note_" + title + ".md"
+	filename := pathutil.NoteFileType.Prefix + title + pathutil.NoteFileType.Suffix
 	absoluteFilePath := filepath.Join(dirPath, filename)
 	relativeFilePath, _ := filepath.Rel(s.dataDir, absoluteFilePath)
 

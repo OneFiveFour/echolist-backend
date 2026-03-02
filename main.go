@@ -201,11 +201,12 @@ func healthzHandler(dataDir string, userStore *auth.UserStore) http.HandlerFunc 
 
 		// Check 2: data directory is writable (create + remove temp file)
 		if len(checks) == 0 {
-			probe := filepath.Join(dataDir, ".healthz_probe")
-			if err := os.WriteFile(probe, []byte("ok"), 0600); err != nil {
+			f, err := os.CreateTemp(dataDir, ".healthz_probe_*")
+			if err != nil {
 				checks = append(checks, "data_dir_write: "+err.Error())
 			} else {
-				os.Remove(probe)
+				f.Close()
+				os.Remove(f.Name())
 			}
 		}
 

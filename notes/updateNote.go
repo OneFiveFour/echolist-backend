@@ -23,6 +23,10 @@ func (s *NotesServer) UpdateNote(
 		return nil, err
 	}
 
+	if err := pathutil.ValidateFileType(absPath, pathutil.NoteFileType); err != nil {
+		return nil, err
+	}
+
 	if err := pathutil.ValidateContentLength(req.GetContent(), pathutil.MaxNoteContentBytes, "content"); err != nil {
 		return nil, err
 	}

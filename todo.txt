@@ -1,3 +1,0 @@
- * GetFolder is probably stupid
- * Rethink what part of the filesystem is delivered by what request. ListTaskLists and ListNotes is probably not needed, but should come via FolderService. 
-   FolderService should then be called FileService or similar.

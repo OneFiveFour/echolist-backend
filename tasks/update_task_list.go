@@ -24,6 +24,10 @@ func (s *TaskServer) UpdateTaskList(
 		return nil, err
 	}
 
+	if err := pathutil.ValidateFileType(absPath, pathutil.TaskListFileType); err != nil {
+		return nil, err
+	}
+
 	// Read existing file to compare recurring task state
 	existingData, err := os.ReadFile(absPath)
 	if err != nil {

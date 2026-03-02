@@ -22,6 +22,10 @@ func (s *NotesServer) GetNote(
 		return nil, err
 	}
 
+	if err := pathutil.ValidateFileType(absPath, pathutil.NoteFileType); err != nil {
+		return nil, err
+	}
+
 	info, err := os.Stat(absPath)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {

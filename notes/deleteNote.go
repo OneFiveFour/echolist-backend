@@ -2,6 +2,7 @@ package notes
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 
@@ -21,13 +22,14 @@ func (s *NotesServer) DeleteNote(
 		return nil, err
 	}
 
-	if err := pathutil.ValidateFileType(absPath, pathutil.FileType{
-		Prefix: "note_", Suffix: ".md", Label: "note",
-	}); err != nil {
+	if err := pathutil.ValidateFileType(absPath, pathutil.NoteFileType); err != nil {
 		return nil, err
 	}
 
 	if err := os.Remove(absPath); err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("note not found: %w", err))
+		}
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to delete note: %w", err))
 	}
 

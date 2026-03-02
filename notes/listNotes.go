@@ -42,7 +42,7 @@ func (s *NotesServer) ListNotes(
 
 		name := e.Name()
 
-		if filepath.Ext(name) != ".md" || !strings.HasPrefix(name, "note_") {
+		if filepath.Ext(name) != pathutil.NoteFileType.Suffix || !strings.HasPrefix(name, pathutil.NoteFileType.Prefix) {
 			continue
 		}
 
