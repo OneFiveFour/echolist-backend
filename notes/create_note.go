@@ -9,8 +9,7 @@ import (
 
 	"connectrpc.com/connect"
 
-	"echolist-backend/atomicwrite"
-	"echolist-backend/pathutil"
+	"echolist-backend/common"
 	pb "echolist-backend/proto/gen/notes/v1"
 )
 
@@ -20,27 +19,25 @@ func (s *NotesServer) CreateNote(
 ) (*pb.CreateNoteResponse, error) {
 
 	// Validate path
-	dirPath, err := pathutil.ValidateParentDir(s.dataDir, req.GetParentDir())
+	dirPath, err := common.ValidateParentDir(s.dataDir, req.GetParentDir())
 	if err != nil {
 		return nil, err
 	}
 
 	title := req.GetTitle()
-	if err := pathutil.ValidateName(title); err != nil {
+	if err := common.ValidateName(title); err != nil {
 		return nil, err
 	}
 
-	if err := pathutil.ValidateContentLength(req.GetContent(), pathutil.MaxNoteContentBytes, "content"); err != nil {
+	if err := common.ValidateContentLength(req.GetContent(), common.MaxNoteContentBytes, "content"); err != nil {
 		return nil, err
 	}
 
-	// Only allow creating notes in existing directories (depth limit = 1).
-	// Reject requests that would auto-create intermediate directories.
-	if err := pathutil.RequireDir(dirPath, "parent directory"); err != nil {
+	if err := common.RequireDir(dirPath, "parent directory"); err != nil {
 		return nil, err
 	}
 
-	filename := pathutil.NoteFileType.Prefix + title + pathutil.NoteFileType.Suffix
+	filename := common.NoteFileType.Prefix + title + common.NoteFileType.Suffix
 	absoluteFilePath := filepath.Join(dirPath, filename)
 	relativeFilePath, _ := filepath.Rel(s.dataDir, absoluteFilePath)
 
@@ -48,7 +45,7 @@ func (s *NotesServer) CreateNote(
 	defer unlock()
 
 	// Use exclusive create to avoid TOCTOU race between existence check and write.
-	err = atomicwrite.CreateExclusive(absoluteFilePath, []byte(req.Content))
+	err = common.CreateExclusive(absoluteFilePath, []byte(req.Content))
 	if err != nil {
 		if errors.Is(err, os.ErrExist) {
 			return nil, connect.NewError(connect.CodeAlreadyExists, fmt.Errorf("note already exists"))

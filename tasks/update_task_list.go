@@ -10,8 +10,7 @@ import (
 
 	"connectrpc.com/connect"
 
-	"echolist-backend/atomicwrite"
-	"echolist-backend/pathutil"
+	"echolist-backend/common"
 	pb "echolist-backend/proto/gen/tasks/v1"
 )
 
@@ -19,12 +18,12 @@ func (s *TaskServer) UpdateTaskList(
 	ctx context.Context,
 	req *pb.UpdateTaskListRequest,
 ) (*pb.UpdateTaskListResponse, error) {
-	absPath, err := pathutil.ValidatePath(s.dataDir, req.GetFilePath())
+	absPath, err := common.ValidatePath(s.dataDir, req.GetFilePath())
 	if err != nil {
 		return nil, err
 	}
 
-	if err := pathutil.ValidateFileType(absPath, pathutil.TaskListFileType); err != nil {
+	if err := common.ValidateFileType(absPath, common.TaskListFileType); err != nil {
 		return nil, err
 	}
 
@@ -94,7 +93,7 @@ func (s *TaskServer) UpdateTaskList(
 
 	// Write updated file atomically
 	data := PrintTaskFile(domainTasks)
-	if err := atomicwrite.File(absPath, data); err != nil {
+	if err := common.File(absPath, data); err != nil {
 		s.logger.Error("failed to write task file", "path", req.GetFilePath(), "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to write task file: %w", err))
 	}

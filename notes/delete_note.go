@@ -8,7 +8,7 @@ import (
 
 	"connectrpc.com/connect"
 
-	"echolist-backend/pathutil"
+	"echolist-backend/common"
 	pb "echolist-backend/proto/gen/notes/v1"
 )
 
@@ -17,12 +17,12 @@ func (s *NotesServer) DeleteNote(
 	req *pb.DeleteNoteRequest,
 ) (*pb.DeleteNoteResponse, error) {
 
-	absPath, err := pathutil.ValidatePath(s.dataDir, req.GetFilePath())
+	absPath, err := common.ValidatePath(s.dataDir, req.GetFilePath())
 	if err != nil {
 		return nil, err
 	}
 
-	if err := pathutil.ValidateFileType(absPath, pathutil.NoteFileType); err != nil {
+	if err := common.ValidateFileType(absPath, common.NoteFileType); err != nil {
 		return nil, err
 	}
 

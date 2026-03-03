@@ -8,7 +8,7 @@ import (
 
 	"connectrpc.com/connect"
 
-	"echolist-backend/pathutil"
+	"echolist-backend/common"
 	filev1 "echolist-backend/proto/gen/file/v1"
 )
 
@@ -16,17 +16,17 @@ func (s *FileServer) UpdateFolder(
 	ctx context.Context,
 	req *filev1.UpdateFolderRequest,
 ) (*filev1.UpdateFolderResponse, error) {
-	if err := pathutil.ValidateName(req.GetNewName()); err != nil {
+	if err := common.ValidateName(req.GetNewName()); err != nil {
 		return nil, err
 	}
 	if req.GetFolderPath() == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("folder_path must not be empty"))
 	}
-	oldPath, err := pathutil.ValidatePath(s.dataDir, req.GetFolderPath())
+	oldPath, err := common.ValidatePath(s.dataDir, req.GetFolderPath())
 	if err != nil {
 		return nil, err
 	}
-	if err := pathutil.RequireDir(oldPath, "folder"); err != nil {
+	if err := common.RequireDir(oldPath, "folder"); err != nil {
 		return nil, err
 	}
 	parentDir := filepath.Dir(oldPath)

@@ -17,8 +17,8 @@ import (
 	"golang.org/x/net/http2/h2c"
 
 	"echolist-backend/auth"
+	"echolist-backend/common"
 	"echolist-backend/file"
-	"echolist-backend/logging"
 	authv1connect "echolist-backend/proto/gen/auth/v1/authv1connect"
 	filev1connect "echolist-backend/proto/gen/file/v1/filev1connect"
 	notesv1connect "echolist-backend/proto/gen/notes/v1/notesv1connect"
@@ -97,7 +97,7 @@ func main() {
 
 	tokenService := auth.NewTokenService(jwtSecret, accessTtl, refreshTtl)
 	authInterceptor := auth.NewAuthInterceptor(tokenService, logger)
-	loggingInterceptor := logging.NewRequestLoggingInterceptor(logger)
+	loggingInterceptor := common.NewRequestLoggingInterceptor(logger)
 	interceptors := connect.WithInterceptors(loggingInterceptor, authInterceptor)
 
 	// Register handlers

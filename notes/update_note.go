@@ -8,8 +8,7 @@ import (
 
 	"connectrpc.com/connect"
 
-	"echolist-backend/atomicwrite"
-	"echolist-backend/pathutil"
+	"echolist-backend/common"
 	pb "echolist-backend/proto/gen/notes/v1"
 )
 
@@ -18,16 +17,16 @@ func (s *NotesServer) UpdateNote(
 	req *pb.UpdateNoteRequest,
 ) (*pb.UpdateNoteResponse, error) {
 
-	absPath, err := pathutil.ValidatePath(s.dataDir, req.GetFilePath())
+	absPath, err := common.ValidatePath(s.dataDir, req.GetFilePath())
 	if err != nil {
 		return nil, err
 	}
 
-	if err := pathutil.ValidateFileType(absPath, pathutil.NoteFileType); err != nil {
+	if err := common.ValidateFileType(absPath, common.NoteFileType); err != nil {
 		return nil, err
 	}
 
-	if err := pathutil.ValidateContentLength(req.GetContent(), pathutil.MaxNoteContentBytes, "content"); err != nil {
+	if err := common.ValidateContentLength(req.GetContent(), common.MaxNoteContentBytes, "content"); err != nil {
 		return nil, err
 	}
 
@@ -42,7 +41,7 @@ func (s *NotesServer) UpdateNote(
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to stat note: %w", err))
 	}
 
-	err = atomicwrite.File(absPath, []byte(req.Content))
+	err = common.File(absPath, []byte(req.Content))
 	if err != nil {
 		s.logger.Error("failed to update note", "path", req.GetFilePath(), "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to update note: %w", err))

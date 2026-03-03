@@ -3,14 +3,14 @@ package file
 import (
 	"log/slog"
 
-	"echolist-backend/pathlock"
+	"echolist-backend/common"
 	"echolist-backend/proto/gen/file/v1/filev1connect"
 )
 
 type FileServer struct {
 	filev1connect.UnimplementedFileServiceHandler
 	dataDir string
-	locks   pathlock.Locker
+	locks   common.Locker
 	logger  *slog.Logger
 }
 

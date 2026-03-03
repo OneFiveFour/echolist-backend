@@ -8,7 +8,7 @@ import (
 
 	"connectrpc.com/connect"
 
-	"echolist-backend/pathutil"
+	"echolist-backend/common"
 	filev1 "echolist-backend/proto/gen/file/v1"
 )
 
@@ -16,18 +16,16 @@ func (s *FileServer) CreateFolder(
 	ctx context.Context,
 	req *filev1.CreateFolderRequest,
 ) (*filev1.CreateFolderResponse, error) {
-	if err := pathutil.ValidateName(req.GetName()); err != nil {
+	if err := common.ValidateName(req.GetName()); err != nil {
 		return nil, err
 	}
 
-	// Resolve parent directory
-	parentDir, err := pathutil.ValidateParentDir(s.dataDir, req.GetParentDir())
+	parentDir, err := common.ValidateParentDir(s.dataDir, req.GetParentDir())
 	if err != nil {
 		return nil, err
 	}
 
-	// Check parent exists
-	if err := pathutil.RequireDir(parentDir, "parent directory"); err != nil {
+	if err := common.RequireDir(parentDir, "parent directory"); err != nil {
 		return nil, err
 	}
 

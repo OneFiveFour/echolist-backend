@@ -10,8 +10,7 @@ import (
 
 	"connectrpc.com/connect"
 
-	"echolist-backend/atomicwrite"
-	"echolist-backend/pathutil"
+	"echolist-backend/common"
 	pb "echolist-backend/proto/gen/tasks/v1"
 )
 
@@ -20,18 +19,16 @@ func (s *TaskServer) CreateTaskList(
 	req *pb.CreateTaskListRequest,
 ) (*pb.CreateTaskListResponse, error) {
 	// Validate path
-	dirPath, err := pathutil.ValidateParentDir(s.dataDir, req.GetParentDir())
+	dirPath, err := common.ValidateParentDir(s.dataDir, req.GetParentDir())
 	if err != nil {
 		return nil, err
 	}
 
-	// Validate title
 	title := req.GetTitle()
-	if err := pathutil.ValidateName(title); err != nil {
+	if err := common.ValidateName(title); err != nil {
 		return nil, err
 	}
 
-	// Validate tasks
 	domainTasks := protoToMainTasks(req.GetTasks())
 	if err := validateTasks(domainTasks); err != nil {
 		return nil, err
@@ -46,14 +43,11 @@ func (s *TaskServer) CreateTaskList(
 		}
 	}
 
-	// Only allow creating task lists in existing directories (depth limit = 1).
-	// Reject requests that would auto-create intermediate directories.
-	if err := pathutil.RequireDir(dirPath, "parent directory"); err != nil {
+	if err := common.RequireDir(dirPath, "parent directory"); err != nil {
 		return nil, err
 	}
 
-	// Build file path
-	filename := pathutil.TaskListFileType.Prefix + title + pathutil.TaskListFileType.Suffix
+	filename := common.TaskListFileType.Prefix + title + common.TaskListFileType.Suffix
 	absPath := filepath.Join(dirPath, filename)
 
 	unlock := s.locks.Lock(absPath)
@@ -61,7 +55,7 @@ func (s *TaskServer) CreateTaskList(
 
 	// Use exclusive create to avoid TOCTOU race between existence check and write.
 	data := PrintTaskFile(domainTasks)
-	if err := atomicwrite.CreateExclusive(absPath, data); err != nil {
+	if err := common.CreateExclusive(absPath, data); err != nil {
 		if errors.Is(err, os.ErrExist) {
 			return nil, connect.NewError(connect.CodeAlreadyExists, fmt.Errorf("task list already exists"))
 		}

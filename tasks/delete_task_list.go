@@ -8,7 +8,7 @@ import (
 
 	"connectrpc.com/connect"
 
-	"echolist-backend/pathutil"
+	"echolist-backend/common"
 	pb "echolist-backend/proto/gen/tasks/v1"
 )
 
@@ -16,12 +16,12 @@ func (s *TaskServer) DeleteTaskList(
 	ctx context.Context,
 	req *pb.DeleteTaskListRequest,
 ) (*pb.DeleteTaskListResponse, error) {
-	absPath, err := pathutil.ValidatePath(s.dataDir, req.GetFilePath())
+	absPath, err := common.ValidatePath(s.dataDir, req.GetFilePath())
 	if err != nil {
 		return nil, err
 	}
 
-	if err := pathutil.ValidateFileType(absPath, pathutil.TaskListFileType); err != nil {
+	if err := common.ValidateFileType(absPath, common.TaskListFileType); err != nil {
 		return nil, err
 	}
 

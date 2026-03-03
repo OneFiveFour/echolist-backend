@@ -1,11 +1,10 @@
 package notes
 
 import (
-	"echolist-backend/pathutil"
+	"echolist-backend/common"
 )
 
 // ExtractNoteTitle extracts the title from a note filename.
-// Returns an error if the filename is too short or doesn't match the expected pattern.
 func ExtractNoteTitle(filename string) (string, error) {
-	return pathutil.ExtractTitle(filename, pathutil.NoteFileType.Prefix, pathutil.NoteFileType.Suffix, pathutil.NoteFileType.Label)
+	return common.ExtractTitle(filename, common.NoteFileType.Prefix, common.NoteFileType.Suffix, common.NoteFileType.Label)
 }

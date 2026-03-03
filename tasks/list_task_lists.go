@@ -9,7 +9,7 @@ import (
 
 	"connectrpc.com/connect"
 
-	"echolist-backend/pathutil"
+	"echolist-backend/common"
 	pb "echolist-backend/proto/gen/tasks/v1"
 )
 
@@ -17,12 +17,12 @@ func (s *TaskServer) ListTaskLists(
 	ctx context.Context,
 	req *pb.ListTaskListsRequest,
 ) (*pb.ListTaskListsResponse, error) {
-	dirPath, err := pathutil.ValidateParentDir(s.dataDir, req.GetParentDir())
+	dirPath, err := common.ValidateParentDir(s.dataDir, req.GetParentDir())
 	if err != nil {
 		return nil, err
 	}
 
-	if err := pathutil.RequireDir(dirPath, "parent directory"); err != nil {
+	if err := common.RequireDir(dirPath, "parent directory"); err != nil {
 		return nil, err
 	}
 
@@ -42,7 +42,7 @@ func (s *TaskServer) ListTaskLists(
 	for _, e := range dirEntries {
 		name := e.Name()
 
-		if e.IsDir() || filepath.Ext(name) != pathutil.TaskListFileType.Suffix || !strings.HasPrefix(name, pathutil.TaskListFileType.Prefix) {
+		if e.IsDir() || filepath.Ext(name) != common.TaskListFileType.Suffix || !strings.HasPrefix(name, common.TaskListFileType.Prefix) {
 			continue
 		}
 

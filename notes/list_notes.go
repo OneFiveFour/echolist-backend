@@ -9,7 +9,7 @@ import (
 
 	"connectrpc.com/connect"
 
-	"echolist-backend/pathutil"
+	"echolist-backend/common"
 	pb "echolist-backend/proto/gen/notes/v1"
 )
 
@@ -18,12 +18,12 @@ func (s *NotesServer) ListNotes(
 	req *pb.ListNotesRequest,
 ) (*pb.ListNotesResponse, error) {
 
-	root, err := pathutil.ValidateParentDir(s.dataDir, req.GetParentDir())
+	root, err := common.ValidateParentDir(s.dataDir, req.GetParentDir())
 	if err != nil {
 		return nil, err
 	}
 
-	if err := pathutil.RequireDir(root, "parent directory"); err != nil {
+	if err := common.RequireDir(root, "parent directory"); err != nil {
 		return nil, err
 	}
 
@@ -47,7 +47,7 @@ func (s *NotesServer) ListNotes(
 
 		name := e.Name()
 
-		if filepath.Ext(name) != pathutil.NoteFileType.Suffix || !strings.HasPrefix(name, pathutil.NoteFileType.Prefix) {
+		if filepath.Ext(name) != common.NoteFileType.Suffix || !strings.HasPrefix(name, common.NoteFileType.Prefix) {
 			continue
 		}
 

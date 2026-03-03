@@ -4,8 +4,7 @@ import (
 	"log/slog"
 	"time"
 
-	"echolist-backend/pathlock"
-	"echolist-backend/pathutil"
+	"echolist-backend/common"
 	pb "echolist-backend/proto/gen/tasks/v1"
 	tasksv1connect "echolist-backend/proto/gen/tasks/v1/tasksv1connect"
 )
@@ -14,7 +13,7 @@ import (
 type TaskServer struct {
 	tasksv1connect.UnimplementedTaskListServiceHandler
 	dataDir string
-	locks   pathlock.Locker
+	locks   common.Locker
 	logger  *slog.Logger
 }
 
@@ -94,5 +93,5 @@ func nowMillis() int64 {
 // filename (e.g. "tasks_Shopping.md" → "Shopping").
 // Returns an error if the filename is too short or doesn't match the expected pattern.
 func ExtractTaskListTitle(filename string) (string, error) {
-	return pathutil.ExtractTitle(filename, pathutil.TaskListFileType.Prefix, pathutil.TaskListFileType.Suffix, pathutil.TaskListFileType.Label)
+	return common.ExtractTitle(filename, common.TaskListFileType.Prefix, common.TaskListFileType.Suffix, common.TaskListFileType.Label)
 }
