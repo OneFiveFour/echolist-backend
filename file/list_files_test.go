@@ -11,7 +11,7 @@ import (
 
 	"connectrpc.com/connect"
 
-	"echolist-backend/pathutil"
+	"echolist-backend/common"
 	filev1 "echolist-backend/proto/gen/file/v1"
 	"pgregory.net/rapid"
 )
@@ -84,7 +84,7 @@ func TestProperty1_ListFilesReturnsImmediateChildren(t *testing.T) {
 			name := e.Name()
 			if e.IsDir() {
 				name += "/"
-			} else if !matchesFileType(name, pathutil.NoteFileType) && !matchesFileType(name, pathutil.TaskListFileType) {
+			} else if !matchesFileType(name, common.NoteFileType) && !matchesFileType(name, common.TaskListFileType) {
 				continue
 			}
 			expected = append(expected, name)

@@ -10,7 +10,7 @@ import (
 
 	"connectrpc.com/connect"
 
-	"echolist-backend/pathutil"
+	"echolist-backend/common"
 	pb "echolist-backend/proto/gen/notes/v1"
 )
 
@@ -18,7 +18,7 @@ func TestCreateNote_ContentTooLarge(t *testing.T) {
 	dataDir := t.TempDir()
 	server := NewNotesServer(dataDir, nopLogger())
 
-	oversized := strings.Repeat("x", pathutil.MaxNoteContentBytes+1)
+	oversized := strings.Repeat("x", common.MaxNoteContentBytes+1)
 
 	_, err := server.CreateNote(context.Background(), &pb.CreateNoteRequest{
 		ParentDir: "",
@@ -42,7 +42,7 @@ func TestCreateNote_ContentAtLimit(t *testing.T) {
 	dataDir := t.TempDir()
 	server := NewNotesServer(dataDir, nopLogger())
 
-	content := strings.Repeat("x", pathutil.MaxNoteContentBytes)
+	content := strings.Repeat("x", common.MaxNoteContentBytes)
 
 	resp, err := server.CreateNote(context.Background(), &pb.CreateNoteRequest{
 		ParentDir: "",
@@ -67,7 +67,7 @@ func TestUpdateNote_ContentTooLarge(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	oversized := strings.Repeat("x", pathutil.MaxNoteContentBytes+1)
+	oversized := strings.Repeat("x", common.MaxNoteContentBytes+1)
 
 	_, err := server.UpdateNote(context.Background(), &pb.UpdateNoteRequest{
 		FilePath: "note_test.md",
@@ -96,7 +96,7 @@ func TestCreateNote_TitleTooLong(t *testing.T) {
 	dataDir := t.TempDir()
 	server := NewNotesServer(dataDir, nopLogger())
 
-	longTitle := strings.Repeat("a", pathutil.MaxNameLen+1)
+	longTitle := strings.Repeat("a", common.MaxNameLen+1)
 
 	_, err := server.CreateNote(context.Background(), &pb.CreateNoteRequest{
 		ParentDir: "",

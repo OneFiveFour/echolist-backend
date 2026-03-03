@@ -7,7 +7,7 @@ import (
 
 	"connectrpc.com/connect"
 
-	"echolist-backend/pathutil"
+	"echolist-backend/common"
 	filev1 "echolist-backend/proto/gen/file/v1"
 )
 
@@ -20,13 +20,13 @@ func (s *FileServer) DeleteFolder(
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("folder_path must not be empty"))
 	}
 
-	target, err := pathutil.ValidatePath(s.dataDir, req.GetFolderPath())
+	target, err := common.ValidatePath(s.dataDir, req.GetFolderPath())
 	if err != nil {
 		return nil, err
 	}
 
 	// Check folder exists and is a directory
-	if err := pathutil.RequireDir(target, "folder"); err != nil {
+	if err := common.RequireDir(target, "folder"); err != nil {
 		return nil, err
 	}
 

@@ -10,7 +10,7 @@ import (
 
 	"connectrpc.com/connect"
 
-	"echolist-backend/pathutil"
+	"echolist-backend/common"
 	pb "echolist-backend/proto/gen/tasks/v1"
 )
 
@@ -19,7 +19,7 @@ import (
 // ---------------------------------------------------------------------------
 
 func TestValidateTasks_TooManyTasks(t *testing.T) {
-	tasks := make([]MainTask, pathutil.MaxTasksPerList+1)
+	tasks := make([]MainTask, common.MaxTasksPerList+1)
 	for i := range tasks {
 		tasks[i] = MainTask{Description: "task"}
 	}
@@ -39,7 +39,7 @@ func TestValidateTasks_TooManyTasks(t *testing.T) {
 }
 
 func TestValidateTasks_AtTaskLimit(t *testing.T) {
-	tasks := make([]MainTask, pathutil.MaxTasksPerList)
+	tasks := make([]MainTask, common.MaxTasksPerList)
 	for i := range tasks {
 		tasks[i] = MainTask{Description: "task"}
 	}
@@ -51,7 +51,7 @@ func TestValidateTasks_AtTaskLimit(t *testing.T) {
 
 func TestValidateTasks_DescriptionTooLong(t *testing.T) {
 	tasks := []MainTask{
-		{Description: strings.Repeat("x", pathutil.MaxTaskDescriptionBytes+1)},
+		{Description: strings.Repeat("x", common.MaxTaskDescriptionBytes+1)},
 	}
 
 	err := validateTasks(tasks)
@@ -69,7 +69,7 @@ func TestValidateTasks_DescriptionTooLong(t *testing.T) {
 }
 
 func TestValidateTasks_TooManySubtasks(t *testing.T) {
-	subs := make([]Subtask, pathutil.MaxSubtasksPerTask+1)
+	subs := make([]Subtask, common.MaxSubtasksPerTask+1)
 	for i := range subs {
 		subs[i] = Subtask{Description: "sub"}
 	}
@@ -97,7 +97,7 @@ func TestValidateTasks_SubtaskDescriptionTooLong(t *testing.T) {
 		{
 			Description: "parent",
 			Subtasks: []Subtask{
-				{Description: strings.Repeat("y", pathutil.MaxSubtaskDescriptionBytes+1)},
+				{Description: strings.Repeat("y", common.MaxSubtaskDescriptionBytes+1)},
 			},
 		},
 	}
@@ -128,7 +128,7 @@ func TestCreateTaskList_DescriptionTooLong(t *testing.T) {
 		Title:     "test",
 		ParentDir: "",
 		Tasks: []*pb.MainTask{
-			{Description: strings.Repeat("z", pathutil.MaxTaskDescriptionBytes+1)},
+			{Description: strings.Repeat("z", common.MaxTaskDescriptionBytes+1)},
 		},
 	})
 	if err == nil {
@@ -154,7 +154,7 @@ func TestUpdateTaskList_TooManyTasks(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	bigList := make([]*pb.MainTask, pathutil.MaxTasksPerList+1)
+	bigList := make([]*pb.MainTask, common.MaxTasksPerList+1)
 	for i := range bigList {
 		bigList[i] = &pb.MainTask{Description: "task"}
 	}
