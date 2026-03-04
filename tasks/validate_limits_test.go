@@ -69,13 +69,13 @@ func TestValidateTasks_DescriptionTooLong(t *testing.T) {
 }
 
 func TestValidateTasks_TooManySubtasks(t *testing.T) {
-	subs := make([]Subtask, common.MaxSubtasksPerTask+1)
+	subs := make([]SubTask, common.MaxSubtasksPerTask+1)
 	for i := range subs {
-		subs[i] = Subtask{Description: "sub"}
+		subs[i] = SubTask{Description: "sub"}
 	}
 
 	tasks := []MainTask{
-		{Description: "parent", Subtasks: subs},
+		{Description: "parent", SubTasks: subs},
 	}
 
 	err := validateTasks(tasks)
@@ -96,7 +96,7 @@ func TestValidateTasks_SubtaskDescriptionTooLong(t *testing.T) {
 	tasks := []MainTask{
 		{
 			Description: "parent",
-			Subtasks: []Subtask{
+			SubTasks: []SubTask{
 				{Description: strings.Repeat("y", common.MaxSubtaskDescriptionBytes+1)},
 			},
 		},

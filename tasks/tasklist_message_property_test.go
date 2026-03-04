@@ -145,8 +145,8 @@ func TestProperty_UpdateReturnsTaskListMessage(t *testing.T) {
 			if got.Done != want.Done {
 				rt.Fatalf("task %d done: expected %v, got %v", i, want.Done, got.Done)
 			}
-			if len(got.Subtasks) != len(want.Subtasks) {
-				rt.Fatalf("task %d subtask count: expected %d, got %d", i, len(want.Subtasks), len(got.Subtasks))
+			if len(got.SubTasks) != len(want.SubTasks) {
+				rt.Fatalf("task %d subtask count: expected %d, got %d", i, len(want.SubTasks), len(got.SubTasks))
 			}
 		}
 

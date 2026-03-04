@@ -9,11 +9,11 @@ import (
 	"pgregory.net/rapid"
 )
 
-// subtaskGen generates a random Subtask with a non-empty description.
-func subtaskGen() *rapid.Generator[Subtask] {
-	return rapid.Custom[Subtask](func(t *rapid.T) Subtask {
+// subtaskGen generates a random SubTask with a non-empty description.
+func subtaskGen() *rapid.Generator[SubTask] {
+	return rapid.Custom[SubTask](func(t *rapid.T) SubTask {
 		desc := rapid.StringMatching(`[A-Za-z0-9 ]{1,40}`).Draw(t, "subtask-desc")
-		return Subtask{
+		return SubTask{
 			Description: desc,
 			Done:        rapid.Bool().Draw(t, "subtask-done"),
 		}
@@ -46,7 +46,7 @@ func mainTaskGen() *rapid.Generator[MainTask] {
 			Done:        done,
 			DueDate:     dueDate,
 			Recurrence:  recurrence,
-			Subtasks:    subtasks,
+			SubTasks:    subtasks,
 		}
 	})
 }
@@ -125,8 +125,8 @@ func normalizeNilSlices(tasks []MainTask) []MainTask {
 	result := make([]MainTask, len(tasks))
 	for i, mt := range tasks {
 		result[i] = mt
-		if result[i].Subtasks == nil {
-			result[i].Subtasks = nil
+		if result[i].SubTasks == nil {
+			result[i].SubTasks = nil
 		}
 	}
 	return result

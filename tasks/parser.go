@@ -39,7 +39,7 @@ func ParseTaskFile(data []byte) ([]MainTask, error) {
 			if err != nil {
 				return nil, err
 			}
-			tasks[len(tasks)-1].Subtasks = append(tasks[len(tasks)-1].Subtasks, st)
+			tasks[len(tasks)-1].SubTasks = append(tasks[len(tasks)-1].SubTasks, st)
 			continue
 		}
 
@@ -78,8 +78,8 @@ func parseMainTask(line string, lineNum int) (MainTask, error) {
 	return mt, nil
 }
 
-func parseSubtask(line string, lineNum int) (Subtask, error) {
-	var st Subtask
+func parseSubtask(line string, lineNum int) (SubTask, error) {
+	var st SubTask
 
 	if strings.HasPrefix(line, "  - [x] ") {
 		st.Done = true
@@ -91,7 +91,7 @@ func parseSubtask(line string, lineNum int) (Subtask, error) {
 	st.Description = line
 
 	if st.Description == "" {
-		return Subtask{}, fmt.Errorf("line %d: subtask has empty description", lineNum)
+		return SubTask{}, fmt.Errorf("line %d: subtask has empty description", lineNum)
 	}
 
 	return st, nil

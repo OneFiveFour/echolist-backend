@@ -12,7 +12,7 @@ service TaskListService {
   rpc DeleteTaskList (DeleteTaskListRequest) returns (DeleteTaskListResponse);
 }
 
-message Subtask {
+message SubTask {
   string description = 1;
   bool done = 2;
 }
@@ -22,7 +22,7 @@ message MainTask {
   bool done = 2;
   string due_date = 3;
   string recurrence = 4;
-  repeated Subtask subtasks = 5;
+  repeated SubTask sub_tasks = 5;
 }
 
 message TaskList {

@@ -51,7 +51,7 @@ func TestParseTaskFile_TaskWithSubtasks(t *testing.T) {
 		{
 			Description: "Buy groceries",
 			Done:        false,
-			Subtasks: []Subtask{
+			SubTasks: []SubTask{
 				{Description: "Whole milk 2L", Done: false},
 				{Description: "Bread", Done: true},
 			},
@@ -105,7 +105,7 @@ func TestParseTaskFile_MixedModes(t *testing.T) {
 		{Description: "Submit report", DueDate: "2025-02-28"},
 		{
 			Description: "Buy milk", DueDate: "2025-07-21", Recurrence: "FREQ=WEEKLY;BYDAY=MO",
-			Subtasks: []Subtask{
+			SubTasks: []SubTask{
 				{Description: "Whole milk"},
 				{Description: "Oat milk"},
 			},
@@ -169,7 +169,7 @@ func TestPrintTaskFile_RoundTrip(t *testing.T) {
 	tasks := []MainTask{
 		{
 			Description: "Buy groceries",
-			Subtasks: []Subtask{
+			SubTasks: []SubTask{
 				{Description: "Whole milk 2L"},
 				{Description: "Bread", Done: true},
 			},

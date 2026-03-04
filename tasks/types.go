@@ -6,11 +6,11 @@ type MainTask struct {
 	Done        bool
 	DueDate     string    // "YYYY-MM-DD" or "" (empty for simple tasks)
 	Recurrence  string    // RRULE string or "" (empty for non-recurring)
-	Subtasks    []Subtask
+	SubTasks    []SubTask
 }
 
-// Subtask is a child task under a MainTask.
-type Subtask struct {
+// SubTask is a child task under a MainTask.
+type SubTask struct {
 	Description string
 	Done        bool
 }

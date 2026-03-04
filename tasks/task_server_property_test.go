@@ -23,14 +23,14 @@ func simpleTaskGen() *rapid.Generator[*pb.MainTask] {
 		desc := rapid.StringMatching(`[A-Za-z0-9 ]{1,40}`).Draw(t, "desc")
 		done := rapid.Bool().Draw(t, "done")
 		numSubs := rapid.IntRange(0, 3).Draw(t, "numSubs")
-		var subs []*pb.Subtask
+		var subs []*pb.SubTask
 		for i := 0; i < numSubs; i++ {
-			subs = append(subs, &pb.Subtask{
+			subs = append(subs, &pb.SubTask{
 				Description: rapid.StringMatching(`[A-Za-z0-9 ]{1,30}`).Draw(t, fmt.Sprintf("sub-%d", i)),
 				Done:        rapid.Bool().Draw(t, fmt.Sprintf("sub-done-%d", i)),
 			})
 		}
-		return &pb.MainTask{Description: desc, Done: done, Subtasks: subs}
+		return &pb.MainTask{Description: desc, Done: done, SubTasks: subs}
 	})
 }
 
@@ -128,11 +128,11 @@ func TestProperty6_TaskListCreateThenGetRoundTrip(t *testing.T) {
 			if got.Done != want.Done {
 				rt.Fatalf("task %d done: expected %v, got %v", i, want.Done, got.Done)
 			}
-			if len(got.Subtasks) != len(want.Subtasks) {
-				rt.Fatalf("task %d subtask count: expected %d, got %d", i, len(want.Subtasks), len(got.Subtasks))
+			if len(got.SubTasks) != len(want.SubTasks) {
+				rt.Fatalf("task %d subtask count: expected %d, got %d", i, len(want.SubTasks), len(got.SubTasks))
 			}
-			for j, gs := range got.Subtasks {
-				ws := want.Subtasks[j]
+			for j, gs := range got.SubTasks {
+				ws := want.SubTasks[j]
 				if gs.Description != ws.Description || gs.Done != ws.Done {
 					rt.Fatalf("task %d subtask %d mismatch", i, j)
 				}

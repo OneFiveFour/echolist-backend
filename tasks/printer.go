@@ -16,7 +16,7 @@ func PrintTaskFile(tasks []MainTask) []byte {
 			buf.WriteByte('\n')
 		}
 		printMainTask(&buf, mt)
-		for _, st := range mt.Subtasks {
+		for _, st := range mt.SubTasks {
 			buf.WriteByte('\n')
 			printSubtask(&buf, st)
 		}
@@ -41,7 +41,7 @@ func printMainTask(buf *bytes.Buffer, mt MainTask) {
 	}
 }
 
-func printSubtask(buf *bytes.Buffer, st Subtask) {
+func printSubtask(buf *bytes.Buffer, st SubTask) {
 	if st.Done {
 		buf.WriteString("  - [x] ")
 	} else {

@@ -31,19 +31,19 @@ func protoToMainTasks(pbTasks []*pb.MainTask) []MainTask {
 			Done:        pt.Done,
 			DueDate:     pt.DueDate,
 			Recurrence:  pt.Recurrence,
-			Subtasks:    protoToSubtasks(pt.Subtasks),
+			SubTasks:    protoToSubtasks(pt.SubTasks),
 		}
 	}
 	return tasks
 }
 
-func protoToSubtasks(pbSubs []*pb.Subtask) []Subtask {
+func protoToSubtasks(pbSubs []*pb.SubTask) []SubTask {
 	if len(pbSubs) == 0 {
 		return nil
 	}
-	subs := make([]Subtask, len(pbSubs))
+	subs := make([]SubTask, len(pbSubs))
 	for i, ps := range pbSubs {
-		subs[i] = Subtask{Description: ps.Description, Done: ps.Done}
+		subs[i] = SubTask{Description: ps.Description, Done: ps.Done}
 	}
 	return subs
 }
@@ -57,7 +57,7 @@ func mainTasksToProto(tasks []MainTask) []*pb.MainTask {
 			Done:        t.Done,
 			DueDate:     t.DueDate,
 			Recurrence:  t.Recurrence,
-			Subtasks:    subtasksToProto(t.Subtasks),
+			SubTasks:    subtasksToProto(t.SubTasks),
 		}
 	}
 	return pbTasks
@@ -74,13 +74,13 @@ func buildTaskList(filePath, title string, tasks []MainTask, updatedAt int64) *p
 }
 
 
-func subtasksToProto(subs []Subtask) []*pb.Subtask {
+func subtasksToProto(subs []SubTask) []*pb.SubTask {
 	if len(subs) == 0 {
 		return nil
 	}
-	pbSubs := make([]*pb.Subtask, len(subs))
+	pbSubs := make([]*pb.SubTask, len(subs))
 	for i, s := range subs {
-		pbSubs[i] = &pb.Subtask{Description: s.Description, Done: s.Done}
+		pbSubs[i] = &pb.SubTask{Description: s.Description, Done: s.Done}
 	}
 	return pbSubs
 }

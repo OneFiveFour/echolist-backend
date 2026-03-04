@@ -17,10 +17,10 @@ func validateTasks(tasks []MainTask) error {
 		if err := common.ValidateContentLength(t.Description, common.MaxTaskDescriptionBytes, fmt.Sprintf("task %d description", i)); err != nil {
 			return err
 		}
-		if len(t.Subtasks) > common.MaxSubtasksPerTask {
-			return connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("task %d: too many subtasks: %d exceeds %d limit", i, len(t.Subtasks), common.MaxSubtasksPerTask))
+		if len(t.SubTasks) > common.MaxSubtasksPerTask {
+			return connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("task %d: too many subtasks: %d exceeds %d limit", i, len(t.SubTasks), common.MaxSubtasksPerTask))
 		}
-		for j, st := range t.Subtasks {
+		for j, st := range t.SubTasks {
 			if err := common.ValidateContentLength(st.Description, common.MaxSubtaskDescriptionBytes, fmt.Sprintf("task %d subtask %d description", i, j)); err != nil {
 				return err
 			}
