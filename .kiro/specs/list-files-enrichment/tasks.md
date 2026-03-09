@@ -82,55 +82,55 @@ This implementation adds rich metadata to the ListFiles RPC by introducing new p
     - Test non-existent directory returns NotFound (regression)
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 6.1, 6.2, 9.1, 9.2_
 
-- [ ] 5. Checkpoint - Ensure all tests pass
+- [x] 5. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 6. Implement property-based tests for correctness properties
-  - [ ] 6.1 Write property test for classification and filtering
+- [x] 6. Implement property-based tests for correctness properties
+  - [x] 6.1 Write property test for classification and filtering
     - **Property 1: Classification and filtering correctness**
     - **Validates: Requirements 2.2, 2.3, 2.4, 2.5**
     - Generate random directory with mixed entries
     - Verify entry count and item_type values
     - Verify no unrecognized files in response
   
-  - [ ] 6.2 Write property test for path construction
+  - [x] 6.2 Write property test for path construction
     - **Property 2: Path construction correctness**
     - **Validates: Requirements 6.1, 6.2**
     - Generate random parent_dir values (empty and non-empty)
     - Verify path format matches expected pattern
   
-  - [ ] 6.3 Write property test for folder metadata
+  - [x] 6.3 Write property test for folder metadata
     - **Property 3: Folder metadata correctness**
     - **Validates: Requirements 3.1, 3.2, 3.3**
     - Generate random subdirectories with mixed children
     - Verify title equals directory name
     - Verify child_count matches independent count of recognized items
   
-  - [ ] 6.4 Write property test for note metadata
+  - [x] 6.4 Write property test for note metadata
     - **Property 4: Note metadata correctness**
     - **Validates: Requirements 4.1, 4.2, 4.3, 4.4**
     - Generate random note files with varying content lengths
     - Verify title extraction, updated_at, and preview truncation
   
-  - [ ] 6.5 Write property test for task list metadata
+  - [x] 6.5 Write property test for task list metadata
     - **Property 5: Task list metadata correctness**
     - **Validates: Requirements 5.1, 5.2, 5.3, 5.4**
     - Generate random task files with varying task counts
     - Verify title extraction, updated_at, total_task_count, done_task_count
   
-  - [ ] 6.6 Write property test for path round-trip usability
+  - [x] 6.6 Write property test for path round-trip usability
     - **Property 6: Path round-trip usability**
     - **Validates: Requirements 6.3**
     - Generate random directory structure
     - Verify returned paths work in GetNote/GetTaskList/ListFiles calls
   
-  - [ ] 6.7 Write property test for non-recursive listing
+  - [x] 6.7 Write property test for non-recursive listing
     - **Property 7: Non-recursive listing**
     - **Validates: Requirements 9.1, 9.2**
     - Generate nested directory structures
     - Verify no entry filename contains path separators
 
-- [ ] 7. Final checkpoint - Ensure all tests pass
+- [x] 7. Final checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes
