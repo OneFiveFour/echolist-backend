@@ -65,7 +65,7 @@ This implementation adds rich metadata to the ListFiles RPC by introducing new p
     - Test error handling (I/O failures, parse errors)
     - _Requirements: 3.1, 3.2, 3.3, 4.1, 4.2, 4.3, 4.4, 5.1, 5.2, 5.3, 5.4, 6.1, 6.2_
 
-- [-] 4. Refactor ListFiles method to use new FileEntry structure
+- [x] 4. Refactor ListFiles method to use new FileEntry structure
   - [x] 4.1 Update ListFiles to build FileEntry messages
     - Remove old string-based entry building
     - Classify each entry using IsDir() and common.MatchesFileType
@@ -74,7 +74,7 @@ This implementation adds rich metadata to the ListFiles RPC by introducing new p
     - Remove unexported matchesFileType function (replaced by common.MatchesFileType)
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 6.1, 6.2, 9.1, 9.2_
   
-  - [ ] 4.2 Write unit tests for ListFiles refactored logic
+  - [x] 4.2 Write unit tests for ListFiles refactored logic
     - Test empty directory returns empty entries
     - Test directory with only unrecognized files returns empty entries
     - Test mixed directory returns correct FileEntry types

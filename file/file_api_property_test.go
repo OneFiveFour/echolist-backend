@@ -6,7 +6,6 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
-	"strings"
 	"testing"
 
 	"connectrpc.com/connect"
@@ -101,11 +100,11 @@ func TestProperty6_ListFilesReturnsImmediateChildren(t *testing.T) {
 		if err != nil {
 			rt.Fatalf("ListFiles failed: %v", err)
 		}
-		// Count directory entries (those ending with "/") — should match created folders
+		// Count directory entries (those with FOLDER type) — should match created folders
 		var dirEntries []string
 		for _, e := range resp.Entries {
-			if strings.HasSuffix(e, "/") {
-				dirEntries = append(dirEntries, strings.TrimSuffix(e, "/"))
+			if e.ItemType == filev1.ItemType_ITEM_TYPE_FOLDER {
+				dirEntries = append(dirEntries, e.Title)
 			}
 		}
 		sort.Strings(dirEntries)
@@ -122,16 +121,16 @@ func TestProperty6_ListFilesReturnsImmediateChildren(t *testing.T) {
 				rt.Fatalf("mismatch at %d: expected %q, got %q", i, expectedNames[i], dirEntries[i])
 			}
 		}
-		// The "note_test.md" file should also appear as a non-directory entry
+		// The "note_test.md" file should also appear as a NOTE entry
 		foundFile := false
 		for _, e := range resp.Entries {
-			if e == "note_test.md" {
+			if e.Path == "note_test.md" && e.ItemType == filev1.ItemType_ITEM_TYPE_NOTE {
 				foundFile = true
 				break
 			}
 		}
 		if !foundFile {
-			rt.Fatal("expected 'note_test.md' in entries but not found")
+			rt.Fatal("expected 'note_test.md' with NOTE type in entries but not found")
 		}
 	})
 }

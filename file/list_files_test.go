@@ -16,8 +16,8 @@ import (
 	"pgregory.net/rapid"
 )
 
-// Feature: file-service-refactor, Property 1: ListFiles returns immediate children with correct entry format
-// Validates: Requirements 3.1, 3.2, 3.3, 3.4
+// Feature: list-files-enrichment, Property 1: ListFiles returns immediate children with correct entry format
+// Validates: Requirements 2.1, 2.2, 2.3, 2.4, 2.5, 9.1, 9.2
 func TestProperty1_ListFilesReturnsImmediateChildren(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		dataDir := t.TempDir()
@@ -79,61 +79,61 @@ func TestProperty1_ListFilesReturnsImmediateChildren(t *testing.T) {
 			rt.Fatalf("os.ReadDir failed: %v", err)
 		}
 
-		var expected []string
+		var expectedNames []string
 		for _, e := range diskEntries {
 			name := e.Name()
 			if e.IsDir() {
-				name += "/"
-			} else if !matchesFileType(name, common.NoteFileType) && !matchesFileType(name, common.TaskListFileType) {
-				continue
+				expectedNames = append(expectedNames, name)
+			} else if common.MatchesFileType(name, common.NoteFileType) || common.MatchesFileType(name, common.TaskListFileType) {
+				expectedNames = append(expectedNames, name)
 			}
-			expected = append(expected, name)
 		}
 
-		sort.Strings(expected)
-		got := make([]string, len(resp.Entries))
-		copy(got, resp.Entries)
-		sort.Strings(got)
+		sort.Strings(expectedNames)
+		gotNames := make([]string, len(resp.Entries))
+		for i, entry := range resp.Entries {
+			// Extract name from path (path is just name when parent_dir is empty)
+			gotNames[i] = entry.Path
+		}
+		sort.Strings(gotNames)
 
 		// (a) every immediate child represented exactly once
-		if len(got) != len(expected) {
-			rt.Fatalf("expected %d entries, got %d\nexpected: %v\ngot: %v", len(expected), len(got), expected, got)
+		if len(gotNames) != len(expectedNames) {
+			rt.Fatalf("expected %d entries, got %d\nexpected: %v\ngot: %v", len(expectedNames), len(gotNames), expectedNames, gotNames)
 		}
-		for i := range expected {
-			if got[i] != expected[i] {
-				rt.Fatalf("entry mismatch at %d: expected %q, got %q", i, expected[i], got[i])
+		for i := range expectedNames {
+			if gotNames[i] != expectedNames[i] {
+				rt.Fatalf("entry mismatch at %d: expected %q, got %q", i, expectedNames[i], gotNames[i])
 			}
 		}
 
-		// (b) directory entries end with /
-		// (c) file entries do not end with /
+		// (b) directory entries have FOLDER type
+		// (c) file entries have NOTE or TASK_LIST type
 		for _, entry := range resp.Entries {
-			nameWithoutSlash := strings.TrimSuffix(entry, "/")
-			fullPath := filepath.Join(dataDir, nameWithoutSlash)
+			fullPath := filepath.Join(dataDir, entry.Path)
 			info, statErr := os.Stat(fullPath)
 			if statErr != nil {
-				rt.Fatalf("entry %q not found on disk: %v", entry, statErr)
+				rt.Fatalf("entry %q not found on disk: %v", entry.Path, statErr)
 			}
-			if info.IsDir() && !strings.HasSuffix(entry, "/") {
-				rt.Fatalf("directory entry %q should end with /", entry)
+			if info.IsDir() && entry.ItemType != filev1.ItemType_ITEM_TYPE_FOLDER {
+				rt.Fatalf("directory entry %q should have FOLDER type, got %v", entry.Path, entry.ItemType)
 			}
-			if !info.IsDir() && strings.HasSuffix(entry, "/") {
-				rt.Fatalf("file entry %q should not end with /", entry)
+			if !info.IsDir() && entry.ItemType == filev1.ItemType_ITEM_TYPE_FOLDER {
+				rt.Fatalf("file entry %q should not have FOLDER type", entry.Path)
 			}
 		}
 
 		// (d) no deeper entries included — none should contain a path separator
 		for _, entry := range resp.Entries {
-			trimmed := strings.TrimSuffix(entry, "/")
-			if strings.Contains(trimmed, "/") || strings.Contains(trimmed, "\\") {
-				rt.Fatalf("entry %q contains path separator — deeper entry leaked", entry)
+			if strings.Contains(entry.Path, "/") || strings.Contains(entry.Path, "\\") {
+				rt.Fatalf("entry %q contains path separator — deeper entry leaked", entry.Path)
 			}
 		}
 	})
 }
 
-// Feature: file-service-refactor, Property 2: ListFiles on non-existent path returns NotFound
-// Validates: Requirements 3.5
+// Feature: list-files-enrichment, Property 2: ListFiles on non-existent path returns NotFound
+// Validates: Requirements 7.1, 7.2, 7.3, 7.4
 func TestProperty2_ListFilesNonExistentPathNotFound(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		name := folderNameGen().Draw(rt, "nonExistentPath")
@@ -156,8 +156,8 @@ func TestProperty2_ListFilesNonExistentPathNotFound(t *testing.T) {
 	})
 }
 
-// Feature: file-service-refactor, Property 3: ListFiles on file path returns NotFound
-// Validates: Requirements 3.6
+// Feature: list-files-enrichment, Property 3: ListFiles on file path returns NotFound
+// Validates: Requirements 7.1, 7.2, 7.3, 7.4
 func TestProperty3_ListFilesFilePathNotFound(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		fileName := folderNameGen().Draw(rt, "fileName")
@@ -189,8 +189,8 @@ func TestProperty3_ListFilesFilePathNotFound(t *testing.T) {
 	})
 }
 
-// Feature: file-service-refactor, Property 4: ListFiles on path-traversal returns InvalidArgument
-// Validates: Requirements 3.7
+// Feature: list-files-enrichment, Property 4: ListFiles on path-traversal returns InvalidArgument
+// Validates: Requirements 7.1, 7.2, 7.3, 7.4
 func TestProperty4_ListFilesPathTraversalInvalidArgument(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		// Generate path-traversal strings with ../ sequences
@@ -224,7 +224,7 @@ func TestProperty4_ListFilesPathTraversalInvalidArgument(t *testing.T) {
 	})
 }
 
-// Validates: Requirements 3.1, 3.4
+// Validates: Requirements 8.1, 8.2
 func TestListFiles_EmptyDirectory(t *testing.T) {
 	dataDir := t.TempDir()
 	srv := NewFileServer(dataDir, nopLogger())
@@ -246,7 +246,7 @@ func TestListFiles_EmptyDirectory(t *testing.T) {
 	}
 }
 
-// Validates: Requirements 3.1, 3.4
+// Validates: Requirements 2.1, 2.2, 2.3, 2.4, 2.5
 func TestListFiles_RootPath(t *testing.T) {
 	dataDir := t.TempDir()
 	srv := NewFileServer(dataDir, nopLogger())
@@ -266,27 +266,39 @@ func TestListFiles_RootPath(t *testing.T) {
 		t.Fatalf("ListFiles failed: %v", err)
 	}
 
-	entries := make(map[string]bool)
+	entries := make(map[string]*filev1.FileEntry)
 	for _, e := range resp.Entries {
-		entries[e] = true
+		entries[e.Path] = e
 	}
 
-	if !entries["folderA/"] {
-		t.Fatal("expected 'folderA/' in entries")
+	if _, ok := entries["folderA"]; !ok {
+		t.Fatal("expected 'folderA' in entries")
 	}
-	if !entries["note_hello.md"] {
+	if entries["folderA"].ItemType != filev1.ItemType_ITEM_TYPE_FOLDER {
+		t.Fatalf("expected folderA to have FOLDER type, got %v", entries["folderA"].ItemType)
+	}
+	
+	if _, ok := entries["note_hello.md"]; !ok {
 		t.Fatal("expected 'note_hello.md' in entries")
 	}
-	if !entries["tasks_todo.md"] {
+	if entries["note_hello.md"].ItemType != filev1.ItemType_ITEM_TYPE_NOTE {
+		t.Fatalf("expected note_hello.md to have NOTE type, got %v", entries["note_hello.md"].ItemType)
+	}
+	
+	if _, ok := entries["tasks_todo.md"]; !ok {
 		t.Fatal("expected 'tasks_todo.md' in entries")
 	}
-	if entries["note_hello.txt"] {
+	if entries["tasks_todo.md"].ItemType != filev1.ItemType_ITEM_TYPE_TASK_LIST {
+		t.Fatalf("expected tasks_todo.md to have TASK_LIST type, got %v", entries["tasks_todo.md"].ItemType)
+	}
+	
+	if _, ok := entries["note_hello.txt"]; ok {
 		t.Fatal("'note_hello.txt' should be filtered out (wrong suffix)")
 	}
-	if entries["tasks_todo.txt"] {
+	if _, ok := entries["tasks_todo.txt"]; ok {
 		t.Fatal("'tasks_todo.txt' should be filtered out (wrong suffix)")
 	}
-	if entries["users.json"] {
+	if _, ok := entries["users.json"]; ok {
 		t.Fatal("'users.json' should be filtered out")
 	}
 	if len(resp.Entries) != 3 {

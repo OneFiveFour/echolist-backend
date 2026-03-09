@@ -12,8 +12,8 @@ import (
 	"pgregory.net/rapid"
 )
 
-// Feature: api-hardening-cleanup, Property 1: ListFiles filter correctness
-// **Validates: Requirements 1.1, 1.2, 1.3**
+// Feature: list-files-enrichment, Property: ListFiles filter correctness
+// **Validates: Requirements 2.1, 2.2, 2.3, 2.4, 2.5**
 func TestProperty_ListFilesFilterCorrectness(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		dataDir := t.TempDir()
@@ -73,11 +73,11 @@ func TestProperty_ListFilesFilterCorrectness(t *testing.T) {
 			rt.Fatalf("ListFiles failed: %v", err)
 		}
 
-		// Compute expected entries: note_ files, tasks_ files, and all directories (with trailing /)
+		// Compute expected entries: note_ files, tasks_ files, and all directories
 		var expected []string
 		for _, e := range created {
 			if e.isDir {
-				expected = append(expected, e.name+"/")
+				expected = append(expected, e.name)
 			} else if strings.HasPrefix(e.name, "note_") || strings.HasPrefix(e.name, "tasks_") {
 				expected = append(expected, e.name)
 			}
@@ -85,25 +85,36 @@ func TestProperty_ListFilesFilterCorrectness(t *testing.T) {
 		}
 
 		sort.Strings(expected)
-		got := make([]string, len(resp.Entries))
-		copy(got, resp.Entries)
-		sort.Strings(got)
+		gotPaths := make([]string, len(resp.Entries))
+		for i, entry := range resp.Entries {
+			gotPaths[i] = entry.Path
+		}
+		sort.Strings(gotPaths)
 
 		// Verify exact match
-		if len(got) != len(expected) {
-			rt.Fatalf("expected %d entries, got %d\nexpected: %v\ngot: %v", len(expected), len(got), expected, got)
+		if len(gotPaths) != len(expected) {
+			rt.Fatalf("expected %d entries, got %d\nexpected: %v\ngot: %v", len(expected), len(gotPaths), expected, gotPaths)
 		}
 		for i := range expected {
-			if got[i] != expected[i] {
-				rt.Fatalf("entry mismatch at %d: expected %q, got %q\nexpected: %v\ngot: %v", i, expected[i], got[i], expected, got)
+			if gotPaths[i] != expected[i] {
+				rt.Fatalf("entry mismatch at %d: expected %q, got %q\nexpected: %v\ngot: %v", i, expected[i], gotPaths[i], expected, gotPaths)
 			}
 		}
 
-		// Verify no other-prefixed files leaked through
+		// Verify no other-prefixed files leaked through and types are correct
 		for _, e := range resp.Entries {
-			trimmed := strings.TrimSuffix(e, "/")
-			if !strings.HasSuffix(e, "/") && !strings.HasPrefix(trimmed, "note_") && !strings.HasPrefix(trimmed, "tasks_") {
-				rt.Fatalf("unexpected entry %q: should have been filtered out", e)
+			if e.ItemType == filev1.ItemType_ITEM_TYPE_FOLDER {
+				// Folders are always included
+				continue
+			}
+			if e.ItemType == filev1.ItemType_ITEM_TYPE_NOTE && !strings.HasPrefix(e.Path, "note_") {
+				rt.Fatalf("NOTE entry %q should have note_ prefix", e.Path)
+			}
+			if e.ItemType == filev1.ItemType_ITEM_TYPE_TASK_LIST && !strings.HasPrefix(e.Path, "tasks_") {
+				rt.Fatalf("TASK_LIST entry %q should have tasks_ prefix", e.Path)
+			}
+			if e.ItemType != filev1.ItemType_ITEM_TYPE_NOTE && e.ItemType != filev1.ItemType_ITEM_TYPE_TASK_LIST && e.ItemType != filev1.ItemType_ITEM_TYPE_FOLDER {
+				rt.Fatalf("unexpected item type %v for entry %q", e.ItemType, e.Path)
 			}
 		}
 	})
