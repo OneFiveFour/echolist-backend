@@ -187,3 +187,68 @@ func TestValidatePath_DeepNonExistentPath(t *testing.T) {
 		t.Errorf("got %q, want %q", got, expected)
 	}
 }
+
+func TestMatchesFileType(t *testing.T) {
+	tests := []struct {
+		name     string
+		filename string
+		fileType FileType
+		want     bool
+	}{
+		// Valid note filenames
+		{"valid note", "note_Meeting.md", NoteFileType, true},
+		{"valid note with spaces", "note_My Notes.md", NoteFileType, true},
+		{"valid note single char", "note_x.md", NoteFileType, true},
+		{"valid note long title", "note_This is a very long title with many words.md", NoteFileType, true},
+
+		// Valid task list filenames
+		{"valid task list", "tasks_Sprint.md", TaskListFileType, true},
+		{"valid task list single char", "tasks_Q.md", TaskListFileType, true},
+		{"valid task list with spaces", "tasks_My Tasks.md", TaskListFileType, true},
+
+		// Invalid - missing prefix
+		{"missing note prefix", "Meeting.md", NoteFileType, false},
+		{"missing task prefix", "Sprint.md", TaskListFileType, false},
+
+		// Invalid - wrong prefix
+		{"wrong prefix for note", "task_Meeting.md", NoteFileType, false},
+		{"wrong prefix for task", "note_Sprint.md", TaskListFileType, false},
+
+		// Invalid - missing suffix
+		{"missing note suffix", "note_Meeting", NoteFileType, false},
+		{"missing task suffix", "tasks_Sprint", TaskListFileType, false},
+
+		// Invalid - wrong suffix
+		{"wrong suffix for note", "note_Meeting.txt", NoteFileType, false},
+		{"wrong suffix for task", "tasks_Sprint.txt", TaskListFileType, false},
+
+		// Invalid - too short (no content between prefix and suffix)
+		{"note too short", "note_.md", NoteFileType, false},
+		{"task too short", "tasks_.md", TaskListFileType, false},
+
+		// Invalid - empty string
+		{"empty string note", "", NoteFileType, false},
+		{"empty string task", "", TaskListFileType, false},
+
+		// Invalid - only prefix
+		{"only note prefix", "note_", NoteFileType, false},
+		{"only task prefix", "tasks_", TaskListFileType, false},
+
+		// Invalid - only suffix
+		{"only suffix", ".md", NoteFileType, false},
+
+		// Edge cases with special characters
+		{"note with dots", "note_file.name.md", NoteFileType, true},
+		{"note with underscores", "note_my_file_name.md", NoteFileType, true},
+		{"task with dots", "tasks_file.name.md", TaskListFileType, true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := MatchesFileType(tt.filename, tt.fileType)
+			if got != tt.want {
+				t.Errorf("MatchesFileType(%q, %v) = %v, want %v", tt.filename, tt.fileType.Label, got, tt.want)
+			}
+		})
+	}
+}

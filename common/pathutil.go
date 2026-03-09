@@ -148,6 +148,14 @@ func ValidateFileType(absPath string, ft FileType) error {
 	return nil
 }
 
+// MatchesFileType returns true if name matches the prefix/suffix convention
+// of the given FileType with at least one character between them.
+func MatchesFileType(name string, ft FileType) bool {
+	return strings.HasPrefix(name, ft.Prefix) &&
+		filepath.Ext(name) == ft.Suffix &&
+		len(name) > len(ft.Prefix)+len(ft.Suffix)
+}
+
 // ExtractTitle extracts the human-readable title from a filename by stripping prefix and suffix.
 func ExtractTitle(filename, prefix, suffix, label string) (string, error) {
 	if len(filename) < len(prefix)+len(suffix)+1 {
