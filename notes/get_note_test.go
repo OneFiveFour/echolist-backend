@@ -17,7 +17,7 @@ func TestGetNote(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	resp, err := s.GetNote(context.Background(), &pb.GetNoteRequest{FilePath: "note_mytest.md"})
+	resp, err := s.GetNote(context.Background(), &pb.GetNoteRequest{Id: "note_mytest.md"})
 	if err != nil {
 		t.Fatalf("GetNote failed: %v", err)
 	}

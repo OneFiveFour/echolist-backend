@@ -70,7 +70,7 @@ func TestUpdateNote_ContentTooLarge(t *testing.T) {
 	oversized := strings.Repeat("x", common.MaxNoteContentBytes+1)
 
 	_, err := server.UpdateNote(context.Background(), &pb.UpdateNoteRequest{
-		FilePath: "note_test.md",
+		Id: "note_test.md",
 		Content:  oversized,
 	})
 	if err == nil {

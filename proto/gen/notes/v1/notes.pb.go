@@ -171,10 +171,11 @@ func (x *ListNotesRequest) GetParentDir() string {
 
 type Note struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	FilePath      string                 `protobuf:"bytes,1,opt,name=file_path,json=filePath,proto3" json:"file_path,omitempty"`
-	Title         string                 `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
-	Content       string                 `protobuf:"bytes,3,opt,name=content,proto3" json:"content,omitempty"`
-	UpdatedAt     int64                  `protobuf:"varint,4,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	FilePath      string                 `protobuf:"bytes,2,opt,name=file_path,json=filePath,proto3" json:"file_path,omitempty"`
+	Title         string                 `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
+	Content       string                 `protobuf:"bytes,4,opt,name=content,proto3" json:"content,omitempty"`
+	UpdatedAt     int64                  `protobuf:"varint,5,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -207,6 +208,13 @@ func (x *Note) ProtoReflect() protoreflect.Message {
 // Deprecated: Use Note.ProtoReflect.Descriptor instead.
 func (*Note) Descriptor() ([]byte, []int) {
 	return file_notes_v1_notes_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *Note) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
 }
 
 func (x *Note) GetFilePath() string {
@@ -283,7 +291,7 @@ func (x *ListNotesResponse) GetNotes() []*Note {
 
 type GetNoteRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	FilePath      string                 `protobuf:"bytes,1,opt,name=file_path,json=filePath,proto3" json:"file_path,omitempty"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -318,9 +326,9 @@ func (*GetNoteRequest) Descriptor() ([]byte, []int) {
 	return file_notes_v1_notes_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *GetNoteRequest) GetFilePath() string {
+func (x *GetNoteRequest) GetId() string {
 	if x != nil {
-		return x.FilePath
+		return x.Id
 	}
 	return ""
 }
@@ -371,7 +379,7 @@ func (x *GetNoteResponse) GetNote() *Note {
 
 type UpdateNoteRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	FilePath      string                 `protobuf:"bytes,1,opt,name=file_path,json=filePath,proto3" json:"file_path,omitempty"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Content       string                 `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -407,9 +415,9 @@ func (*UpdateNoteRequest) Descriptor() ([]byte, []int) {
 	return file_notes_v1_notes_proto_rawDescGZIP(), []int{7}
 }
 
-func (x *UpdateNoteRequest) GetFilePath() string {
+func (x *UpdateNoteRequest) GetId() string {
 	if x != nil {
-		return x.FilePath
+		return x.Id
 	}
 	return ""
 }
@@ -467,7 +475,7 @@ func (x *UpdateNoteResponse) GetNote() *Note {
 
 type DeleteNoteRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	FilePath      string                 `protobuf:"bytes,1,opt,name=file_path,json=filePath,proto3" json:"file_path,omitempty"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -502,9 +510,9 @@ func (*DeleteNoteRequest) Descriptor() ([]byte, []int) {
 	return file_notes_v1_notes_proto_rawDescGZIP(), []int{9}
 }
 
-func (x *DeleteNoteRequest) GetFilePath() string {
+func (x *DeleteNoteRequest) GetId() string {
 	if x != nil {
-		return x.FilePath
+		return x.Id
 	}
 	return ""
 }
@@ -559,26 +567,27 @@ const file_notes_v1_notes_proto_rawDesc = "" +
 	"\x04note\x18\x01 \x01(\v2\x0e.notes.v1.NoteR\x04note\"1\n" +
 	"\x10ListNotesRequest\x12\x1d\n" +
 	"\n" +
-	"parent_dir\x18\x01 \x01(\tR\tparentDir\"r\n" +
-	"\x04Note\x12\x1b\n" +
-	"\tfile_path\x18\x01 \x01(\tR\bfilePath\x12\x14\n" +
-	"\x05title\x18\x02 \x01(\tR\x05title\x12\x18\n" +
-	"\acontent\x18\x03 \x01(\tR\acontent\x12\x1d\n" +
+	"parent_dir\x18\x01 \x01(\tR\tparentDir\"\x82\x01\n" +
+	"\x04Note\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1b\n" +
+	"\tfile_path\x18\x02 \x01(\tR\bfilePath\x12\x14\n" +
+	"\x05title\x18\x03 \x01(\tR\x05title\x12\x18\n" +
+	"\acontent\x18\x04 \x01(\tR\acontent\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\x04 \x01(\x03R\tupdatedAt\"9\n" +
+	"updated_at\x18\x05 \x01(\x03R\tupdatedAt\"9\n" +
 	"\x11ListNotesResponse\x12$\n" +
-	"\x05notes\x18\x01 \x03(\v2\x0e.notes.v1.NoteR\x05notes\"-\n" +
-	"\x0eGetNoteRequest\x12\x1b\n" +
-	"\tfile_path\x18\x01 \x01(\tR\bfilePath\"5\n" +
+	"\x05notes\x18\x01 \x03(\v2\x0e.notes.v1.NoteR\x05notes\" \n" +
+	"\x0eGetNoteRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"5\n" +
 	"\x0fGetNoteResponse\x12\"\n" +
-	"\x04note\x18\x01 \x01(\v2\x0e.notes.v1.NoteR\x04note\"J\n" +
-	"\x11UpdateNoteRequest\x12\x1b\n" +
-	"\tfile_path\x18\x01 \x01(\tR\bfilePath\x12\x18\n" +
+	"\x04note\x18\x01 \x01(\v2\x0e.notes.v1.NoteR\x04note\"=\n" +
+	"\x11UpdateNoteRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x18\n" +
 	"\acontent\x18\x02 \x01(\tR\acontent\"8\n" +
 	"\x12UpdateNoteResponse\x12\"\n" +
-	"\x04note\x18\x01 \x01(\v2\x0e.notes.v1.NoteR\x04note\"0\n" +
-	"\x11DeleteNoteRequest\x12\x1b\n" +
-	"\tfile_path\x18\x01 \x01(\tR\bfilePath\"\x14\n" +
+	"\x04note\x18\x01 \x01(\v2\x0e.notes.v1.NoteR\x04note\"#\n" +
+	"\x11DeleteNoteRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"\x14\n" +
 	"\x12DeleteNoteResponse2\xee\x02\n" +
 	"\vNoteService\x12G\n" +
 	"\n" +

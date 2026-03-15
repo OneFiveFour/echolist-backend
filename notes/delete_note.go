@@ -17,7 +17,8 @@ func (s *NotesServer) DeleteNote(
 	req *pb.DeleteNoteRequest,
 ) (*pb.DeleteNoteResponse, error) {
 
-	absPath, err := common.ValidatePath(s.dataDir, req.GetFilePath())
+	// TODO: Task 8 will implement ID-based lookup. Minimal stub to compile.
+	absPath, err := common.ValidatePath(s.dataDir, req.GetId())
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +34,7 @@ func (s *NotesServer) DeleteNote(
 		if errors.Is(err, os.ErrNotExist) {
 			return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("note not found: %w", err))
 		}
-		s.logger.Error("failed to delete note", "path", req.GetFilePath(), "error", err)
+		s.logger.Error("failed to delete note", "path", req.GetId(), "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to delete note: %w", err))
 	}
 

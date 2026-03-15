@@ -22,7 +22,7 @@ func TestUpdateNote(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	req := &pb.UpdateNoteRequest{FilePath: filepath.Join("a", "note_b.md"), Content: "hello"}
+	req := &pb.UpdateNoteRequest{Id: filepath.Join("a", "note_b.md"), Content: "hello"}
 	resp, err := s.UpdateNote(context.Background(), req)
 	if err != nil {
 		t.Fatalf("UpdateNote failed: %v", err)
@@ -32,7 +32,7 @@ func TestUpdateNote(t *testing.T) {
 	}
 
 	// verify file contents
-	b, err := os.ReadFile(filepath.Join(tmp, req.FilePath))
+	b, err := os.ReadFile(filepath.Join(tmp, req.Id))
 	if err != nil {
 		t.Fatalf("reading written file failed: %v", err)
 	}

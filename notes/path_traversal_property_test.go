@@ -50,20 +50,20 @@ func TestProperty_PathTraversalRejection(t *testing.T) {
 
 		// GetNote: file_path field
 		_, err = srv.GetNote(ctx, &pb.GetNoteRequest{
-			FilePath: traversalPath,
+			Id: traversalPath,
 		})
 		assertCodeInvalidArgument(rt, err, "GetNote", traversalPath)
 
 		// UpdateNote: file_path field
 		_, err = srv.UpdateNote(ctx, &pb.UpdateNoteRequest{
-			FilePath: traversalPath,
+			Id: traversalPath,
 			Content:  "test",
 		})
 		assertCodeInvalidArgument(rt, err, "UpdateNote", traversalPath)
 
 		// DeleteNote: file_path field
 		_, err = srv.DeleteNote(ctx, &pb.DeleteNoteRequest{
-			FilePath: traversalPath,
+			Id: traversalPath,
 		})
 		assertCodeInvalidArgument(rt, err, "DeleteNote", traversalPath)
 

@@ -18,7 +18,7 @@ func TestDeleteNote(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err := s.DeleteNote(context.Background(), &pb.DeleteNoteRequest{FilePath: "note_todelete.md"})
+	_, err := s.DeleteNote(context.Background(), &pb.DeleteNoteRequest{Id: "note_todelete.md"})
 	if err != nil {
 		t.Fatalf("DeleteNote failed: %v", err)
 	}

@@ -36,7 +36,7 @@ func TestProperty_UpdateNoteRejectsNonExistent(t *testing.T) {
 		}
 
 		_, err := srv.UpdateNote(ctx, &pb.UpdateNoteRequest{
-			FilePath: filePath,
+			Id: filePath,
 			Content:  "some content",
 		})
 

@@ -45,7 +45,7 @@ func TestProperty1_NoteCreateThenGetRoundTrip(t *testing.T) {
 		}
 
 		getResp, err := srv.GetNote(context.Background(), &pb.GetNoteRequest{
-			FilePath: created.FilePath,
+			Id: created.FilePath,
 		})
 		if err != nil {
 			rt.Fatalf("GetNote failed: %v", err)
@@ -95,7 +95,7 @@ func TestProperty2_UpdateNoteReturnsFullNote(t *testing.T) {
 		filePath := createResp.Note.FilePath
 
 		updateResp, err := srv.UpdateNote(context.Background(), &pb.UpdateNoteRequest{
-			FilePath: filePath,
+			Id: filePath,
 			Content:  newContent,
 		})
 		if err != nil {

@@ -34,13 +34,13 @@ func TestProperty_NotFoundReturnsCodeNotFound(t *testing.T) {
 
 		// GetNote with non-existent file should return CodeNotFound
 		_, err := srv.GetNote(ctx, &pb.GetNoteRequest{
-			FilePath: filePath,
+			Id: filePath,
 		})
 		assertCodeNotFound(rt, err, "GetNote", filePath)
 
 		// DeleteNote with non-existent file should return CodeNotFound
 		_, err = srv.DeleteNote(ctx, &pb.DeleteNoteRequest{
-			FilePath: filePath,
+			Id: filePath,
 		})
 		assertCodeNotFound(rt, err, "DeleteNote", filePath)
 	})
