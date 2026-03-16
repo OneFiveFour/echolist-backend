@@ -6,46 +6,46 @@ Add a stable UUIDv4 identifier to every task list, persisted in an on-disk JSON 
 
 ## Tasks
 
-- [ ] 1. Update protobuf schema and regenerate Go code
-  - [ ] 1.1 Modify `proto/tasks/v1/tasks.proto`
+- [x] 1. Update protobuf schema and regenerate Go code
+  - [x] 1.1 Modify `proto/tasks/v1/tasks.proto`
     - Add `string id = 1` to `TaskList` message, renumber existing fields (`file_path = 2`, `title = 3`, `tasks = 4`, `updated_at = 5`)
     - Replace `string file_path = 1` with `string id = 1` in `GetTaskListRequest`, `UpdateTaskListRequest`, and `DeleteTaskListRequest`
     - Leave `CreateTaskListRequest` and `ListTaskListsRequest` unchanged
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
-  - [ ] 1.2 Regenerate Go protobuf/Connect code
+  - [x] 1.2 Regenerate Go protobuf/Connect code
     - Run the protobuf code generation toolchain to produce updated Go stubs
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
 
-- [ ] 2. Implement UUID validation utility (`tasks/uuid.go`)
-  - [ ] 2.1 Create `tasks/uuid.go` with `validateUuidV4` function
+- [x] 2. Implement UUID validation utility (`tasks/uuid.go`)
+  - [x] 2.1 Create `tasks/uuid.go` with `validateUuidV4` function
     - Duplicate the `validateUuidV4` function from `notes/uuid.go` into the `tasks` package
     - Use the same regex: `^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$`
     - Return a connect `InvalidArgument` error for invalid IDs
     - _Requirements: 9.1, 9.2_
-  - [ ] 2.2 Write property test: invalid UUID returns InvalidArgument
+  - [x] 2.2 Write property test: invalid UUID returns InvalidArgument
     - **Property 8: Invalid UUID returns InvalidArgument**
     - **Validates: Requirements 9.1, 9.2**
     - Add `invalidUuidGen()` generator for strings that are not valid UUIDv4
     - Tag with `Feature: tasklist-stable-ids, Property 8: Invalid UUID returns InvalidArgument`
-  - [ ] 2.3 Write unit tests for `validateUuidV4`
+  - [x] 2.3 Write unit tests for `validateUuidV4`
     - Test valid UUIDs, empty strings, uppercase UUIDs, wrong version digit, wrong variant nibble
     - _Requirements: 9.1, 9.2_
 
-- [ ] 3. Implement ID registry (`tasks/registry.go`)
-  - [ ] 3.1 Create `tasks/registry.go` with registry functions
+- [x] 3. Implement ID registry (`tasks/registry.go`)
+  - [x] 3.1 Create `tasks/registry.go` with registry functions
     - Implement `registryPath`, `registryRead`, `registryWrite`, `registryLookup`, `registryAdd`, `registryRemove`
     - Use `common.File` for atomic writes (temp file + rename)
     - Store registry at `<dataDir>/.tasklist_id_registry.json`
     - Handle missing or empty registry file gracefully (return empty map)
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5_
-  - [ ] 3.2 Write unit tests for registry functions
+  - [x] 3.2 Write unit tests for registry functions
     - Test `registryRead` with missing file, empty file, valid JSON, and malformed JSON
     - Test `registryWrite` creates valid JSON
     - Test `registryAdd` and `registryRemove` round trips
     - Test `registryLookup` for existing and non-existing keys
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5_
 
-- [ ] 4. Checkpoint - Ensure all tests pass
+- [x] 4. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 5. Update CreateTaskList RPC to generate and persist IDs

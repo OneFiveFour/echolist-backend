@@ -16,7 +16,7 @@ func (s *TaskServer) DeleteTaskList(
 	ctx context.Context,
 	req *pb.DeleteTaskListRequest,
 ) (*pb.DeleteTaskListResponse, error) {
-	absPath, err := common.ValidatePath(s.dataDir, req.GetFilePath())
+	absPath, err := common.ValidatePath(s.dataDir, req.GetId())
 	if err != nil {
 		return nil, err
 	}
@@ -32,7 +32,7 @@ func (s *TaskServer) DeleteTaskList(
 		if errors.Is(err, os.ErrNotExist) {
 			return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("task list not found: %w", err))
 		}
-		s.logger.Error("failed to delete task file", "path", req.GetFilePath(), "error", err)
+		s.logger.Error("failed to delete task file", "path", req.GetId(), "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to delete task file: %w", err))
 	}
 

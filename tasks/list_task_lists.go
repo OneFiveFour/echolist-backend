@@ -68,7 +68,7 @@ func (s *TaskServer) ListTaskLists(
 			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to parse task file %s: %w", name, err))
 		}
 
-		taskLists = append(taskLists, buildTaskList(entryPath, listName, domainTasks, info.ModTime().UnixMilli()))
+		taskLists = append(taskLists, buildTaskList("", entryPath, listName, domainTasks, info.ModTime().UnixMilli()))
 	}
 
 	return &pb.ListTaskListsResponse{TaskLists: taskLists}, nil

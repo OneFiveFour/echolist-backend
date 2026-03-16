@@ -26,10 +26,11 @@ message MainTask {
 }
 
 message TaskList {
-  string file_path = 1;
-  string title = 2;
-  repeated MainTask tasks = 3;
-  int64 updated_at = 4;
+  string id = 1;
+  string file_path = 2;
+  string title = 3;
+  repeated MainTask tasks = 4;
+  int64 updated_at = 5;
 }
 
 message CreateTaskListRequest {
@@ -43,7 +44,7 @@ message CreateTaskListResponse {
 }
 
 message GetTaskListRequest {
-  string file_path = 1;
+  string id = 1;
 }
 
 message GetTaskListResponse {
@@ -59,7 +60,7 @@ message ListTaskListsResponse {
 }
 
 message UpdateTaskListRequest {
-  string file_path = 1;
+  string id = 1;
   repeated MainTask tasks = 2;
 }
 
@@ -68,7 +69,7 @@ message UpdateTaskListResponse {
 }
 
 message DeleteTaskListRequest {
-  string file_path = 1;
+  string id = 1;
 }
 
 message DeleteTaskListResponse {}

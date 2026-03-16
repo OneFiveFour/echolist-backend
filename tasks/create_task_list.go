@@ -65,6 +65,6 @@ func (s *TaskServer) CreateTaskList(
 
 	relPath := filepath.Join(req.GetParentDir(), filename)
 	return &pb.CreateTaskListResponse{
-		TaskList: buildTaskList(relPath, title, domainTasks, nowMillis()),
+		TaskList: buildTaskList("", relPath, title, domainTasks, nowMillis()),
 	}, nil
 }

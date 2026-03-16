@@ -18,7 +18,7 @@ func (s *TaskServer) UpdateTaskList(
 	ctx context.Context,
 	req *pb.UpdateTaskListRequest,
 ) (*pb.UpdateTaskListResponse, error) {
-	absPath, err := common.ValidatePath(s.dataDir, req.GetFilePath())
+	absPath, err := common.ValidatePath(s.dataDir, req.GetId())
 	if err != nil {
 		return nil, err
 	}
@@ -36,13 +36,13 @@ func (s *TaskServer) UpdateTaskList(
 		if errors.Is(err, os.ErrNotExist) {
 			return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("task list not found"))
 		}
-		s.logger.Error("failed to read task file", "path", req.GetFilePath(), "error", err)
+		s.logger.Error("failed to read task file", "path", req.GetId(), "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to read task file: %w", err))
 	}
 
 	existingTasks, err := ParseTaskFile(existingData)
 	if err != nil {
-		s.logger.Error("failed to parse task file", "path", req.GetFilePath(), "error", err)
+		s.logger.Error("failed to parse task file", "path", req.GetId(), "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to parse task file: %w", err))
 	}
 
@@ -84,7 +84,7 @@ func (s *TaskServer) UpdateTaskList(
 
 		next, err := ComputeNextDueDate(t.Recurrence, after)
 		if err != nil {
-			s.logger.Error("failed to compute next due date", "path", req.GetFilePath(), "error", err)
+			s.logger.Error("failed to compute next due date", "path", req.GetId(), "error", err)
 			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to compute next due date: %w", err))
 		}
 		domainTasks[i].Done = false
@@ -94,17 +94,17 @@ func (s *TaskServer) UpdateTaskList(
 	// Write updated file atomically
 	data := PrintTaskFile(domainTasks)
 	if err := common.File(absPath, data); err != nil {
-		s.logger.Error("failed to write task file", "path", req.GetFilePath(), "error", err)
+		s.logger.Error("failed to write task file", "path", req.GetId(), "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to write task file: %w", err))
 	}
 
 	title, err := ExtractTaskListTitle(filepath.Base(absPath))
 	if err != nil {
-		s.logger.Error("invalid task list filename", "path", req.GetFilePath(), "error", err)
+		s.logger.Error("invalid task list filename", "path", req.GetId(), "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("invalid task list filename: %w", err))
 	}
 
 	return &pb.UpdateTaskListResponse{
-		TaskList: buildTaskList(req.GetFilePath(), title, domainTasks, nowMillis()),
+		TaskList: buildTaskList("", req.GetId(), title, domainTasks, nowMillis()),
 	}, nil
 }

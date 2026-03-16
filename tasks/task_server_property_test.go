@@ -108,7 +108,7 @@ func TestProperty6_TaskListCreateThenGetRoundTrip(t *testing.T) {
 		}
 
 		getResp, err := srv.GetTaskList(context.Background(), &pb.GetTaskListRequest{
-			FilePath: createResp.TaskList.FilePath,
+			Id: createResp.TaskList.FilePath,
 		})
 		if err != nil {
 			rt.Fatalf("GetTaskList failed: %v", err)
@@ -180,7 +180,7 @@ func TestProperty8_NonExistentPathsReturnNotFound(t *testing.T) {
 		name := validNameGen().Draw(rt, "name")
 		fakePath := "tasks_" + name + ".md"
 
-		_, err := srv.GetTaskList(context.Background(), &pb.GetTaskListRequest{FilePath: fakePath})
+		_, err := srv.GetTaskList(context.Background(), &pb.GetTaskListRequest{Id: fakePath})
 		if err == nil {
 			rt.Fatal("expected NotFound for GetTaskList, got nil")
 		}
@@ -188,7 +188,7 @@ func TestProperty8_NonExistentPathsReturnNotFound(t *testing.T) {
 			rt.Fatalf("GetTaskList: expected NotFound, got %v", connect.CodeOf(err))
 		}
 
-		_, err = srv.DeleteTaskList(context.Background(), &pb.DeleteTaskListRequest{FilePath: fakePath})
+		_, err = srv.DeleteTaskList(context.Background(), &pb.DeleteTaskListRequest{Id: fakePath})
 		if err == nil {
 			rt.Fatal("expected NotFound for DeleteTaskList, got nil")
 		}
@@ -282,7 +282,7 @@ func TestProperty11_RecurringTaskDoneAdvanceCycle(t *testing.T) {
 
 		// Mark the task as done
 		updateResp, err := srv.UpdateTaskList(context.Background(), &pb.UpdateTaskListRequest{
-			FilePath: createResp.TaskList.FilePath,
+			Id: createResp.TaskList.FilePath,
 			Tasks: []*pb.MainTask{{
 				Description: "recurring task",
 				Done:        true,
@@ -348,7 +348,7 @@ func TestProperty13_PathTraversalPrevention(t *testing.T) {
 
 		// GetTaskList
 		_, err = srv.GetTaskList(context.Background(), &pb.GetTaskListRequest{
-			FilePath: badPath + "/tasks_test.md",
+			Id: badPath + "/tasks_test.md",
 		})
 		if err == nil {
 			rt.Fatalf("GetTaskList should reject traversal path %q", badPath)
@@ -364,7 +364,7 @@ func TestProperty13_PathTraversalPrevention(t *testing.T) {
 
 		// UpdateTaskList
 		_, err = srv.UpdateTaskList(context.Background(), &pb.UpdateTaskListRequest{
-			FilePath: badPath + "/tasks_test.md",
+			Id: badPath + "/tasks_test.md",
 			Tasks:    []*pb.MainTask{{Description: "task"}},
 		})
 		if err == nil {
@@ -373,7 +373,7 @@ func TestProperty13_PathTraversalPrevention(t *testing.T) {
 
 		// DeleteTaskList
 		_, err = srv.DeleteTaskList(context.Background(), &pb.DeleteTaskListRequest{
-			FilePath: badPath + "/tasks_test.md",
+			Id: badPath + "/tasks_test.md",
 		})
 		if err == nil {
 			rt.Fatalf("DeleteTaskList should reject traversal path %q", badPath)
@@ -510,7 +510,7 @@ func TestProperty16_DeleteRemovesTaskListFromDisk(t *testing.T) {
 		}
 
 		_, err = srv.DeleteTaskList(context.Background(), &pb.DeleteTaskListRequest{
-			FilePath: createResp.TaskList.FilePath,
+			Id: createResp.TaskList.FilePath,
 		})
 		if err != nil {
 			rt.Fatalf("DeleteTaskList failed: %v", err)
@@ -524,7 +524,7 @@ func TestProperty16_DeleteRemovesTaskListFromDisk(t *testing.T) {
 
 		// GetTaskList must return NotFound
 		_, err = srv.GetTaskList(context.Background(), &pb.GetTaskListRequest{
-			FilePath: createResp.TaskList.FilePath,
+			Id: createResp.TaskList.FilePath,
 		})
 		if err == nil {
 			rt.Fatal("expected NotFound after delete, got nil")
