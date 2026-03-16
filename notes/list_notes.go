@@ -77,5 +77,22 @@ func (s *NotesServer) ListNotes(
 		})
 	}
 
+	// Read registry and build reverse map (filePath → id)
+	regPath := registryPath(s.dataDir)
+	registry, err := registryRead(regPath)
+	if err != nil {
+		s.logger.Error("failed to read registry", "error", err)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to read registry: %w", err))
+	}
+
+	reverseMap := make(map[string]string, len(registry))
+	for id, fp := range registry {
+		reverseMap[fp] = id
+	}
+
+	for _, n := range notes {
+		n.Id = reverseMap[n.FilePath] // empty string if not found
+	}
+
 	return &pb.ListNotesResponse{Notes: notes}, nil
 }

@@ -2,6 +2,7 @@ package notes
 
 import (
 	"context"
+	"crypto/rand"
 	"errors"
 	"fmt"
 	"os"
@@ -60,7 +61,29 @@ func (s *NotesServer) CreateNote(
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to stat note after create: %w", err))
 	}
 
+	// Generate UUIDv4
+	var uuid [16]byte
+	if _, err := rand.Read(uuid[:]); err != nil {
+		s.logger.Error("failed to generate UUID", "error", err)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to generate UUID: %w", err))
+	}
+	uuid[6] = (uuid[6] & 0x0f) | 0x40 // version 4
+	uuid[8] = (uuid[8] & 0x3f) | 0x80 // variant bits
+	id := fmt.Sprintf("%08x-%04x-%04x-%04x-%012x",
+		uuid[0:4], uuid[4:6], uuid[6:8], uuid[8:10], uuid[10:16])
+
+	// Persist id→filePath mapping in the registry
+	regPath := registryPath(s.dataDir)
+	unlockReg := s.locks.Lock(regPath)
+	defer unlockReg()
+
+	if err := registryAdd(regPath, id, relativeFilePath); err != nil {
+		s.logger.Error("failed to add registry entry", "id", id, "path", relativeFilePath, "error", err)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to persist note ID: %w", err))
+	}
+
 	note := &pb.Note{
+		Id:        id,
 		FilePath:  relativeFilePath,
 		Title:     req.Title,
 		Content:   req.Content,

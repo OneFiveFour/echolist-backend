@@ -317,3 +317,78 @@ func TestProperty_CreateNoteDuplicateDetection(t *testing.T) {
 	})
 }
 
+
+// Feature: note-stable-ids, Property 2: Created ID is valid UUIDv4
+// For any valid title and content, the id field returned by CreateNote matches
+// the UUIDv4 pattern [0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}.
+// **Validates: Requirements 1.2**
+func TestProperty2_CreatedIdIsValidUuid(t *testing.T) {
+	rapid.Check(t, func(rt *rapid.T) {
+		tmp := t.TempDir()
+		srv := NewNotesServer(tmp, nopLogger())
+
+		title := nameGen().Draw(rt, "title")
+		content := rapid.StringMatching(`[a-zA-Z0-9 ]{0,100}`).Draw(rt, "content")
+
+		resp, err := srv.CreateNote(context.Background(), &pb.CreateNoteRequest{
+			Title:   title,
+			Content: content,
+		})
+		if err != nil {
+			rt.Fatalf("CreateNote failed: %v", err)
+		}
+
+		if err := validateUuidV4(resp.Note.Id); err != nil {
+			rt.Fatalf("returned id %q is not a valid UUIDv4: %v", resp.Note.Id, err)
+		}
+	})
+}
+
+
+// Feature: note-stable-ids, Property 3: All created IDs are unique
+// For any sequence of N CreateNote calls with distinct titles, all returned id
+// values are pairwise distinct.
+// **Validates: Requirements 1.3**
+func TestProperty3_AllCreatedIdsAreUnique(t *testing.T) {
+	rapid.Check(t, func(rt *rapid.T) {
+		tmp := t.TempDir()
+		srv := NewNotesServer(tmp, nopLogger())
+
+		n := rapid.IntRange(2, 10).Draw(rt, "n")
+
+		// Generate N distinct titles
+		seen := make(map[string]bool)
+		titles := make([]string, 0, n)
+		for len(titles) < n {
+			title := nameGen().Draw(rt, fmt.Sprintf("title%d", len(titles)))
+			if seen[title] {
+				continue
+			}
+			seen[title] = true
+			titles = append(titles, title)
+		}
+
+		// Create notes and collect IDs
+		ids := make(map[string]bool)
+		for i, title := range titles {
+			resp, err := srv.CreateNote(context.Background(), &pb.CreateNoteRequest{
+				Title:   title,
+				Content: fmt.Sprintf("content-%d", i),
+			})
+			if err != nil {
+				rt.Fatalf("CreateNote(%q) failed: %v", title, err)
+			}
+
+			id := resp.Note.Id
+			if ids[id] {
+				rt.Fatalf("duplicate id %q returned for title %q", id, title)
+			}
+			ids[id] = true
+		}
+
+		if len(ids) != n {
+			rt.Fatalf("expected %d unique ids, got %d", n, len(ids))
+		}
+	})
+}
+

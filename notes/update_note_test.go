@@ -13,16 +13,18 @@ func TestUpdateNote(t *testing.T) {
 	tmp := t.TempDir()
 	s := NewNotesServer(tmp, nopLogger())
 
-	// Ensure target directory and file exist
-	if err := os.MkdirAll(filepath.Join(tmp, "a"), 0755); err != nil {
-		t.Fatal(err)
-	}
-	notePath := filepath.Join(tmp, "a", "note_b.md")
-	if err := os.WriteFile(notePath, []byte("old content"), 0644); err != nil {
-		t.Fatal(err)
+	// Create a note via the RPC to get a valid ID
+	createResp, err := s.CreateNote(context.Background(), &pb.CreateNoteRequest{
+		Title:   "b",
+		Content: "old content",
+	})
+	if err != nil {
+		t.Fatalf("CreateNote failed: %v", err)
 	}
 
-	req := &pb.UpdateNoteRequest{Id: filepath.Join("a", "note_b.md"), Content: "hello"}
+	noteId := createResp.Note.Id
+
+	req := &pb.UpdateNoteRequest{Id: noteId, Content: "hello"}
 	resp, err := s.UpdateNote(context.Background(), req)
 	if err != nil {
 		t.Fatalf("UpdateNote failed: %v", err)
@@ -30,9 +32,12 @@ func TestUpdateNote(t *testing.T) {
 	if resp.Note.UpdatedAt <= 0 {
 		t.Fatalf("invalid UpdatedAt: %d", resp.Note.UpdatedAt)
 	}
+	if resp.Note.Id != noteId {
+		t.Fatalf("unexpected Id: got %s, want %s", resp.Note.Id, noteId)
+	}
 
 	// verify file contents
-	b, err := os.ReadFile(filepath.Join(tmp, req.Id))
+	b, err := os.ReadFile(filepath.Join(tmp, createResp.Note.FilePath))
 	if err != nil {
 		t.Fatalf("reading written file failed: %v", err)
 	}

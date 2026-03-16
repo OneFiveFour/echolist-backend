@@ -8,12 +8,12 @@ import (
 	"pgregory.net/rapid"
 )
 
-// Feature: api-unification, Property 1: Note create-then-get round trip
+// Feature: note-stable-ids, Property 1: Create-then-get round trip
 // For any valid note title and content, creating a note via CreateNote and then
-// retrieving it via GetNote using the returned file_path should produce a Note
-// with the same title, content, and file_path. The updated_at should be non-zero
+// retrieving it via GetNote using the returned id should produce a Note
+// with the same id, title, content, and file_path. The updated_at should be non-zero
 // in both responses.
-// **Validates: Requirements 3.1, 3.2, 3.4, 3.5, 4.1**
+// **Validates: Requirements 1.1, 2.1, 4.1, 8.1, 8.2, 10.1**
 func TestProperty1_NoteCreateThenGetRoundTrip(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		tmp := t.TempDir()
@@ -43,9 +43,12 @@ func TestProperty1_NoteCreateThenGetRoundTrip(t *testing.T) {
 		if created.UpdatedAt == 0 {
 			rt.Fatal("create: updated_at should be non-zero")
 		}
+		if created.Id == "" {
+			rt.Fatal("create: id should be non-empty")
+		}
 
 		getResp, err := srv.GetNote(context.Background(), &pb.GetNoteRequest{
-			Id: created.FilePath,
+			Id: created.Id,
 		})
 		if err != nil {
 			rt.Fatalf("GetNote failed: %v", err)
@@ -54,6 +57,9 @@ func TestProperty1_NoteCreateThenGetRoundTrip(t *testing.T) {
 		got := getResp.Note
 		if got == nil {
 			rt.Fatal("GetNote returned nil Note")
+		}
+		if got.Id != created.Id {
+			rt.Fatalf("get: expected id %q, got %q", created.Id, got.Id)
 		}
 		if got.FilePath != created.FilePath {
 			rt.Fatalf("get: expected file_path %q, got %q", created.FilePath, got.FilePath)
@@ -70,11 +76,11 @@ func TestProperty1_NoteCreateThenGetRoundTrip(t *testing.T) {
 	})
 }
 
-// Feature: api-unification, Property 2: UpdateNote returns full Note with updated content
+// Feature: note-stable-ids, Property 2: UpdateNote returns full Note with updated content
 // For any existing note and any new content string, calling UpdateNote should return
 // an UpdateNoteResponse containing a Note whose content matches the new content,
-// whose file_path and title match the original note, and whose updated_at is non-zero.
-// **Validates: Requirements 3.3, 3.6, 4.2**
+// whose id, file_path and title match the original note, and whose updated_at is non-zero.
+// **Validates: Requirements 1.4, 3.3, 5.1**
 func TestProperty2_UpdateNoteReturnsFullNote(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		tmp := t.TempDir()
@@ -92,11 +98,12 @@ func TestProperty2_UpdateNoteReturnsFullNote(t *testing.T) {
 			rt.Fatalf("CreateNote failed: %v", err)
 		}
 
+		noteId := createResp.Note.Id
 		filePath := createResp.Note.FilePath
 
 		updateResp, err := srv.UpdateNote(context.Background(), &pb.UpdateNoteRequest{
-			Id: filePath,
-			Content:  newContent,
+			Id:      noteId,
+			Content: newContent,
 		})
 		if err != nil {
 			rt.Fatalf("UpdateNote failed: %v", err)
@@ -105,6 +112,9 @@ func TestProperty2_UpdateNoteReturnsFullNote(t *testing.T) {
 		updated := updateResp.Note
 		if updated == nil {
 			rt.Fatal("UpdateNote returned nil Note")
+		}
+		if updated.Id != noteId {
+			rt.Fatalf("expected id %q, got %q", noteId, updated.Id)
 		}
 		if updated.FilePath != filePath {
 			rt.Fatalf("expected file_path %q, got %q", filePath, updated.FilePath)

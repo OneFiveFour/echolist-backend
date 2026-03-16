@@ -2,8 +2,6 @@ package notes
 
 import (
 	"context"
-	"os"
-	"path/filepath"
 	"testing"
 
 	pb "echolist-backend/proto/gen/notes/v1"
@@ -13,11 +11,16 @@ func TestGetNote(t *testing.T) {
 	tmp := t.TempDir()
 	s := NewNotesServer(tmp, nopLogger())
 
-	if err := os.WriteFile(filepath.Join(tmp, "note_mytest.md"), []byte("abc"), 0644); err != nil {
-		t.Fatal(err)
+	// Create a note via the RPC to get a valid ID
+	createResp, err := s.CreateNote(context.Background(), &pb.CreateNoteRequest{
+		Title:   "mytest",
+		Content: "abc",
+	})
+	if err != nil {
+		t.Fatalf("CreateNote failed: %v", err)
 	}
 
-	resp, err := s.GetNote(context.Background(), &pb.GetNoteRequest{Id: "note_mytest.md"})
+	resp, err := s.GetNote(context.Background(), &pb.GetNoteRequest{Id: createResp.Note.Id})
 	if err != nil {
 		t.Fatalf("GetNote failed: %v", err)
 	}
@@ -32,5 +35,8 @@ func TestGetNote(t *testing.T) {
 	}
 	if resp.Note.UpdatedAt <= 0 {
 		t.Fatalf("invalid UpdatedAt: %d", resp.Note.UpdatedAt)
+	}
+	if resp.Note.Id != createResp.Note.Id {
+		t.Fatalf("unexpected Id: got %s, want %s", resp.Note.Id, createResp.Note.Id)
 	}
 }

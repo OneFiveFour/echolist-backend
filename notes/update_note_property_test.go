@@ -3,8 +3,6 @@ package notes
 import (
 	"context"
 	"errors"
-	"os"
-	"path/filepath"
 	"testing"
 
 	"connectrpc.com/connect"
@@ -16,46 +14,81 @@ import (
 // For any file path that does not exist on disk, calling UpdateNote should return
 // a Connect error with code CodeNotFound and should not create any new file.
 // **Validates: Requirements 3.1, 3.2**
+// Feature: note-stable-ids, Property 6 (partial): UpdateNote rejects non-existent IDs
+// For any valid UUIDv4 that was never used in a CreateNote call, calling UpdateNote
+// should return a Connect error with code CodeNotFound.
+// **Validates: Requirements 5.2**
 func TestProperty_UpdateNoteRejectsNonExistent(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		tmp := t.TempDir()
 		srv := NewNotesServer(tmp, nopLogger())
 		ctx := context.Background()
 
-		// Generate a valid-looking note file path that doesn't exist on disk.
-		// Optionally nest under a subdirectory to cover both flat and nested cases.
-		title := nameGen().Draw(rt, "title")
-		useSubdir := rapid.Bool().Draw(rt, "useSubdir")
-
-		var filePath string
-		if useSubdir {
-			subdir := nameGen().Draw(rt, "subdir")
-			filePath = filepath.Join(subdir, "note_"+title+".md")
-		} else {
-			filePath = "note_" + title + ".md"
-		}
+		// Generate a valid UUIDv4 that was never used in CreateNote
+		id := uuidV4Gen().Draw(rt, "id")
 
 		_, err := srv.UpdateNote(ctx, &pb.UpdateNoteRequest{
-			Id: filePath,
-			Content:  "some content",
+			Id:      id,
+			Content: "some content",
 		})
 
 		// Should return CodeNotFound
 		if err == nil {
-			rt.Fatalf("UpdateNote: expected error for non-existent path %q, got nil", filePath)
+			rt.Fatalf("UpdateNote: expected error for non-existent id %q, got nil", id)
 		}
 		var connErr *connect.Error
 		if !errors.As(err, &connErr) {
 			rt.Fatalf("UpdateNote: expected connect.Error, got %T: %v", err, err)
 		}
 		if connErr.Code() != connect.CodeNotFound {
-			rt.Fatalf("UpdateNote: expected CodeNotFound for path %q, got %v", filePath, connErr.Code())
+			rt.Fatalf("UpdateNote: expected CodeNotFound for id %q, got %v", id, connErr.Code())
+		}
+	})
+}
+
+// Feature: note-stable-ids, Property 4: Update by ID preserves the Note_ID
+// For any created note and any new content string, calling UpdateNote with the
+// note's id shall return a Note whose id is identical to the original, and whose
+// content matches the new content.
+// **Validates: Requirements 1.4, 5.1**
+func TestProperty4_UpdateByIdPreservesNoteId(t *testing.T) {
+	rapid.Check(t, func(rt *rapid.T) {
+		tmp := t.TempDir()
+		srv := NewNotesServer(tmp, nopLogger())
+		ctx := context.Background()
+
+		title := nameGen().Draw(rt, "title")
+		originalContent := rapid.StringMatching(`[a-zA-Z0-9 ]{0,100}`).Draw(rt, "originalContent")
+		newContent := rapid.StringMatching(`[a-zA-Z0-9 ]{0,100}`).Draw(rt, "newContent")
+
+		// Create a note to get a valid ID
+		createResp, err := srv.CreateNote(ctx, &pb.CreateNoteRequest{
+			Title:   title,
+			Content: originalContent,
+		})
+		if err != nil {
+			rt.Fatalf("CreateNote failed: %v", err)
 		}
 
-		// Verify no file was created at that path
-		absPath := filepath.Join(tmp, filePath)
-		if _, statErr := os.Stat(absPath); !os.IsNotExist(statErr) {
-			rt.Fatalf("UpdateNote: file should not exist at %q", absPath)
+		originalId := createResp.Note.Id
+
+		// Update the note with new content using the same ID
+		updateResp, err := srv.UpdateNote(ctx, &pb.UpdateNoteRequest{
+			Id:      originalId,
+			Content: newContent,
+		})
+		if err != nil {
+			rt.Fatalf("UpdateNote failed: %v", err)
+		}
+
+		// The returned note's ID must be identical to the original
+		if updateResp.Note.Id != originalId {
+			rt.Fatalf("expected id %q after update, got %q", originalId, updateResp.Note.Id)
+		}
+
+		// The returned note's content must match the new content
+		if updateResp.Note.Content != newContent {
+			rt.Fatalf("expected content %q after update, got %q", newContent, updateResp.Note.Content)
 		}
 	})
 }

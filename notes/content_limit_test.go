@@ -61,17 +61,23 @@ func TestUpdateNote_ContentTooLarge(t *testing.T) {
 	dataDir := t.TempDir()
 	server := NewNotesServer(dataDir, nopLogger())
 
-	// Create a note file to update
-	notePath := filepath.Join(dataDir, "note_test.md")
-	if err := os.WriteFile(notePath, []byte("old"), 0644); err != nil {
-		t.Fatal(err)
+	// Create a note via the RPC to get a valid ID
+	createResp, err := server.CreateNote(context.Background(), &pb.CreateNoteRequest{
+		Title:   "test",
+		Content: "old",
+	})
+	if err != nil {
+		t.Fatalf("CreateNote failed: %v", err)
 	}
+
+	noteId := createResp.Note.Id
+	notePath := filepath.Join(dataDir, createResp.Note.FilePath)
 
 	oversized := strings.Repeat("x", common.MaxNoteContentBytes+1)
 
-	_, err := server.UpdateNote(context.Background(), &pb.UpdateNoteRequest{
-		Id: "note_test.md",
-		Content:  oversized,
+	_, err = server.UpdateNote(context.Background(), &pb.UpdateNoteRequest{
+		Id:      noteId,
+		Content: oversized,
 	})
 	if err == nil {
 		t.Fatal("expected error for oversized content, got nil")

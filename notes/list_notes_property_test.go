@@ -283,3 +283,48 @@ func TestProperty_ListNotesExcludesDirectories(t *testing.T) {
 	})
 }
 
+
+// Feature: note-stable-ids, Property 7: Create then list includes the created note's ID
+// For any valid title and content, creating a note via CreateNote and then calling
+// ListNotes returns a list containing a Note whose id matches the one from CreateNote.
+// **Validates: Requirements 7.1, 10.2**
+func TestProperty7_CreateThenListIncludesId(t *testing.T) {
+	rapid.Check(t, func(rt *rapid.T) {
+		tmp := t.TempDir()
+		srv := NewNotesServer(tmp, nopLogger())
+
+		title := nameGen().Draw(rt, "title")
+		content := rapid.StringMatching(`[a-zA-Z0-9 ]{0,100}`).Draw(rt, "content")
+
+		createResp, err := srv.CreateNote(context.Background(), &pb.CreateNoteRequest{
+			Title:   title,
+			Content: content,
+		})
+		if err != nil {
+			rt.Fatalf("CreateNote failed: %v", err)
+		}
+
+		createdId := createResp.Note.Id
+		if createdId == "" {
+			rt.Fatal("CreateNote returned empty id")
+		}
+
+		listResp, err := srv.ListNotes(context.Background(), &pb.ListNotesRequest{})
+		if err != nil {
+			rt.Fatalf("ListNotes failed: %v", err)
+		}
+
+		found := false
+		for _, n := range listResp.Notes {
+			if n.Id == createdId {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			rt.Fatalf("ListNotes did not include note with id %q", createdId)
+		}
+	})
+}
+

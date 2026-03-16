@@ -74,3 +74,35 @@ func TestListNotes_SubfolderPath(t *testing.T) {
 	}
 }
 
+
+func TestListNotes_OrphanNoteReturnsEmptyId(t *testing.T) {
+	tmp := t.TempDir()
+
+	// Write a note file directly on disk — no registry entry.
+	if err := os.WriteFile(filepath.Join(tmp, "note_Orphan.md"), []byte("orphan content"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	s := NewNotesServer(tmp, nopLogger())
+
+	resp, err := s.ListNotes(context.Background(), &pb.ListNotesRequest{})
+	if err != nil {
+		t.Fatalf("ListNotes failed: %v", err)
+	}
+
+	if len(resp.Notes) != 1 {
+		t.Fatalf("expected 1 note, got %d", len(resp.Notes))
+	}
+
+	note := resp.Notes[0]
+	if note.Id != "" {
+		t.Fatalf("expected empty id for orphan note, got %q", note.Id)
+	}
+	if note.Title != "Orphan" {
+		t.Fatalf("expected title 'Orphan', got %q", note.Title)
+	}
+	if note.Content != "orphan content" {
+		t.Fatalf("expected content 'orphan content', got %q", note.Content)
+	}
+}
+

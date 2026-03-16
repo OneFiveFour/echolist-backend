@@ -1,0 +1,10 @@
+# 2026/03/15 23:52:59.370715 [TestProperty1_NoteCreateThenGetRoundTrip] [rapid] draw title: "A"
+# 2026/03/15 23:52:59.370727 [TestProperty1_NoteCreateThenGetRoundTrip] [rapid] draw content: ""
+# 2026/03/15 23:52:59.373866 [TestProperty1_NoteCreateThenGetRoundTrip] GetNote failed: invalid_argument: invalid UUIDv4: "note_A.md"
+# 
+v0.4.8#14483465552984809750
+0x0
+0x0
+0x0
+0x0
+0x0
