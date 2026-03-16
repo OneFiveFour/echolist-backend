@@ -18,7 +18,25 @@ func (s *TaskServer) UpdateTaskList(
 	ctx context.Context,
 	req *pb.UpdateTaskListRequest,
 ) (*pb.UpdateTaskListResponse, error) {
-	absPath, err := common.ValidatePath(s.dataDir, req.GetId())
+
+	// Validate the id field before any filesystem operations (Req 9.1, 9.2)
+	if err := validateUuidV4(req.GetId()); err != nil {
+		return nil, err
+	}
+
+	// Resolve id to a file path via the registry (Req 5.1, 5.2)
+	regPath := registryPath(s.dataDir)
+	filePath, found, err := registryLookup(regPath, req.GetId())
+	if err != nil {
+		s.logger.Error("failed to read registry", "id", req.GetId(), "error", err)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to read registry: %w", err))
+	}
+	if !found {
+		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("task list not found"))
+	}
+
+	// Validate the resolved path doesn't escape the data directory
+	absPath, err := common.ValidatePath(s.dataDir, filePath)
 	if err != nil {
 		return nil, err
 	}
@@ -36,13 +54,13 @@ func (s *TaskServer) UpdateTaskList(
 		if errors.Is(err, os.ErrNotExist) {
 			return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("task list not found"))
 		}
-		s.logger.Error("failed to read task file", "path", req.GetId(), "error", err)
+		s.logger.Error("failed to read task file", "path", filePath, "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to read task file: %w", err))
 	}
 
 	existingTasks, err := ParseTaskFile(existingData)
 	if err != nil {
-		s.logger.Error("failed to parse task file", "path", req.GetId(), "error", err)
+		s.logger.Error("failed to parse task file", "path", filePath, "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to parse task file: %w", err))
 	}
 
@@ -84,7 +102,7 @@ func (s *TaskServer) UpdateTaskList(
 
 		next, err := ComputeNextDueDate(t.Recurrence, after)
 		if err != nil {
-			s.logger.Error("failed to compute next due date", "path", req.GetId(), "error", err)
+			s.logger.Error("failed to compute next due date", "path", filePath, "error", err)
 			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to compute next due date: %w", err))
 		}
 		domainTasks[i].Done = false
@@ -94,17 +112,17 @@ func (s *TaskServer) UpdateTaskList(
 	// Write updated file atomically
 	data := PrintTaskFile(domainTasks)
 	if err := common.File(absPath, data); err != nil {
-		s.logger.Error("failed to write task file", "path", req.GetId(), "error", err)
+		s.logger.Error("failed to write task file", "path", filePath, "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to write task file: %w", err))
 	}
 
 	title, err := ExtractTaskListTitle(filepath.Base(absPath))
 	if err != nil {
-		s.logger.Error("invalid task list filename", "path", req.GetId(), "error", err)
+		s.logger.Error("invalid task list filename", "path", filePath, "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("invalid task list filename: %w", err))
 	}
 
 	return &pb.UpdateTaskListResponse{
-		TaskList: buildTaskList("", req.GetId(), title, domainTasks, nowMillis()),
+		TaskList: buildTaskList(req.GetId(), filePath, title, domainTasks, nowMillis()),
 	}, nil
 }

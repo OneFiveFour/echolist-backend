@@ -48,56 +48,56 @@ Add a stable UUIDv4 identifier to every task list, persisted in an on-disk JSON 
 - [x] 4. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 5. Update CreateTaskList RPC to generate and persist IDs
-  - [ ] 5.1 Modify `tasks/create_task_list.go`
+- [x] 5. Update CreateTaskList RPC to generate and persist IDs
+  - [x] 5.1 Modify `tasks/create_task_list.go`
     - After writing the task list file, generate a UUIDv4 via `crypto/rand`
     - Call `registryAdd` to persist the ID-to-file-path mapping
     - Acquire file lock first, then registry lock (consistent ordering with notes)
     - Update `buildTaskList` helper signature to accept `id` as first parameter: `buildTaskList(id, filePath, title string, tasks []MainTask, updatedAt int64)`
     - Update all existing callers of `buildTaskList` to pass the `id` (or empty string where appropriate)
     - _Requirements: 1.1, 1.2, 1.3, 2.1, 8.1, 8.2_
-  - [ ] 5.2 Write property test: created ID is valid UUIDv4
+  - [x] 5.2 Write property test: created ID is valid UUIDv4
     - **Property 2: Created ID is valid UUIDv4**
     - **Validates: Requirements 1.2**
     - Tag with `Feature: tasklist-stable-ids, Property 2: Created ID is valid UUIDv4`
-  - [ ] 5.3 Write property test: all created IDs are unique
+  - [x] 5.3 Write property test: all created IDs are unique
     - **Property 3: All created IDs are unique**
     - **Validates: Requirements 1.3**
     - Tag with `Feature: tasklist-stable-ids, Property 3: All created IDs are unique`
 
-- [ ] 6. Update GetTaskList RPC to resolve by ID
-  - [ ] 6.1 Modify `tasks/get_task_list.go`
+- [x] 6. Update GetTaskList RPC to resolve by ID
+  - [x] 6.1 Modify `tasks/get_task_list.go`
     - Validate the `id` field with `validateUuidV4`
     - Call `registryLookup` to resolve ID to file path
     - Return `NotFound` if ID is not in registry
     - Pass resolved `id` through to `buildTaskList`
     - _Requirements: 4.1, 4.2, 9.1, 9.2_
 
-- [ ] 7. Update UpdateTaskList RPC to resolve by ID
-  - [ ] 7.1 Modify `tasks/update_task_list.go`
+- [x] 7. Update UpdateTaskList RPC to resolve by ID
+  - [x] 7.1 Modify `tasks/update_task_list.go`
     - Validate the `id` field with `validateUuidV4`
     - Call `registryLookup` to resolve ID to file path
     - Return `NotFound` if ID is not in registry
     - Pass resolved `id` through to `buildTaskList`
     - _Requirements: 5.1, 5.2, 9.1, 9.2_
-  - [ ] 7.2 Write property test: update by ID preserves the TaskList_ID
+  - [x] 7.2 Write property test: update by ID preserves the TaskList_ID
     - **Property 4: Update by ID preserves the TaskList_ID**
     - **Validates: Requirements 1.4, 5.1**
     - Tag with `Feature: tasklist-stable-ids, Property 4: Update by ID preserves the TaskList_ID`
 
-- [ ] 8. Update DeleteTaskList RPC to resolve by ID and clean up registry
-  - [ ] 8.1 Modify `tasks/delete_task_list.go`
+- [x] 8. Update DeleteTaskList RPC to resolve by ID and clean up registry
+  - [x] 8.1 Modify `tasks/delete_task_list.go`
     - Acquire registry lock, resolve ID via `registryLookup`
     - Acquire file lock, delete the file
     - Call `registryRemove` to clean up the registry entry
     - Return `NotFound` if ID is not in registry
     - _Requirements: 6.1, 6.2, 2.2, 9.1, 9.2_
-  - [ ] 8.2 Write property test: delete by ID removes file and registry entry
+  - [x] 8.2 Write property test: delete by ID removes file and registry entry
     - **Property 5: Delete by ID removes file and registry entry**
     - **Validates: Requirements 2.2, 6.1**
     - Tag with `Feature: tasklist-stable-ids, Property 5: Delete by ID removes file and registry entry`
 
-- [ ] 9. Checkpoint - Ensure all tests pass
+- [x] 9. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 10. Update ListTaskLists RPC to include IDs

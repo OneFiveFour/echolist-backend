@@ -108,7 +108,7 @@ func TestProperty6_TaskListCreateThenGetRoundTrip(t *testing.T) {
 		}
 
 		getResp, err := srv.GetTaskList(context.Background(), &pb.GetTaskListRequest{
-			Id: createResp.TaskList.FilePath,
+			Id: createResp.TaskList.Id,
 		})
 		if err != nil {
 			rt.Fatalf("GetTaskList failed: %v", err)
@@ -171,16 +171,17 @@ func TestProperty7_DuplicateNameReturnsAlreadyExists(t *testing.T) {
 	})
 }
 
-// Feature: task-management, Property 8: Operations on non-existent paths return not-found
+// Feature: task-management, Property 8: Operations on non-existent IDs return not-found
 // **Validates: Requirements 3.7, 3.8**
 func TestProperty8_NonExistentPathsReturnNotFound(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		tmp := t.TempDir()
 		srv := NewTaskServer(tmp, nopLogger())
 		name := validNameGen().Draw(rt, "name")
-		fakePath := "tasks_" + name + ".md"
+		_ = name // keep the draw for backward compat with rapid seed files
+		fakeId := "00000000-0000-4000-8000-000000000000"
 
-		_, err := srv.GetTaskList(context.Background(), &pb.GetTaskListRequest{Id: fakePath})
+		_, err := srv.GetTaskList(context.Background(), &pb.GetTaskListRequest{Id: fakeId})
 		if err == nil {
 			rt.Fatal("expected NotFound for GetTaskList, got nil")
 		}
@@ -188,7 +189,7 @@ func TestProperty8_NonExistentPathsReturnNotFound(t *testing.T) {
 			rt.Fatalf("GetTaskList: expected NotFound, got %v", connect.CodeOf(err))
 		}
 
-		_, err = srv.DeleteTaskList(context.Background(), &pb.DeleteTaskListRequest{Id: fakePath})
+		_, err = srv.DeleteTaskList(context.Background(), &pb.DeleteTaskListRequest{Id: fakeId})
 		if err == nil {
 			rt.Fatal("expected NotFound for DeleteTaskList, got nil")
 		}
@@ -282,7 +283,7 @@ func TestProperty11_RecurringTaskDoneAdvanceCycle(t *testing.T) {
 
 		// Mark the task as done
 		updateResp, err := srv.UpdateTaskList(context.Background(), &pb.UpdateTaskListRequest{
-			Id: createResp.TaskList.FilePath,
+			Id: createResp.TaskList.Id,
 			Tasks: []*pb.MainTask{{
 				Description: "recurring task",
 				Done:        true,
@@ -510,7 +511,7 @@ func TestProperty16_DeleteRemovesTaskListFromDisk(t *testing.T) {
 		}
 
 		_, err = srv.DeleteTaskList(context.Background(), &pb.DeleteTaskListRequest{
-			Id: createResp.TaskList.FilePath,
+			Id: createResp.TaskList.Id,
 		})
 		if err != nil {
 			rt.Fatalf("DeleteTaskList failed: %v", err)
@@ -524,7 +525,7 @@ func TestProperty16_DeleteRemovesTaskListFromDisk(t *testing.T) {
 
 		// GetTaskList must return NotFound
 		_, err = srv.GetTaskList(context.Background(), &pb.GetTaskListRequest{
-			Id: createResp.TaskList.FilePath,
+			Id: createResp.TaskList.Id,
 		})
 		if err == nil {
 			rt.Fatal("expected NotFound after delete, got nil")
@@ -534,3 +535,146 @@ func TestProperty16_DeleteRemovesTaskListFromDisk(t *testing.T) {
 		}
 	})
 }
+
+// Feature: tasklist-stable-ids, Property 2: Created ID is valid UUIDv4
+// For any valid title and tasks, the id field in the TaskList returned by
+// CreateTaskList shall be a lowercase hyphenated UUIDv4 string.
+// **Validates: Requirements 1.2**
+func TestProperty2_CreatedIdIsValidUuidV4(t *testing.T) {
+	rapid.Check(t, func(rt *rapid.T) {
+		tmp := t.TempDir()
+		srv := NewTaskServer(tmp, nopLogger())
+		name := validNameGen().Draw(rt, "name")
+		tasks := simpleTaskListGen().Draw(rt, "tasks")
+
+		resp, err := srv.CreateTaskList(context.Background(), &pb.CreateTaskListRequest{
+			Title: name,
+			Tasks: tasks,
+		})
+		if err != nil {
+			rt.Fatalf("CreateTaskList failed: %v", err)
+		}
+
+		id := resp.TaskList.Id
+		if err := validateUuidV4(id); err != nil {
+			rt.Fatalf("returned id %q is not a valid UUIDv4: %v", id, err)
+		}
+	})
+}
+
+// Feature: tasklist-stable-ids, Property 3: All created IDs are unique
+// For any sequence of N valid CreateTaskList calls (with distinct titles),
+// all N returned id values shall be pairwise distinct.
+// **Validates: Requirements 1.3**
+func TestProperty3_AllCreatedIdsAreUnique(t *testing.T) {
+	rapid.Check(t, func(rt *rapid.T) {
+		tmp := t.TempDir()
+		srv := NewTaskServer(tmp, nopLogger())
+		n := rapid.IntRange(2, 10).Draw(rt, "n")
+
+		seen := make(map[string]bool, n)
+		for i := 0; i < n; i++ {
+			name := fmt.Sprintf("list_%d_%s", i, validNameGen().Draw(rt, fmt.Sprintf("name-%d", i)))
+			tasks := simpleTaskListGen().Draw(rt, fmt.Sprintf("tasks-%d", i))
+
+			resp, err := srv.CreateTaskList(context.Background(), &pb.CreateTaskListRequest{
+				Title: name,
+				Tasks: tasks,
+			})
+			if err != nil {
+				rt.Fatalf("CreateTaskList[%d] failed: %v", i, err)
+			}
+
+			id := resp.TaskList.Id
+			if seen[id] {
+				rt.Fatalf("duplicate id %q at index %d", id, i)
+			}
+			seen[id] = true
+		}
+	})
+}
+
+// Feature: tasklist-stable-ids, Property 4: Update by ID preserves the TaskList_ID
+// For any created task list and any new valid tasks, calling UpdateTaskList with
+// the task list's id shall return a TaskList whose id is identical to the original.
+// **Validates: Requirements 1.4, 5.1**
+func TestProperty4_UpdateByIdPreservesTaskListId(t *testing.T) {
+	rapid.Check(t, func(rt *rapid.T) {
+		tmp := t.TempDir()
+		srv := NewTaskServer(tmp, nopLogger())
+		name := validNameGen().Draw(rt, "name")
+		tasks := simpleTaskListGen().Draw(rt, "tasks")
+
+		createResp, err := srv.CreateTaskList(context.Background(), &pb.CreateTaskListRequest{
+			Title: name,
+			Tasks: tasks,
+		})
+		if err != nil {
+			rt.Fatalf("CreateTaskList failed: %v", err)
+		}
+
+		originalId := createResp.TaskList.Id
+
+		newTasks := simpleTaskListGen().Draw(rt, "newTasks")
+		updateResp, err := srv.UpdateTaskList(context.Background(), &pb.UpdateTaskListRequest{
+			Id:    originalId,
+			Tasks: newTasks,
+		})
+		if err != nil {
+			rt.Fatalf("UpdateTaskList failed: %v", err)
+		}
+
+		if updateResp.TaskList.Id != originalId {
+			rt.Fatalf("id changed after update: expected %q, got %q", originalId, updateResp.TaskList.Id)
+		}
+	})
+}
+
+
+// Feature: tasklist-stable-ids, Property 5: Delete by ID removes file and registry entry
+// For any created task list, calling DeleteTaskList with the task list's id shall
+// succeed, and a subsequent GetTaskList with the same id shall return NotFound.
+// **Validates: Requirements 2.2, 6.1**
+func TestProperty5_DeleteByIdRemovesFileAndRegistryEntry(t *testing.T) {
+	rapid.Check(t, func(rt *rapid.T) {
+		tmp := t.TempDir()
+		srv := NewTaskServer(tmp, nopLogger())
+		name := validNameGen().Draw(rt, "name")
+		tasks := simpleTaskListGen().Draw(rt, "tasks")
+
+		createResp, err := srv.CreateTaskList(context.Background(), &pb.CreateTaskListRequest{
+			Title: name,
+			Tasks: tasks,
+		})
+		if err != nil {
+			rt.Fatalf("CreateTaskList failed: %v", err)
+		}
+
+		id := createResp.TaskList.Id
+
+		_, err = srv.DeleteTaskList(context.Background(), &pb.DeleteTaskListRequest{
+			Id: id,
+		})
+		if err != nil {
+			rt.Fatalf("DeleteTaskList failed: %v", err)
+		}
+
+		// File must not exist on disk
+		absPath := filepath.Join(tmp, createResp.TaskList.FilePath)
+		if _, err := os.Stat(absPath); !os.IsNotExist(err) {
+			rt.Fatalf("expected file %q to be deleted", absPath)
+		}
+
+		// GetTaskList must return NotFound
+		_, err = srv.GetTaskList(context.Background(), &pb.GetTaskListRequest{
+			Id: id,
+		})
+		if err == nil {
+			rt.Fatal("expected NotFound after delete, got nil")
+		}
+		if connect.CodeOf(err) != connect.CodeNotFound {
+			rt.Fatalf("expected NotFound, got %v", connect.CodeOf(err))
+		}
+	})
+}
+

@@ -32,7 +32,7 @@ func TestProperty_CreateGetRoundTripTaskListMessage(t *testing.T) {
 		}
 
 		getResp, err := srv.GetTaskList(context.Background(), &pb.GetTaskListRequest{
-			Id: createResp.TaskList.FilePath,
+			Id: createResp.TaskList.Id,
 		})
 		if err != nil {
 			rt.Fatalf("GetTaskList failed: %v", err)
@@ -111,7 +111,7 @@ func TestProperty_UpdateReturnsTaskListMessage(t *testing.T) {
 		updatedTasks := simpleTaskListGen().Draw(rt, "updatedTasks")
 
 		updateResp, err := srv.UpdateTaskList(context.Background(), &pb.UpdateTaskListRequest{
-			Id:    createResp.TaskList.FilePath,
+			Id:    createResp.TaskList.Id,
 			Tasks:    updatedTasks,
 		})
 		if err != nil {
