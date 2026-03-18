@@ -3,8 +3,6 @@ package tasks
 import (
 	"context"
 	"errors"
-	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 
@@ -148,10 +146,13 @@ func TestUpdateTaskList_TooManyTasks(t *testing.T) {
 	dataDir := t.TempDir()
 	srv := NewTaskServer(dataDir, nopLogger())
 
-	// Create a valid task file first
-	filePath := filepath.Join(dataDir, "tasks_test.md")
-	if err := os.WriteFile(filePath, []byte("- [ ] existing task\n"), 0644); err != nil {
-		t.Fatal(err)
+	// Create a valid task list first to get an ID
+	createResp, err := srv.CreateTaskList(context.Background(), &pb.CreateTaskListRequest{
+		Title: "test",
+		Tasks: []*pb.MainTask{{Description: "existing task"}},
+	})
+	if err != nil {
+		t.Fatalf("CreateTaskList failed: %v", err)
 	}
 
 	bigList := make([]*pb.MainTask, common.MaxTasksPerList+1)
@@ -159,9 +160,9 @@ func TestUpdateTaskList_TooManyTasks(t *testing.T) {
 		bigList[i] = &pb.MainTask{Description: "task"}
 	}
 
-	_, err := srv.UpdateTaskList(context.Background(), &pb.UpdateTaskListRequest{
-		Id:    "tasks_test.md",
-		Tasks:    bigList,
+	_, err = srv.UpdateTaskList(context.Background(), &pb.UpdateTaskListRequest{
+		Id:    createResp.TaskList.Id,
+		Tasks: bigList,
 	})
 	if err == nil {
 		t.Fatal("expected error for too many tasks")

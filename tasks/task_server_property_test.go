@@ -2,6 +2,7 @@ package tasks
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -61,6 +62,46 @@ func traversalPathGen() *rapid.Generator[string] {
 		"../",
 		"foo/../../../etc",
 	})
+}
+// uuidV4Gen generates valid UUIDv4 strings for testing NotFound scenarios.
+func uuidV4Gen() *rapid.Generator[string] {
+	return rapid.Custom(func(rt *rapid.T) string {
+		a := rapid.StringMatching(`[0-9a-f]{8}`).Draw(rt, "a")
+		b := rapid.StringMatching(`[0-9a-f]{4}`).Draw(rt, "b")
+		c := rapid.StringMatching(`[0-9a-f]{3}`).Draw(rt, "c")
+		d := rapid.StringMatching(`[89ab][0-9a-f]{3}`).Draw(rt, "d")
+		e := rapid.StringMatching(`[0-9a-f]{12}`).Draw(rt, "e")
+		return fmt.Sprintf("%s-%s-4%s-%s-%s", a, b, c, d, e)
+	})
+}
+
+// assertCodeNotFound checks that the error is a connect.Error with CodeNotFound.
+func assertCodeNotFound(rt *rapid.T, err error, handler, id string) {
+	rt.Helper()
+	if err == nil {
+		rt.Fatalf("%s: expected error for non-existent id %q, got nil", handler, id)
+	}
+	var connErr *connect.Error
+	if !errors.As(err, &connErr) {
+		rt.Fatalf("%s: expected connect.Error for id %q, got %T: %v", handler, id, err, err)
+	}
+	if connErr.Code() != connect.CodeNotFound {
+		rt.Fatalf("%s: expected CodeNotFound for id %q, got %v", handler, id, connErr.Code())
+	}
+}
+
+func assertCodeInvalidArgument(rt *rapid.T, err error, handler, id string) {
+	rt.Helper()
+	if err == nil {
+		rt.Fatalf("%s: expected error for invalid id %q, got nil", handler, id)
+	}
+	var connErr *connect.Error
+	if !errors.As(err, &connErr) {
+		rt.Fatalf("%s: expected connect.Error for id %q, got %T: %v", handler, id, err, err)
+	}
+	if connErr.Code() != connect.CodeInvalidArgument {
+		rt.Fatalf("%s: expected CodeInvalidArgument for id %q, got %v", handler, id, connErr.Code())
+	}
 }
 
 // Feature: task-management, Property 5: Created task lists use tasks_ prefix
@@ -331,53 +372,30 @@ func TestProperty12_InvalidRRuleRejected(t *testing.T) {
 
 // Feature: task-management, Property 13: Path traversal prevention
 // **Validates: Requirements 1.3, 9.1, 9.2, 9.3**
+// Note: Get/Update/Delete RPCs now take a UUID id, not a file path, so path
+// traversal is only relevant for CreateTaskList (parent_dir) and ListTaskLists (parent_dir).
 func TestProperty13_PathTraversalPrevention(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		tmp := t.TempDir()
 		srv := NewTaskServer(tmp, nopLogger())
 		badPath := traversalPathGen().Draw(rt, "badPath")
 
-		// CreateTaskList
+		// CreateTaskList with traversal parent_dir
 		_, err := srv.CreateTaskList(context.Background(), &pb.CreateTaskListRequest{
-			Title: "test",
+			Title:     "test",
 			ParentDir: badPath,
-			Tasks: []*pb.MainTask{{Description: "task"}},
+			Tasks:     []*pb.MainTask{{Description: "task"}},
 		})
 		if err == nil {
 			rt.Fatalf("CreateTaskList should reject traversal path %q", badPath)
 		}
 
-		// GetTaskList
-		_, err = srv.GetTaskList(context.Background(), &pb.GetTaskListRequest{
-			Id: badPath + "/tasks_test.md",
-		})
-		if err == nil {
-			rt.Fatalf("GetTaskList should reject traversal path %q", badPath)
-		}
-
-		// ListTaskLists
+		// ListTaskLists with traversal parent_dir
 		_, err = srv.ListTaskLists(context.Background(), &pb.ListTaskListsRequest{
 			ParentDir: badPath,
 		})
 		if err == nil {
 			rt.Fatalf("ListTaskLists should reject traversal path %q", badPath)
-		}
-
-		// UpdateTaskList
-		_, err = srv.UpdateTaskList(context.Background(), &pb.UpdateTaskListRequest{
-			Id: badPath + "/tasks_test.md",
-			Tasks:    []*pb.MainTask{{Description: "task"}},
-		})
-		if err == nil {
-			rt.Fatalf("UpdateTaskList should reject traversal path %q", badPath)
-		}
-
-		// DeleteTaskList
-		_, err = srv.DeleteTaskList(context.Background(), &pb.DeleteTaskListRequest{
-			Id: badPath + "/tasks_test.md",
-		})
-		if err == nil {
-			rt.Fatalf("DeleteTaskList should reject traversal path %q", badPath)
 		}
 	})
 }
@@ -678,3 +696,185 @@ func TestProperty5_DeleteByIdRemovesFileAndRegistryEntry(t *testing.T) {
 	})
 }
 
+
+// Feature: tasklist-stable-ids, Property 7: Create then list includes the created task list's ID
+// For any valid title and tasks, creating a task list via CreateTaskList and then
+// calling ListTaskLists shall return a list containing a TaskList whose id matches
+// the one returned by CreateTaskList.
+// **Validates: Requirements 7.1, 10.2**
+func TestProperty7_CreateThenListIncludesCreatedId(t *testing.T) {
+	rapid.Check(t, func(rt *rapid.T) {
+		tmp := t.TempDir()
+		srv := NewTaskServer(tmp, nopLogger())
+		name := validNameGen().Draw(rt, "name")
+		tasks := simpleTaskListGen().Draw(rt, "tasks")
+
+		createResp, err := srv.CreateTaskList(context.Background(), &pb.CreateTaskListRequest{
+			Title: name,
+			Tasks: tasks,
+		})
+		if err != nil {
+			rt.Fatalf("CreateTaskList failed: %v", err)
+		}
+
+		createdId := createResp.TaskList.Id
+
+		listResp, err := srv.ListTaskLists(context.Background(), &pb.ListTaskListsRequest{
+			ParentDir: "",
+		})
+		if err != nil {
+			rt.Fatalf("ListTaskLists failed: %v", err)
+		}
+
+		found := false
+		for _, tl := range listResp.TaskLists {
+			if tl.Id == createdId {
+				found = true
+				break
+			}
+		}
+		if !found {
+			rt.Fatalf("ListTaskLists did not include task list with id %q", createdId)
+		}
+	})
+}
+
+// Feature: tasklist-stable-ids, Property 1: Create-then-get round trip
+// For any valid title and tasks, creating a task list via CreateTaskList and then
+// retrieving it via GetTaskList using the returned id shall produce a TaskList with
+// the same id, title, tasks, and file_path fields.
+// **Validates: Requirements 1.1, 2.1, 4.1, 8.1, 8.2, 10.1**
+func TestProperty1_CreateThenGetRoundTripWithId(t *testing.T) {
+	rapid.Check(t, func(rt *rapid.T) {
+		tmp := t.TempDir()
+		srv := NewTaskServer(tmp, nopLogger())
+		name := validNameGen().Draw(rt, "name")
+		tasks := simpleTaskListGen().Draw(rt, "tasks")
+
+		createResp, err := srv.CreateTaskList(context.Background(), &pb.CreateTaskListRequest{
+			Title: name,
+			Tasks: tasks,
+		})
+		if err != nil {
+			rt.Fatalf("CreateTaskList failed: %v", err)
+		}
+
+		created := createResp.TaskList
+		if created.Id == "" {
+			rt.Fatal("CreateTaskList returned empty id")
+		}
+
+		getResp, err := srv.GetTaskList(context.Background(), &pb.GetTaskListRequest{
+			Id: created.Id,
+		})
+		if err != nil {
+			rt.Fatalf("GetTaskList failed: %v", err)
+		}
+
+		got := getResp.TaskList
+
+		// Verify id round-trips
+		if got.Id != created.Id {
+			rt.Fatalf("id mismatch: expected %q, got %q", created.Id, got.Id)
+		}
+
+		// Verify title round-trips
+		if got.Title != created.Title {
+			rt.Fatalf("title mismatch: expected %q, got %q", created.Title, got.Title)
+		}
+
+		// Verify file_path round-trips
+		if got.FilePath != created.FilePath {
+			rt.Fatalf("file_path mismatch: expected %q, got %q", created.FilePath, got.FilePath)
+		}
+
+		// Verify tasks round-trip
+		if len(got.Tasks) != len(created.Tasks) {
+			rt.Fatalf("task count mismatch: expected %d, got %d", len(created.Tasks), len(got.Tasks))
+		}
+		for i, gotTask := range got.Tasks {
+			wantTask := created.Tasks[i]
+			if gotTask.Description != wantTask.Description {
+				rt.Fatalf("task %d description: expected %q, got %q", i, wantTask.Description, gotTask.Description)
+			}
+			if gotTask.Done != wantTask.Done {
+				rt.Fatalf("task %d done: expected %v, got %v", i, wantTask.Done, gotTask.Done)
+			}
+			if len(gotTask.SubTasks) != len(wantTask.SubTasks) {
+				rt.Fatalf("task %d subtask count: expected %d, got %d", i, len(wantTask.SubTasks), len(gotTask.SubTasks))
+			}
+			for j, gs := range gotTask.SubTasks {
+				ws := wantTask.SubTasks[j]
+				if gs.Description != ws.Description || gs.Done != ws.Done {
+					rt.Fatalf("task %d subtask %d mismatch", i, j)
+				}
+			}
+		}
+	})
+}
+
+
+// Feature: tasklist-stable-ids, Property 6: Non-existent ID returns NotFound
+// For any valid UUIDv4 string that was never used in a CreateTaskList call,
+// calling GetTaskList, UpdateTaskList, and DeleteTaskList with that ID shall
+// return a NotFound error.
+// **Validates: Requirements 4.2, 5.2, 6.2**
+func TestProperty6_NonExistentIdReturnsNotFound(t *testing.T) {
+	rapid.Check(t, func(rt *rapid.T) {
+		id := uuidV4Gen().Draw(rt, "id")
+		tmpDir := t.TempDir()
+		srv := NewTaskServer(tmpDir, nopLogger())
+		ctx := context.Background()
+
+		// GetTaskList with non-existent ID should return CodeNotFound
+		_, err := srv.GetTaskList(ctx, &pb.GetTaskListRequest{
+			Id: id,
+		})
+		assertCodeNotFound(rt, err, "GetTaskList", id)
+
+		// UpdateTaskList with non-existent ID should return CodeNotFound
+		_, err = srv.UpdateTaskList(ctx, &pb.UpdateTaskListRequest{
+			Id:    id,
+			Tasks: []*pb.MainTask{{Description: "some task"}},
+		})
+		assertCodeNotFound(rt, err, "UpdateTaskList", id)
+
+		// DeleteTaskList with non-existent ID should return CodeNotFound
+		_, err = srv.DeleteTaskList(ctx, &pb.DeleteTaskListRequest{
+			Id: id,
+		})
+		assertCodeNotFound(rt, err, "DeleteTaskList", id)
+	})
+}
+
+// Feature: tasklist-stable-ids, Property 8: Invalid UUID returns InvalidArgument
+// For any string that is not a valid UUIDv4, calling GetTaskList, UpdateTaskList,
+// or DeleteTaskList with that string as the id shall return an InvalidArgument error.
+// **Validates: Requirements 9.1, 9.2**
+func TestProperty8_InvalidUuidRejectedByRPCs(t *testing.T) {
+	rapid.Check(t, func(rt *rapid.T) {
+		badId := invalidUuidGen().Draw(rt, "invalidUuid")
+		tmpDir := t.TempDir()
+		srv := NewTaskServer(tmpDir, nopLogger())
+		ctx := context.Background()
+
+		// GetTaskList with invalid UUID should return CodeInvalidArgument
+		_, err := srv.GetTaskList(ctx, &pb.GetTaskListRequest{
+			Id: badId,
+		})
+		assertCodeInvalidArgument(rt, err, "GetTaskList", badId)
+
+		// UpdateTaskList with invalid UUID should return CodeInvalidArgument
+		_, err = srv.UpdateTaskList(ctx, &pb.UpdateTaskListRequest{
+			Id:    badId,
+			Tasks: []*pb.MainTask{{Description: "some task"}},
+		})
+		assertCodeInvalidArgument(rt, err, "UpdateTaskList", badId)
+
+		// DeleteTaskList with invalid UUID should return CodeInvalidArgument
+		_, err = srv.DeleteTaskList(ctx, &pb.DeleteTaskListRequest{
+			Id: badId,
+		})
+		assertCodeInvalidArgument(rt, err, "DeleteTaskList", badId)
+	})
+}

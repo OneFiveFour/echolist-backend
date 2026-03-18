@@ -71,5 +71,22 @@ func (s *TaskServer) ListTaskLists(
 		taskLists = append(taskLists, buildTaskList("", entryPath, listName, domainTasks, info.ModTime().UnixMilli()))
 	}
 
+	// Read registry and build reverse map (filePath → id)
+	regPath := registryPath(s.dataDir)
+	registry, err := registryRead(regPath)
+	if err != nil {
+		s.logger.Error("failed to read registry", "error", err)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to read registry: %w", err))
+	}
+
+	reverseMap := make(map[string]string, len(registry))
+	for id, fp := range registry {
+		reverseMap[fp] = id
+	}
+
+	for _, tl := range taskLists {
+		tl.Id = reverseMap[tl.FilePath] // empty string if not found
+	}
+
 	return &pb.ListTaskListsResponse{TaskLists: taskLists}, nil
 }

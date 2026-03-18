@@ -100,44 +100,44 @@ Add a stable UUIDv4 identifier to every task list, persisted in an on-disk JSON 
 - [x] 9. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 10. Update ListTaskLists RPC to include IDs
-  - [ ] 10.1 Modify `tasks/list_task_lists.go`
+- [x] 10. Update ListTaskLists RPC to include IDs
+  - [x] 10.1 Modify `tasks/list_task_lists.go`
     - After building task lists from filesystem, read the registry once
     - Build a reverse map (filePath → id) and attach IDs to each TaskList
     - Task lists without a registry entry get an empty `id` field
     - _Requirements: 7.1, 7.2_
-  - [ ] 10.2 Write property test: create then list includes the created task list's ID
+  - [x] 10.2 Write property test: create then list includes the created task list's ID
     - **Property 7: Create then list includes the created task list's ID**
     - **Validates: Requirements 7.1, 10.2**
     - Tag with `Feature: tasklist-stable-ids, Property 7: Create then list includes the created task list's ID`
-  - [ ] 10.3 Write unit test: orphan task list file returns empty ID
+  - [x] 10.3 Write unit test: orphan task list file returns empty ID
     - Test that a task list file on disk with no registry entry is listed with an empty `id` field
     - _Requirements: 7.2_
 
-- [ ] 11. Update existing tests and add round-trip property test
-  - [ ] 11.1 Update existing test files to use new protobuf fields
+- [x] 11. Update existing tests and add round-trip property test
+  - [x] 11.1 Update existing test files to use new protobuf fields
     - Update `tasks/task_server_property_test.go` — existing property tests use `FilePath` in Get/Update/Delete requests, switch to `Id`
     - Update `tasks/create_task_list_test.go` — unit tests for create
     - Update `tasks/tasklist_message_property_test.go` — message property tests
     - Update `tasks/validate_limits_test.go` — validation tests
     - Update `tasks/interface_verification_test.go` — interface tests
     - _Requirements: 3.2, 3.3, 3.4, 3.5_
-  - [ ] 11.2 Write property test: create-then-get round trip with ID
+  - [x] 11.2 Write property test: create-then-get round trip with ID
     - **Property 1: Create-then-get round trip**
     - **Validates: Requirements 1.1, 2.1, 4.1, 8.1, 8.2, 10.1**
     - Tag with `Feature: tasklist-stable-ids, Property 1: Create-then-get round trip`
-  - [ ] 11.3 Write property test: non-existent ID returns NotFound
+  - [x] 11.3 Write property test: non-existent ID returns NotFound
     - **Property 6: Non-existent ID returns NotFound**
     - **Validates: Requirements 4.2, 5.2, 6.2**
     - Add `uuidV4Gen()` generator for valid UUIDv4 strings
     - Tag with `Feature: tasklist-stable-ids, Property 6: Non-existent ID returns NotFound`
-  - [ ] 11.4 Write property test: invalid UUID rejected by Get/Update/Delete RPCs
+  - [x] 11.4 Write property test: invalid UUID rejected by Get/Update/Delete RPCs
     - **Property 8: Invalid UUID returns InvalidArgument** (RPC-level variant)
     - **Validates: Requirements 9.1, 9.2**
     - Reuse `invalidUuidGen()` generator
     - Tag with `Feature: tasklist-stable-ids, Property 8: Invalid UUID returns InvalidArgument`
 
-- [ ] 12. Final checkpoint - Ensure all tests pass
+- [x] 12. Final checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes
