@@ -36,3 +36,6 @@ echolist-backend
 
 # generated proto files
 proto/gen/
+
+# data directory
+data/*
