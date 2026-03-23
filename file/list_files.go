@@ -20,6 +20,9 @@ func entryPath(requestParentDir, name string) string {
 	if requestParentDir == "" {
 		return name
 	}
+	if requestParentDir[len(requestParentDir)-1] == '/' {
+		return requestParentDir + name
+	}
 	return requestParentDir + "/" + name
 }
 

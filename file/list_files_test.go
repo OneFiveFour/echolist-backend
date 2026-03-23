@@ -305,3 +305,41 @@ func TestListFiles_RootPath(t *testing.T) {
 		t.Fatalf("expected 3 entries, got %d: %v", len(resp.Entries), resp.Entries)
 	}
 }
+
+func TestListFiles_RootSlashNoDoubleSlash(t *testing.T) {
+	dataDir := t.TempDir()
+	srv := NewFileServer(dataDir, nopLogger())
+
+	os.Mkdir(filepath.Join(dataDir, "folderA"), 0755)
+	os.WriteFile(filepath.Join(dataDir, "note_hello.md"), []byte("hi"), 0644)
+	os.WriteFile(filepath.Join(dataDir, "tasks_todo.md"), []byte("todo"), 0644)
+
+	resp, err := srv.ListFiles(context.Background(), &filev1.ListFilesRequest{
+		ParentDir: "/",
+	})
+	if err != nil {
+		t.Fatalf("ListFiles failed: %v", err)
+	}
+
+	for _, e := range resp.Entries {
+		if len(e.Path) >= 2 && e.Path[:2] == "//" {
+			t.Errorf("path has double leading slash: %q", e.Path)
+		}
+	}
+
+	expected := map[string]bool{
+		"/folderA":       true,
+		"/note_hello.md": true,
+		"/tasks_todo.md": true,
+	}
+	for _, e := range resp.Entries {
+		if !expected[e.Path] {
+			t.Errorf("unexpected path: %q", e.Path)
+		}
+		delete(expected, e.Path)
+	}
+	for p := range expected {
+		t.Errorf("missing expected path: %q", p)
+	}
+}
+
