@@ -37,5 +37,5 @@ echolist-backend
 # generated proto files
 proto/gen/
 
-# data directory
-data/*
+# data directory (created at runtime, not needed in VCS)
+data/
