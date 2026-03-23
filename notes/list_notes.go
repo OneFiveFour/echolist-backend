@@ -18,7 +18,9 @@ func (s *NotesServer) ListNotes(
 	req *pb.ListNotesRequest,
 ) (*pb.ListNotesResponse, error) {
 
-	root, err := common.ValidateParentDir(s.dataDir, req.GetParentDir())
+	parentDir := req.GetParentDir()
+
+	root, err := common.ValidateParentDir(s.dataDir, parentDir)
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +37,7 @@ func (s *NotesServer) ListNotes(
 
 	var notes []*pb.Note
 
-	prefix := req.GetParentDir()
+	prefix := parentDir
 	if prefix != "" && !strings.HasSuffix(prefix, "/") {
 		prefix += "/"
 	}

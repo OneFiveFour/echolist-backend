@@ -17,6 +17,8 @@ message Folder {
 }
 
 message CreateFolderRequest {
+  // Relative path to the parent directory. Empty string for root.
+  // Must not start with "/", must not contain ".." segments.
   string parent_dir = 1;
   string name = 2;
 }
@@ -26,6 +28,8 @@ message CreateFolderResponse {
 }
 
 message ListFilesRequest {
+  // Relative path to the parent directory. Empty string for root.
+  // Must not start with "/", must not contain ".." segments.
   string parent_dir = 1;
 }
 
@@ -67,6 +71,7 @@ message ListFilesResponse {
 }
 
 message UpdateFolderRequest {
+  // Relative path to the folder. Must not start with "/", must not contain ".." segments.
   string folder_path = 1;
   string new_name = 2;
 }
@@ -76,6 +81,7 @@ message UpdateFolderResponse {
 }
 
 message DeleteFolderRequest {
+  // Relative path to the folder. Must not start with "/", must not contain ".." segments.
   string folder_path = 1;
 }
 

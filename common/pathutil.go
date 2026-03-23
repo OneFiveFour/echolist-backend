@@ -25,6 +25,40 @@ func IsSubPath(base, resolved string) bool {
 	}
 	return true
 }
+// NormalizeRelativePath strips leading slashes and cleans a relative path so
+// that the data-directory root is always represented as "" rather than "/" or ".".
+// rejectBadRelativePath returns an InvalidArgument error if the path is not a
+// clean relative path. The rules are:
+//   - empty string is allowed (represents the data-directory root)
+//   - must not start with "/"
+//   - must not contain "\" (backslash)
+//   - must not contain ".." segments
+//   - must not contain null bytes
+//   - must equal its own filepath.Clean result (no redundant slashes, no trailing slash)
+func rejectBadRelativePath(p string) error {
+	if p == "" {
+		return nil
+	}
+	if p[0] == '/' {
+		return connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("path must not start with '/'"))
+	}
+	if strings.ContainsRune(p, '\\') {
+		return connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("path must not contain backslashes"))
+	}
+	if strings.ContainsRune(p, 0) {
+		return connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("path must not contain null bytes"))
+	}
+	cleaned := filepath.Clean(p)
+	if cleaned != p {
+		return connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("path is not clean: use %q", cleaned))
+	}
+	for _, seg := range strings.Split(p, "/") {
+		if seg == ".." {
+			return connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("path must not contain '..' segments"))
+		}
+	}
+	return nil
+}
 
 // resolveSymlinks resolves symlinks on the longest existing prefix of path.
 func resolveSymlinks(path string) (string, error) {
@@ -61,6 +95,10 @@ func resolveSymlinks(path string) (string, error) {
 }
 
 func validatePath(dataDir, relativePath string, allowRoot bool) (string, error) {
+	if err := rejectBadRelativePath(relativePath); err != nil {
+		return "", err
+	}
+
 	cleaned := filepath.Join(dataDir, filepath.Clean(relativePath))
 
 	resolved, err := resolveSymlinks(cleaned)

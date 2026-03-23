@@ -17,7 +17,9 @@ func (s *TaskServer) ListTaskLists(
 	ctx context.Context,
 	req *pb.ListTaskListsRequest,
 ) (*pb.ListTaskListsResponse, error) {
-	dirPath, err := common.ValidateParentDir(s.dataDir, req.GetParentDir())
+	parentDir := req.GetParentDir()
+
+	dirPath, err := common.ValidateParentDir(s.dataDir, parentDir)
 	if err != nil {
 		return nil, err
 	}
@@ -32,7 +34,7 @@ func (s *TaskServer) ListTaskLists(
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to read directory: %w", err))
 	}
 
-	prefix := req.GetParentDir()
+	prefix := parentDir
 	if prefix != "" && !strings.HasSuffix(prefix, "/") {
 		prefix += "/"
 	}

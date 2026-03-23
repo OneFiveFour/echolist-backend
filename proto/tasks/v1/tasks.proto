@@ -35,6 +35,8 @@ message TaskList {
 
 message CreateTaskListRequest {
   string title = 1;
+  // Relative path to the parent directory. Empty string for root.
+  // Must not start with "/", must not contain ".." segments.
   string parent_dir = 2;
   repeated MainTask tasks = 3;
 }
@@ -52,6 +54,8 @@ message GetTaskListResponse {
 }
 
 message ListTaskListsRequest {
+  // Relative path to the parent directory. Empty string for root.
+  // Must not start with "/", must not contain ".." segments.
   string parent_dir = 1;
 }
 

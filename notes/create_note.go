@@ -19,8 +19,10 @@ func (s *NotesServer) CreateNote(
 	req *pb.CreateNoteRequest,
 ) (*pb.CreateNoteResponse, error) {
 
+	parentDir := req.GetParentDir()
+
 	// Validate path
-	dirPath, err := common.ValidateParentDir(s.dataDir, req.GetParentDir())
+	dirPath, err := common.ValidateParentDir(s.dataDir, parentDir)
 	if err != nil {
 		return nil, err
 	}

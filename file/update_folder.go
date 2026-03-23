@@ -22,7 +22,8 @@ func (s *FileServer) UpdateFolder(
 	if req.GetFolderPath() == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("folder_path must not be empty"))
 	}
-	oldPath, err := common.ValidatePath(s.dataDir, req.GetFolderPath())
+	folderPath := req.GetFolderPath()
+	oldPath, err := common.ValidatePath(s.dataDir, folderPath)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +51,11 @@ func (s *FileServer) UpdateFolder(
 	if err != nil {
 		relParent = ""
 	}
-	relPath := filepath.Join(relParent, req.GetNewName()) + "/"
+	relPath := filepath.Join(relParent, req.GetNewName())
+	if relPath == "." {
+		relPath = req.GetNewName()
+	}
+	relPath += "/"
 	return &filev1.UpdateFolderResponse{
 		Folder: &filev1.Folder{
 			Path: relPath,

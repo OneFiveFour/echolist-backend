@@ -20,7 +20,8 @@ func (s *FileServer) DeleteFolder(
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("folder_path must not be empty"))
 	}
 
-	target, err := common.ValidatePath(s.dataDir, req.GetFolderPath())
+	folderPath := req.GetFolderPath()
+	target, err := common.ValidatePath(s.dataDir, folderPath)
 	if err != nil {
 		return nil, err
 	}

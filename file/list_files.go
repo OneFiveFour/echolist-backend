@@ -159,7 +159,9 @@ func (s *FileServer) ListFiles(
 	req *filev1.ListFilesRequest,
 ) (*filev1.ListFilesResponse, error) {
 
-	parentDir, err := common.ValidateParentDir(s.dataDir, req.GetParentDir())
+	requestParentDir := req.GetParentDir()
+
+	parentDir, err := common.ValidateParentDir(s.dataDir, requestParentDir)
 	if err != nil {
 		return nil, err
 	}
@@ -180,11 +182,11 @@ func (s *FileServer) ListFiles(
 		absPath := filepath.Join(parentDir, name)
 		
 		if e.IsDir() {
-			result = append(result, s.buildFolderEntry(absPath, name, req.GetParentDir()))
+			result = append(result, s.buildFolderEntry(absPath, name, requestParentDir))
 		} else if common.MatchesFileType(name, common.NoteFileType) {
-			result = append(result, s.buildNoteEntry(absPath, name, req.GetParentDir()))
+			result = append(result, s.buildNoteEntry(absPath, name, requestParentDir))
 		} else if common.MatchesFileType(name, common.TaskListFileType) {
-			result = append(result, s.buildTaskListEntry(absPath, name, req.GetParentDir()))
+			result = append(result, s.buildTaskListEntry(absPath, name, requestParentDir))
 		}
 		// Skip unrecognized files
 	}

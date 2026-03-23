@@ -19,8 +19,10 @@ func (s *TaskServer) CreateTaskList(
 	ctx context.Context,
 	req *pb.CreateTaskListRequest,
 ) (*pb.CreateTaskListResponse, error) {
+	parentDir := req.GetParentDir()
+
 	// Validate path
-	dirPath, err := common.ValidateParentDir(s.dataDir, req.GetParentDir())
+	dirPath, err := common.ValidateParentDir(s.dataDir, parentDir)
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +78,7 @@ func (s *TaskServer) CreateTaskList(
 		uuid[0:4], uuid[4:6], uuid[6:8], uuid[8:10], uuid[10:16])
 
 	// Persist id→filePath mapping in the registry
-	relPath := filepath.Join(req.GetParentDir(), filename)
+	relPath := filepath.Join(parentDir, filename)
 	regPath := registryPath(s.dataDir)
 	unlockReg := s.locks.Lock(regPath)
 	defer unlockReg()

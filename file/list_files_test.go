@@ -306,7 +306,22 @@ func TestListFiles_RootPath(t *testing.T) {
 	}
 }
 
-func TestListFiles_RootSlashNoDoubleSlash(t *testing.T) {
+func TestListFiles_RootSlashRejected(t *testing.T) {
+	dataDir := t.TempDir()
+	srv := NewFileServer(dataDir, nopLogger())
+
+	_, err := srv.ListFiles(context.Background(), &filev1.ListFilesRequest{
+		ParentDir: "/",
+	})
+	if err == nil {
+		t.Fatal("expected error for leading-slash parent_dir, got nil")
+	}
+	if connect.CodeOf(err) != connect.CodeInvalidArgument {
+		t.Fatalf("expected InvalidArgument, got %v", connect.CodeOf(err))
+	}
+}
+
+func TestListFiles_EmptyParentDirListsRoot(t *testing.T) {
 	dataDir := t.TempDir()
 	srv := NewFileServer(dataDir, nopLogger())
 
@@ -315,22 +330,16 @@ func TestListFiles_RootSlashNoDoubleSlash(t *testing.T) {
 	os.WriteFile(filepath.Join(dataDir, "tasks_todo.md"), []byte("todo"), 0644)
 
 	resp, err := srv.ListFiles(context.Background(), &filev1.ListFilesRequest{
-		ParentDir: "/",
+		ParentDir: "",
 	})
 	if err != nil {
 		t.Fatalf("ListFiles failed: %v", err)
 	}
 
-	for _, e := range resp.Entries {
-		if len(e.Path) >= 2 && e.Path[:2] == "//" {
-			t.Errorf("path has double leading slash: %q", e.Path)
-		}
-	}
-
 	expected := map[string]bool{
-		"/folderA":       true,
-		"/note_hello.md": true,
-		"/tasks_todo.md": true,
+		"folderA":       true,
+		"note_hello.md": true,
+		"tasks_todo.md": true,
 	}
 	for _, e := range resp.Entries {
 		if !expected[e.Path] {
