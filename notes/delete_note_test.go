@@ -13,7 +13,7 @@ func TestDeleteNote(t *testing.T) {
 	tmp := t.TempDir()
 	s := NewNotesServer(tmp, nopLogger())
 
-	// Create a note via the RPC to get a valid ID
+	// Create a note via the RPC to get a valid id
 	createResp, err := s.CreateNote(context.Background(), &pb.CreateNoteRequest{
 		Title:   "todelete",
 		Content: "bye",

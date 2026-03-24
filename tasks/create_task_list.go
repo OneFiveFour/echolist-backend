@@ -85,7 +85,7 @@ func (s *TaskServer) CreateTaskList(
 
 	if err := registryAdd(regPath, id, relPath); err != nil {
 		s.logger.Error("failed to add registry entry", "id", id, "path", relPath, "error", err)
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to persist task list ID: %w", err))
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to persist task list id: %w", err))
 	}
 
 	return &pb.CreateTaskListResponse{

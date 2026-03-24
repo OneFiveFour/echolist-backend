@@ -318,7 +318,7 @@ func TestProperty_CreateNoteDuplicateDetection(t *testing.T) {
 }
 
 
-// Feature: note-stable-ids, Property 2: Created ID is valid UUIDv4
+// Feature: note-stable-ids, Property 2: Created id is valid UUIDv4
 // For any valid title and content, the id field returned by CreateNote matches
 // the UUIDv4 pattern [0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}.
 // **Validates: Requirements 1.2**
@@ -345,7 +345,7 @@ func TestProperty2_CreatedIdIsValidUuid(t *testing.T) {
 }
 
 
-// Feature: note-stable-ids, Property 3: All created IDs are unique
+// Feature: note-stable-ids, Property 3: All created ids are unique
 // For any sequence of N CreateNote calls with distinct titles, all returned id
 // values are pairwise distinct.
 // **Validates: Requirements 1.3**
@@ -368,7 +368,7 @@ func TestProperty3_AllCreatedIdsAreUnique(t *testing.T) {
 			titles = append(titles, title)
 		}
 
-		// Create notes and collect IDs
+		// Create notes and collect ids
 		ids := make(map[string]bool)
 		for i, title := range titles {
 			resp, err := srv.CreateNote(context.Background(), &pb.CreateNoteRequest{

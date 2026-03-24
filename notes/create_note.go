@@ -81,7 +81,7 @@ func (s *NotesServer) CreateNote(
 
 	if err := registryAdd(regPath, id, relativeFilePath); err != nil {
 		s.logger.Error("failed to add registry entry", "id", id, "path", relativeFilePath, "error", err)
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to persist note ID: %w", err))
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to persist note id: %w", err))
 	}
 
 	note := &pb.Note{

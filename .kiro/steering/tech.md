@@ -8,6 +8,10 @@ inclusion: auto
 - **Go 1.24** with toolchain 1.24.13
 - Standard library for most operations
 
+## Naming Conventions
+- Acronyms are treated as regular words in identifiers and comments: use `Id`, `Url`, `Http`, `Api` — not `ID`, `URL`, `HTTP`, `API`
+- Examples: `noteId`, `userId`, `buildTaskListIds`, `"failed to persist note id"`
+
 ## Core Dependencies
 - **connectrpc.com/connect**: Connect RPC framework (gRPC-compatible)
 - **connectrpc.com/grpcreflect**: gRPC reflection for debugging

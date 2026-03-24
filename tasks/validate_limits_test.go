@@ -146,7 +146,7 @@ func TestUpdateTaskList_TooManyTasks(t *testing.T) {
 	dataDir := t.TempDir()
 	srv := NewTaskServer(dataDir, nopLogger())
 
-	// Create a valid task list first to get an ID
+	// Create a valid task list first to get an id
 	createResp, err := srv.CreateTaskList(context.Background(), &pb.CreateTaskListRequest{
 		Title: "test",
 		Tasks: []*pb.MainTask{{Description: "existing task"}},

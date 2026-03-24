@@ -61,7 +61,7 @@ func TestUpdateNote_ContentTooLarge(t *testing.T) {
 	dataDir := t.TempDir()
 	server := NewNotesServer(dataDir, nopLogger())
 
-	// Create a note via the RPC to get a valid ID
+	// Create a note via the RPC to get a valid id
 	createResp, err := server.CreateNote(context.Background(), &pb.CreateNoteRequest{
 		Title:   "test",
 		Content: "old",

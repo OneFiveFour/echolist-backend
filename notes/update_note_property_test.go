@@ -14,7 +14,7 @@ import (
 // For any file path that does not exist on disk, calling UpdateNote should return
 // a Connect error with code CodeNotFound and should not create any new file.
 // **Validates: Requirements 3.1, 3.2**
-// Feature: note-stable-ids, Property 6 (partial): UpdateNote rejects non-existent IDs
+// Feature: note-stable-ids, Property 6 (partial): UpdateNote rejects non-existent ids
 // For any valid UUIDv4 that was never used in a CreateNote call, calling UpdateNote
 // should return a Connect error with code CodeNotFound.
 // **Validates: Requirements 5.2**
@@ -46,7 +46,7 @@ func TestProperty_UpdateNoteRejectsNonExistent(t *testing.T) {
 	})
 }
 
-// Feature: note-stable-ids, Property 4: Update by ID preserves the Note_ID
+// Feature: note-stable-ids, Property 4: Update by id preserves the Note_Id
 // For any created note and any new content string, calling UpdateNote with the
 // note's id shall return a Note whose id is identical to the original, and whose
 // content matches the new content.
@@ -61,7 +61,7 @@ func TestProperty4_UpdateByIdPreservesNoteId(t *testing.T) {
 		originalContent := rapid.StringMatching(`[a-zA-Z0-9 ]{0,100}`).Draw(rt, "originalContent")
 		newContent := rapid.StringMatching(`[a-zA-Z0-9 ]{0,100}`).Draw(rt, "newContent")
 
-		// Create a note to get a valid ID
+		// Create a note to get a valid id
 		createResp, err := srv.CreateNote(ctx, &pb.CreateNoteRequest{
 			Title:   title,
 			Content: originalContent,
@@ -72,7 +72,7 @@ func TestProperty4_UpdateByIdPreservesNoteId(t *testing.T) {
 
 		originalId := createResp.Note.Id
 
-		// Update the note with new content using the same ID
+		// Update the note with new content using the same id
 		updateResp, err := srv.UpdateNote(ctx, &pb.UpdateNoteRequest{
 			Id:      originalId,
 			Content: newContent,
@@ -81,7 +81,7 @@ func TestProperty4_UpdateByIdPreservesNoteId(t *testing.T) {
 			rt.Fatalf("UpdateNote failed: %v", err)
 		}
 
-		// The returned note's ID must be identical to the original
+		// The returned note's id must be identical to the original
 		if updateResp.Note.Id != originalId {
 			rt.Fatalf("expected id %q after update, got %q", originalId, updateResp.Note.Id)
 		}

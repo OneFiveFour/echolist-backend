@@ -284,7 +284,7 @@ func TestProperty_ListNotesExcludesDirectories(t *testing.T) {
 }
 
 
-// Feature: note-stable-ids, Property 7: Create then list includes the created note's ID
+// Feature: note-stable-ids, Property 7: Create then list includes the created note's id
 // For any valid title and content, creating a note via CreateNote and then calling
 // ListNotes returns a list containing a Note whose id matches the one from CreateNote.
 // **Validates: Requirements 7.1, 10.2**

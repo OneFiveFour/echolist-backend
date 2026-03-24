@@ -212,7 +212,7 @@ func TestProperty7_DuplicateNameReturnsAlreadyExists(t *testing.T) {
 	})
 }
 
-// Feature: task-management, Property 8: Operations on non-existent IDs return not-found
+// Feature: task-management, Property 8: Operations on non-existent ids return not-found
 // **Validates: Requirements 3.7, 3.8**
 func TestProperty8_NonExistentPathsReturnNotFound(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
@@ -554,7 +554,7 @@ func TestProperty16_DeleteRemovesTaskListFromDisk(t *testing.T) {
 	})
 }
 
-// Feature: tasklist-stable-ids, Property 2: Created ID is valid UUIDv4
+// Feature: tasklist-stable-ids, Property 2: Created id is valid UUIDv4
 // For any valid title and tasks, the id field in the TaskList returned by
 // CreateTaskList shall be a lowercase hyphenated UUIDv4 string.
 // **Validates: Requirements 1.2**
@@ -580,7 +580,7 @@ func TestProperty2_CreatedIdIsValidUuidV4(t *testing.T) {
 	})
 }
 
-// Feature: tasklist-stable-ids, Property 3: All created IDs are unique
+// Feature: tasklist-stable-ids, Property 3: All created ids are unique
 // For any sequence of N valid CreateTaskList calls (with distinct titles),
 // all N returned id values shall be pairwise distinct.
 // **Validates: Requirements 1.3**
@@ -612,7 +612,7 @@ func TestProperty3_AllCreatedIdsAreUnique(t *testing.T) {
 	})
 }
 
-// Feature: tasklist-stable-ids, Property 4: Update by ID preserves the TaskList_ID
+// Feature: tasklist-stable-ids, Property 4: Update by id preserves the TaskList_Id
 // For any created task list and any new valid tasks, calling UpdateTaskList with
 // the task list's id shall return a TaskList whose id is identical to the original.
 // **Validates: Requirements 1.4, 5.1**
@@ -649,7 +649,7 @@ func TestProperty4_UpdateByIdPreservesTaskListId(t *testing.T) {
 }
 
 
-// Feature: tasklist-stable-ids, Property 5: Delete by ID removes file and registry entry
+// Feature: tasklist-stable-ids, Property 5: Delete by id removes file and registry entry
 // For any created task list, calling DeleteTaskList with the task list's id shall
 // succeed, and a subsequent GetTaskList with the same id shall return NotFound.
 // **Validates: Requirements 2.2, 6.1**
@@ -697,7 +697,7 @@ func TestProperty5_DeleteByIdRemovesFileAndRegistryEntry(t *testing.T) {
 }
 
 
-// Feature: tasklist-stable-ids, Property 7: Create then list includes the created task list's ID
+// Feature: tasklist-stable-ids, Property 7: Create then list includes the created task list's id
 // For any valid title and tasks, creating a task list via CreateTaskList and then
 // calling ListTaskLists shall return a list containing a TaskList whose id matches
 // the one returned by CreateTaskList.
@@ -814,9 +814,9 @@ func TestProperty1_CreateThenGetRoundTripWithId(t *testing.T) {
 }
 
 
-// Feature: tasklist-stable-ids, Property 6: Non-existent ID returns NotFound
+// Feature: tasklist-stable-ids, Property 6: Non-existent id returns NotFound
 // For any valid UUIDv4 string that was never used in a CreateTaskList call,
-// calling GetTaskList, UpdateTaskList, and DeleteTaskList with that ID shall
+// calling GetTaskList, UpdateTaskList, and DeleteTaskList with that id shall
 // return a NotFound error.
 // **Validates: Requirements 4.2, 5.2, 6.2**
 func TestProperty6_NonExistentIdReturnsNotFound(t *testing.T) {
@@ -826,20 +826,20 @@ func TestProperty6_NonExistentIdReturnsNotFound(t *testing.T) {
 		srv := NewTaskServer(tmpDir, nopLogger())
 		ctx := context.Background()
 
-		// GetTaskList with non-existent ID should return CodeNotFound
+		// GetTaskList with non-existent id should return CodeNotFound
 		_, err := srv.GetTaskList(ctx, &pb.GetTaskListRequest{
 			Id: id,
 		})
 		assertCodeNotFound(rt, err, "GetTaskList", id)
 
-		// UpdateTaskList with non-existent ID should return CodeNotFound
+		// UpdateTaskList with non-existent id should return CodeNotFound
 		_, err = srv.UpdateTaskList(ctx, &pb.UpdateTaskListRequest{
 			Id:    id,
 			Tasks: []*pb.MainTask{{Description: "some task"}},
 		})
 		assertCodeNotFound(rt, err, "UpdateTaskList", id)
 
-		// DeleteTaskList with non-existent ID should return CodeNotFound
+		// DeleteTaskList with non-existent id should return CodeNotFound
 		_, err = srv.DeleteTaskList(ctx, &pb.DeleteTaskListRequest{
 			Id: id,
 		})

@@ -225,7 +225,7 @@ func TestBuildNoteEntry(t *testing.T) {
 				t.Fatalf("failed to create note file: %v", err)
 			}
 
-			entry := srv.buildNoteEntry(absPath, tt.fileName, tt.requestParentDir)
+			entry := srv.buildNoteEntry(absPath, tt.fileName, tt.requestParentDir, map[string]string{})
 
 			if entry.ItemType != filev1.ItemType_ITEM_TYPE_NOTE {
 				t.Errorf("expected ItemType NOTE, got %v", entry.ItemType)
@@ -260,7 +260,7 @@ func TestBuildNoteEntry_ErrorHandling(t *testing.T) {
 
 	t.Run("non-existent file", func(t *testing.T) {
 		absPath := filepath.Join(dataDir, "note_Missing.md")
-		entry := srv.buildNoteEntry(absPath, "note_Missing.md", "")
+		entry := srv.buildNoteEntry(absPath, "note_Missing.md", "", map[string]string{})
 
 		// Should still return an entry with zero/empty values
 		if entry.ItemType != filev1.ItemType_ITEM_TYPE_NOTE {
@@ -355,7 +355,7 @@ func TestBuildTaskListEntry(t *testing.T) {
 				t.Fatalf("failed to create task file: %v", err)
 			}
 
-			entry := srv.buildTaskListEntry(absPath, tt.fileName, tt.requestParentDir)
+			entry := srv.buildTaskListEntry(absPath, tt.fileName, tt.requestParentDir, map[string]string{})
 
 			if entry.ItemType != filev1.ItemType_ITEM_TYPE_TASK_LIST {
 				t.Errorf("expected ItemType TASK_LIST, got %v", entry.ItemType)
@@ -391,7 +391,7 @@ func TestBuildTaskListEntry_ErrorHandling(t *testing.T) {
 
 	t.Run("non-existent file", func(t *testing.T) {
 		absPath := filepath.Join(dataDir, "tasks_Missing.md")
-		entry := srv.buildTaskListEntry(absPath, "tasks_Missing.md", "")
+		entry := srv.buildTaskListEntry(absPath, "tasks_Missing.md", "", map[string]string{})
 
 		// Should still return an entry with zero values
 		if entry.ItemType != filev1.ItemType_ITEM_TYPE_TASK_LIST {
@@ -419,7 +419,7 @@ func TestBuildTaskListEntry_ErrorHandling(t *testing.T) {
 			t.Fatalf("failed to create invalid task file: %v", err)
 		}
 
-		entry := srv.buildTaskListEntry(absPath, "tasks_Invalid.md", "")
+		entry := srv.buildTaskListEntry(absPath, "tasks_Invalid.md", "", map[string]string{})
 
 		// Should still return an entry with zero counts
 		taskMeta := entry.GetTaskListMetadata()

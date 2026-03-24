@@ -2,6 +2,7 @@ package file
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -12,6 +13,34 @@ import (
 	filev1 "echolist-backend/proto/gen/file/v1"
 	"echolist-backend/tasks"
 )
+
+// readRegistryReverse reads a JSON registry file (map[id]filePath) and returns
+// the inverse map (filePath→id). Returns an empty map on missing/empty file.
+func readRegistryReverse(path string) map[string]string {
+	data, err := os.ReadFile(path)
+	if err != nil || len(data) == 0 {
+		return make(map[string]string)
+	}
+	forward := make(map[string]string)
+	if err := json.Unmarshal(data, &forward); err != nil {
+		return make(map[string]string)
+	}
+	reverse := make(map[string]string, len(forward))
+	for id, fp := range forward {
+		reverse[fp] = id
+	}
+	return reverse
+}
+
+// noteRegistryPath returns the path to the note id registry.
+func noteRegistryPath(dataDir string) string {
+	return filepath.Join(dataDir, ".note_id_registry.json")
+}
+
+// taskListRegistryPath returns the path to the task list id registry.
+func taskListRegistryPath(dataDir string) string {
+	return filepath.Join(dataDir, ".tasklist_id_registry.json")
+}
 
 // entryPath builds the response path for a FileEntry.
 // If requestParentDir is empty, returns name.
@@ -61,7 +90,7 @@ func (s *FileServer) buildFolderEntry(absPath, name, requestParentDir string) *f
 // buildNoteEntry creates a FileEntry for a note file.
 // It stats the file for updated_at, reads content for preview (first 100 characters, rune-safe),
 // and extracts the title. On I/O errors, logs a warning and uses zero/empty values.
-func (s *FileServer) buildNoteEntry(absPath, name, requestParentDir string) *filev1.FileEntry {
+func (s *FileServer) buildNoteEntry(absPath, name, requestParentDir string, noteIds map[string]string) *filev1.FileEntry {
 	var updatedAt int64
 	var preview string
 	
@@ -90,12 +119,16 @@ func (s *FileServer) buildNoteEntry(absPath, name, requestParentDir string) *fil
 		}
 	}
 
+	relPath, _ := filepath.Rel(s.dataDir, absPath)
+	id := noteIds[relPath]
+
 	return &filev1.FileEntry{
 		Path:     entryPath(requestParentDir, name),
 		Title:    title,
 		ItemType: filev1.ItemType_ITEM_TYPE_NOTE,
 		Metadata: &filev1.FileEntry_NoteMetadata{
 			NoteMetadata: &filev1.NoteMetadata{
+				Id:        id,
 				UpdatedAt: updatedAt,
 				Preview:   preview,
 			},
@@ -106,7 +139,7 @@ func (s *FileServer) buildNoteEntry(absPath, name, requestParentDir string) *fil
 // buildTaskListEntry creates a FileEntry for a task list file.
 // It stats the file for updated_at, reads and parses the file to count total and done MainTasks,
 // and extracts the title. On I/O or parse errors, logs a warning and uses zero values.
-func (s *FileServer) buildTaskListEntry(absPath, name, requestParentDir string) *filev1.FileEntry {
+func (s *FileServer) buildTaskListEntry(absPath, name, requestParentDir string, taskListIds map[string]string) *filev1.FileEntry {
 	var updatedAt int64
 	var totalTaskCount, doneTaskCount int32
 	
@@ -140,12 +173,16 @@ func (s *FileServer) buildTaskListEntry(absPath, name, requestParentDir string) 
 		}
 	}
 
+	relPath, _ := filepath.Rel(s.dataDir, absPath)
+	id := taskListIds[relPath]
+
 	return &filev1.FileEntry{
 		Path:     entryPath(requestParentDir, name),
 		Title:    title,
 		ItemType: filev1.ItemType_ITEM_TYPE_TASK_LIST,
 		Metadata: &filev1.FileEntry_TaskListMetadata{
 			TaskListMetadata: &filev1.TaskListMetadata{
+				Id:             id,
 				UpdatedAt:      updatedAt,
 				TotalTaskCount: totalTaskCount,
 				DoneTaskCount:  doneTaskCount,
@@ -177,6 +214,11 @@ func (s *FileServer) ListFiles(
 	}
 
 	var result []*filev1.FileEntry
+
+	// Load reverse registry maps (filePath→id) for notes and task lists.
+	noteIds := readRegistryReverse(noteRegistryPath(s.dataDir))
+	taskListIds := readRegistryReverse(taskListRegistryPath(s.dataDir))
+
 	for _, e := range entries {
 		name := e.Name()
 		absPath := filepath.Join(parentDir, name)
@@ -184,9 +226,9 @@ func (s *FileServer) ListFiles(
 		if e.IsDir() {
 			result = append(result, s.buildFolderEntry(absPath, name, requestParentDir))
 		} else if common.MatchesFileType(name, common.NoteFileType) {
-			result = append(result, s.buildNoteEntry(absPath, name, requestParentDir))
+			result = append(result, s.buildNoteEntry(absPath, name, requestParentDir, noteIds))
 		} else if common.MatchesFileType(name, common.TaskListFileType) {
-			result = append(result, s.buildTaskListEntry(absPath, name, requestParentDir))
+			result = append(result, s.buildTaskListEntry(absPath, name, requestParentDir, taskListIds))
 		}
 		// Skip unrecognized files
 	}

@@ -22,10 +22,12 @@ const (
 )
 
 type CreateNoteRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Title         string                 `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
-	Content       string                 `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`
-	ParentDir     string                 `protobuf:"bytes,3,opt,name=parent_dir,json=parentDir,proto3" json:"parent_dir,omitempty"`
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	Title   string                 `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
+	Content string                 `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`
+	// Relative path to the parent directory. Empty string for root.
+	// Must not start with "/", must not contain ".." segments.
+	ParentDir     string `protobuf:"bytes,3,opt,name=parent_dir,json=parentDir,proto3" json:"parent_dir,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -126,8 +128,10 @@ func (x *CreateNoteResponse) GetNote() *Note {
 }
 
 type ListNotesRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	ParentDir     string                 `protobuf:"bytes,1,opt,name=parent_dir,json=parentDir,proto3" json:"parent_dir,omitempty"` // optional filter on subfolder, empty = root
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Relative path to the parent directory. Empty string for root.
+	// Must not start with "/", must not contain ".." segments.
+	ParentDir     string `protobuf:"bytes,1,opt,name=parent_dir,json=parentDir,proto3" json:"parent_dir,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }

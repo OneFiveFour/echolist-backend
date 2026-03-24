@@ -22,7 +22,7 @@ func (s *NotesServer) DeleteNote(
 		return nil, err
 	}
 
-	// Acquire registry lock first, then resolve ID (Req 6.1, 6.2)
+	// Acquire registry lock first, then resolve id (Req 6.1, 6.2)
 	regPath := registryPath(s.dataDir)
 	unlockReg := s.locks.Lock(regPath)
 	defer unlockReg()

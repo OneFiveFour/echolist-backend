@@ -10,7 +10,7 @@ import (
 	"pgregory.net/rapid"
 )
 
-// Feature: note-stable-ids, Property 5: Delete by ID removes file and registry entry
+// Feature: note-stable-ids, Property 5: Delete by id removes file and registry entry
 // For any created note, calling DeleteNote with its id shall succeed, and a
 // subsequent GetNote with the same id shall return NotFound.
 // **Validates: Requirements 2.2, 6.1**
@@ -23,7 +23,7 @@ func TestProperty5_DeleteByIdRemovesFileAndRegistryEntry(t *testing.T) {
 		title := nameGen().Draw(rt, "title")
 		content := rapid.StringMatching(`[a-zA-Z0-9 ]{0,100}`).Draw(rt, "content")
 
-		// Create a note to get a valid ID
+		// Create a note to get a valid id
 		createResp, err := srv.CreateNote(ctx, &pb.CreateNoteRequest{
 			Title:   title,
 			Content: content,
@@ -34,7 +34,7 @@ func TestProperty5_DeleteByIdRemovesFileAndRegistryEntry(t *testing.T) {
 
 		noteId := createResp.Note.Id
 
-		// Delete the note by ID — should succeed
+		// Delete the note by id — should succeed
 		_, err = srv.DeleteNote(ctx, &pb.DeleteNoteRequest{
 			Id: noteId,
 		})
@@ -42,7 +42,7 @@ func TestProperty5_DeleteByIdRemovesFileAndRegistryEntry(t *testing.T) {
 			rt.Fatalf("DeleteNote failed for id %q: %v", noteId, err)
 		}
 
-		// GetNote with the same ID should return NotFound
+		// GetNote with the same id should return NotFound
 		_, err = srv.GetNote(ctx, &pb.GetNoteRequest{
 			Id: noteId,
 		})

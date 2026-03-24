@@ -26,9 +26,9 @@ func uuidV4Gen() *rapid.Generator[string] {
 	})
 }
 
-// Feature: note-stable-ids, Property 6: Non-existent ID returns NotFound
+// Feature: note-stable-ids, Property 6: Non-existent id returns NotFound
 // For any valid UUIDv4 string that was never used in a CreateNote call,
-// calling GetNote, UpdateNote, or DeleteNote with that ID shall return a NotFound error.
+// calling GetNote, UpdateNote, or DeleteNote with that id shall return a NotFound error.
 // **Validates: Requirements 4.2, 5.2, 6.2**
 func TestProperty_NotFoundReturnsCodeNotFound(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
@@ -37,20 +37,20 @@ func TestProperty_NotFoundReturnsCodeNotFound(t *testing.T) {
 		srv := NewNotesServer(tmpDir, nopLogger())
 		ctx := context.Background()
 
-		// GetNote with non-existent ID should return CodeNotFound
+		// GetNote with non-existent id should return CodeNotFound
 		_, err := srv.GetNote(ctx, &pb.GetNoteRequest{
 			Id: id,
 		})
 		assertCodeNotFound(rt, err, "GetNote", id)
 
-		// UpdateNote with non-existent ID should return CodeNotFound
+		// UpdateNote with non-existent id should return CodeNotFound
 		_, err = srv.UpdateNote(ctx, &pb.UpdateNoteRequest{
 			Id:      id,
 			Content: "some content",
 		})
 		assertCodeNotFound(rt, err, "UpdateNote", id)
 
-		// DeleteNote with non-existent ID should return CodeNotFound
+		// DeleteNote with non-existent id should return CodeNotFound
 		_, err = srv.DeleteNote(ctx, &pb.DeleteNoteRequest{
 			Id: id,
 		})
