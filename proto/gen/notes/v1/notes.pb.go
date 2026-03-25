@@ -592,7 +592,7 @@ const file_notes_v1_notes_proto_rawDesc = "" +
 	"\x0eGetNoteRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"5\n" +
 	"\x0fGetNoteResponse\x12\"\n" +
-	"\x04note\x18\x01 \x01(\v2\x0e.notes.v1.NoteR\x04note\"=\n" +
+	"\x04note\x18\x01 \x01(\v2\x0e.notes.v1.NoteR\x04note\"S\n" +
 	"\x11UpdateNoteRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12\x18\n" +
