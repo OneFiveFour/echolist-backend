@@ -39,3 +39,6 @@ proto/gen/
 
 # data directory (created at runtime, not needed in VCS)
 data/
+
+# rapid property-test repro artifacts
+**/testdata/rapid/**/*.fail
