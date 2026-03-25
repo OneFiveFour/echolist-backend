@@ -46,6 +46,7 @@ func TestProperty_NotFoundReturnsCodeNotFound(t *testing.T) {
 		// UpdateNote with non-existent id should return CodeNotFound
 		_, err = srv.UpdateNote(ctx, &pb.UpdateNoteRequest{
 			Id:      id,
+			Title:   "some title",
 			Content: "some content",
 		})
 		assertCodeNotFound(rt, err, "UpdateNote", id)
@@ -94,6 +95,7 @@ func TestProperty8_InvalidUuidRejectedByRpcs(t *testing.T) {
 		// UpdateNote with invalid UUID should return CodeInvalidArgument
 		_, err = srv.UpdateNote(ctx, &pb.UpdateNoteRequest{
 			Id:      id,
+			Title:   "some title",
 			Content: "some content",
 		})
 		assertCodeInvalidArgument(rt, err, "UpdateNote", id)

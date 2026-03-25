@@ -56,8 +56,9 @@ func TestProperty_PathTraversalRejection(t *testing.T) {
 
 		// UpdateNote: file_path field
 		_, err = srv.UpdateNote(ctx, &pb.UpdateNoteRequest{
-			Id: traversalPath,
-			Content:  "test",
+			Id:      traversalPath,
+			Title:   "test",
+			Content: "test",
 		})
 		assertCodeInvalidArgument(rt, err, "UpdateNote", traversalPath)
 

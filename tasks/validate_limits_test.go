@@ -162,6 +162,7 @@ func TestUpdateTaskList_TooManyTasks(t *testing.T) {
 
 	_, err = srv.UpdateTaskList(context.Background(), &pb.UpdateTaskListRequest{
 		Id:    createResp.TaskList.Id,
+		Title: "test",
 		Tasks: bigList,
 	})
 	if err == nil {

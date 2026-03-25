@@ -77,6 +77,7 @@ func TestUpdateNote_ContentTooLarge(t *testing.T) {
 
 	_, err = server.UpdateNote(context.Background(), &pb.UpdateNoteRequest{
 		Id:      noteId,
+		Title:   "test",
 		Content: oversized,
 	})
 	if err == nil {

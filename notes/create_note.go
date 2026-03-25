@@ -44,8 +44,26 @@ func (s *NotesServer) CreateNote(
 	absoluteFilePath := filepath.Join(dirPath, filename)
 	relativeFilePath, _ := filepath.Rel(s.dataDir, absoluteFilePath)
 
-	unlock := s.locks.Lock(absoluteFilePath)
-	defer unlock()
+	// Generate UUIDv4
+	var uuid [16]byte
+	if _, err := rand.Read(uuid[:]); err != nil {
+		s.logger.Error("failed to generate UUID", "error", err)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to generate UUID: %w", err))
+	}
+	uuid[6] = (uuid[6] & 0x0f) | 0x40 // version 4
+	uuid[8] = (uuid[8] & 0x3f) | 0x80 // variant bits
+	id := fmt.Sprintf("%08x-%04x-%04x-%04x-%012x",
+		uuid[0:4], uuid[4:6], uuid[6:8], uuid[8:10], uuid[10:16])
+
+	// Persist id→filePath mapping in the registry
+	regPath := registryPath(s.dataDir)
+	unlockReg := s.locks.Lock(regPath)
+	defer unlockReg()
+
+	// Create/update/delete all lock registry first, then file paths, so
+	// title-driven renames cannot deadlock against concurrent operations.
+	unlockFile := s.locks.Lock(absoluteFilePath)
+	defer unlockFile()
 
 	// Use exclusive create to avoid TOCTOU race between existence check and write.
 	err = common.CreateExclusive(absoluteFilePath, []byte(req.Content))
@@ -62,22 +80,6 @@ func (s *NotesServer) CreateNote(
 		s.logger.Error("failed to stat note after create", "path", relativeFilePath, "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to stat note after create: %w", err))
 	}
-
-	// Generate UUIDv4
-	var uuid [16]byte
-	if _, err := rand.Read(uuid[:]); err != nil {
-		s.logger.Error("failed to generate UUID", "error", err)
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to generate UUID: %w", err))
-	}
-	uuid[6] = (uuid[6] & 0x0f) | 0x40 // version 4
-	uuid[8] = (uuid[8] & 0x3f) | 0x80 // variant bits
-	id := fmt.Sprintf("%08x-%04x-%04x-%04x-%012x",
-		uuid[0:4], uuid[4:6], uuid[6:8], uuid[8:10], uuid[10:16])
-
-	// Persist id→filePath mapping in the registry
-	regPath := registryPath(s.dataDir)
-	unlockReg := s.locks.Lock(regPath)
-	defer unlockReg()
 
 	if err := registryAdd(regPath, id, relativeFilePath); err != nil {
 		s.logger.Error("failed to add registry entry", "id", id, "path", relativeFilePath, "error", err)

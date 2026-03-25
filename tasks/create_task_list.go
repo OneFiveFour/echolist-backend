@@ -53,19 +53,6 @@ func (s *TaskServer) CreateTaskList(
 	filename := common.TaskListFileType.Prefix + title + common.TaskListFileType.Suffix
 	absPath := filepath.Join(dirPath, filename)
 
-	unlock := s.locks.Lock(absPath)
-	defer unlock()
-
-	// Use exclusive create to avoid TOCTOU race between existence check and write.
-	data := PrintTaskFile(domainTasks)
-	if err := common.CreateExclusive(absPath, data); err != nil {
-		if errors.Is(err, os.ErrExist) {
-			return nil, connect.NewError(connect.CodeAlreadyExists, fmt.Errorf("task list already exists"))
-		}
-		s.logger.Error("failed to write task file", "path", absPath, "error", err)
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to write task file: %w", err))
-	}
-
 	// Generate UUIDv4
 	var uuid [16]byte
 	if _, err := rand.Read(uuid[:]); err != nil {
@@ -82,6 +69,21 @@ func (s *TaskServer) CreateTaskList(
 	regPath := registryPath(s.dataDir)
 	unlockReg := s.locks.Lock(regPath)
 	defer unlockReg()
+
+	// Create/update/delete all lock registry first, then file paths, so
+	// title-driven renames cannot deadlock against concurrent operations.
+	unlockFile := s.locks.Lock(absPath)
+	defer unlockFile()
+
+	// Use exclusive create to avoid TOCTOU race between existence check and write.
+	data := PrintTaskFile(domainTasks)
+	if err := common.CreateExclusive(absPath, data); err != nil {
+		if errors.Is(err, os.ErrExist) {
+			return nil, connect.NewError(connect.CodeAlreadyExists, fmt.Errorf("task list already exists"))
+		}
+		s.logger.Error("failed to write task file", "path", absPath, "error", err)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to write task file: %w", err))
+	}
 
 	if err := registryAdd(regPath, id, relPath); err != nil {
 		s.logger.Error("failed to add registry entry", "id", id, "path", relPath, "error", err)

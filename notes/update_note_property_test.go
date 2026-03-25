@@ -29,6 +29,7 @@ func TestProperty_UpdateNoteRejectsNonExistent(t *testing.T) {
 
 		_, err := srv.UpdateNote(ctx, &pb.UpdateNoteRequest{
 			Id:      id,
+			Title:   "some title",
 			Content: "some content",
 		})
 
@@ -75,6 +76,7 @@ func TestProperty4_UpdateByIdPreservesNoteId(t *testing.T) {
 		// Update the note with new content using the same id
 		updateResp, err := srv.UpdateNote(ctx, &pb.UpdateNoteRequest{
 			Id:      originalId,
+			Title:   title,
 			Content: newContent,
 		})
 		if err != nil {

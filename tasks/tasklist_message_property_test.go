@@ -112,7 +112,8 @@ func TestProperty_UpdateReturnsTaskListMessage(t *testing.T) {
 
 		updateResp, err := srv.UpdateTaskList(context.Background(), &pb.UpdateTaskListRequest{
 			Id:    createResp.TaskList.Id,
-			Tasks:    updatedTasks,
+			Title: name,
+			Tasks: updatedTasks,
 		})
 		if err != nil {
 			rt.Fatalf("UpdateTaskList failed: %v", err)

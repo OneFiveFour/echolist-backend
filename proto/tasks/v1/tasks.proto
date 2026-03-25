@@ -65,7 +65,8 @@ message ListTaskListsResponse {
 
 message UpdateTaskListRequest {
   string id = 1;
-  repeated MainTask tasks = 2;
+  string title = 2;
+  repeated MainTask tasks = 3;
 }
 
 message UpdateTaskListResponse {

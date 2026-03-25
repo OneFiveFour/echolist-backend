@@ -324,7 +324,8 @@ func TestProperty11_RecurringTaskDoneAdvanceCycle(t *testing.T) {
 
 		// Mark the task as done
 		updateResp, err := srv.UpdateTaskList(context.Background(), &pb.UpdateTaskListRequest{
-			Id: createResp.TaskList.Id,
+			Id:    createResp.TaskList.Id,
+			Title: name,
 			Tasks: []*pb.MainTask{{
 				Description: "recurring task",
 				Done:        true,
@@ -636,6 +637,7 @@ func TestProperty4_UpdateByIdPreservesTaskListId(t *testing.T) {
 		newTasks := simpleTaskListGen().Draw(rt, "newTasks")
 		updateResp, err := srv.UpdateTaskList(context.Background(), &pb.UpdateTaskListRequest{
 			Id:    originalId,
+			Title: name,
 			Tasks: newTasks,
 		})
 		if err != nil {
@@ -835,6 +837,7 @@ func TestProperty6_NonExistentIdReturnsNotFound(t *testing.T) {
 		// UpdateTaskList with non-existent id should return CodeNotFound
 		_, err = srv.UpdateTaskList(ctx, &pb.UpdateTaskListRequest{
 			Id:    id,
+			Title: "some-title",
 			Tasks: []*pb.MainTask{{Description: "some task"}},
 		})
 		assertCodeNotFound(rt, err, "UpdateTaskList", id)
@@ -867,6 +870,7 @@ func TestProperty8_InvalidUuidRejectedByRPCs(t *testing.T) {
 		// UpdateTaskList with invalid UUID should return CodeInvalidArgument
 		_, err = srv.UpdateTaskList(ctx, &pb.UpdateTaskListRequest{
 			Id:    badId,
+			Title: "some-title",
 			Tasks: []*pb.MainTask{{Description: "some task"}},
 		})
 		assertCodeInvalidArgument(rt, err, "UpdateTaskList", badId)

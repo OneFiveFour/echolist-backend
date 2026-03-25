@@ -103,6 +103,7 @@ func TestProperty2_UpdateNoteReturnsFullNote(t *testing.T) {
 
 		updateResp, err := srv.UpdateNote(context.Background(), &pb.UpdateNoteRequest{
 			Id:      noteId,
+			Title:   title,
 			Content: newContent,
 		})
 		if err != nil {

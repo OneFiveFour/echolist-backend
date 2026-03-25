@@ -384,7 +384,8 @@ func (x *GetNoteResponse) GetNote() *Note {
 type UpdateNoteRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Content       string                 `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`
+	Title         string                 `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
+	Content       string                 `protobuf:"bytes,3,opt,name=content,proto3" json:"content,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -422,6 +423,13 @@ func (*UpdateNoteRequest) Descriptor() ([]byte, []int) {
 func (x *UpdateNoteRequest) GetId() string {
 	if x != nil {
 		return x.Id
+	}
+	return ""
+}
+
+func (x *UpdateNoteRequest) GetTitle() string {
+	if x != nil {
+		return x.Title
 	}
 	return ""
 }
@@ -586,8 +594,9 @@ const file_notes_v1_notes_proto_rawDesc = "" +
 	"\x0fGetNoteResponse\x12\"\n" +
 	"\x04note\x18\x01 \x01(\v2\x0e.notes.v1.NoteR\x04note\"=\n" +
 	"\x11UpdateNoteRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x18\n" +
-	"\acontent\x18\x02 \x01(\tR\acontent\"8\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
+	"\x05title\x18\x02 \x01(\tR\x05title\x12\x18\n" +
+	"\acontent\x18\x03 \x01(\tR\acontent\"8\n" +
 	"\x12UpdateNoteResponse\x12\"\n" +
 	"\x04note\x18\x01 \x01(\v2\x0e.notes.v1.NoteR\x04note\"#\n" +
 	"\x11DeleteNoteRequest\x12\x0e\n" +
