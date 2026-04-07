@@ -74,6 +74,6 @@ func (s *TaskServer) GetTaskList(
 	}
 
 	return &pb.GetTaskListResponse{
-		TaskList: buildTaskList(req.GetId(), filePath, title, domainTasks, info.ModTime().UnixMilli(), entry.IsAutoDelete),
+		TaskList: buildTaskList(req.GetId(), filePath, title, domainTasks, info.ModTime().UnixMilli(), regEntry.IsAutoDelete),
 	}, nil
 }
