@@ -49,7 +49,7 @@ func TestRegistryRead_EmptyFile(t *testing.T) {
 func TestRegistryRead_ValidJSON(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, ".tasklist_id_registry.json")
-	data := `{"550e8400-e29b-41d4-a716-446655440000":"tasks_Groceries.md"}`
+	data := `{"550e8400-e29b-41d4-a716-446655440000":{"filePath":"tasks_Groceries.md","isAutoDelete":false}}`
 	if err := os.WriteFile(path, []byte(data), 0644); err != nil {
 		t.Fatal(err)
 	}
@@ -61,8 +61,12 @@ func TestRegistryRead_ValidJSON(t *testing.T) {
 	if len(m) != 1 {
 		t.Fatalf("expected 1 entry, got %d", len(m))
 	}
-	if m["550e8400-e29b-41d4-a716-446655440000"] != "tasks_Groceries.md" {
-		t.Errorf("unexpected value: %v", m)
+	entry := m["550e8400-e29b-41d4-a716-446655440000"]
+	if entry.FilePath != "tasks_Groceries.md" {
+		t.Errorf("unexpected FilePath: %v", entry.FilePath)
+	}
+	if entry.IsAutoDelete {
+		t.Errorf("expected IsAutoDelete=false, got true")
 	}
 }
 
@@ -83,8 +87,8 @@ func TestRegistryWrite_CreatesValidJSON(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, ".tasklist_id_registry.json")
 
-	m := map[string]string{
-		"550e8400-e29b-41d4-a716-446655440000": "tasks_Meeting.md",
+	m := map[string]registryEntry{
+		"550e8400-e29b-41d4-a716-446655440000": {FilePath: "tasks_Meeting.md", IsAutoDelete: true},
 	}
 	if err := registryWrite(path, m); err != nil {
 		t.Fatalf("registryWrite: %v", err)
@@ -95,12 +99,16 @@ func TestRegistryWrite_CreatesValidJSON(t *testing.T) {
 		t.Fatalf("reading written file: %v", err)
 	}
 
-	var got map[string]string
+	var got map[string]registryEntry
 	if err := json.Unmarshal(data, &got); err != nil {
 		t.Fatalf("written file is not valid JSON: %v", err)
 	}
-	if got["550e8400-e29b-41d4-a716-446655440000"] != "tasks_Meeting.md" {
-		t.Errorf("unexpected content: %v", got)
+	entry := got["550e8400-e29b-41d4-a716-446655440000"]
+	if entry.FilePath != "tasks_Meeting.md" {
+		t.Errorf("unexpected FilePath: %v", entry.FilePath)
+	}
+	if !entry.IsAutoDelete {
+		t.Errorf("expected IsAutoDelete=true, got false")
 	}
 }
 
@@ -109,9 +117,9 @@ func TestRegistryAdd_ThenLookup(t *testing.T) {
 	regPath := registryPath(dir)
 
 	id := "550e8400-e29b-41d4-a716-446655440000"
-	fp := "tasks_Meeting.md"
+	entry := registryEntry{FilePath: "tasks_Meeting.md"}
 
-	if err := registryAdd(regPath, id, fp); err != nil {
+	if err := registryAdd(regPath, id, entry); err != nil {
 		t.Fatalf("registryAdd: %v", err)
 	}
 
@@ -122,8 +130,8 @@ func TestRegistryAdd_ThenLookup(t *testing.T) {
 	if !ok {
 		t.Fatal("registryLookup: expected ok=true, got false")
 	}
-	if got != fp {
-		t.Errorf("registryLookup = %q; want %q", got, fp)
+	if got.FilePath != entry.FilePath {
+		t.Errorf("registryLookup FilePath = %q; want %q", got.FilePath, entry.FilePath)
 	}
 }
 
@@ -145,7 +153,7 @@ func TestRegistryRemove(t *testing.T) {
 	regPath := registryPath(dir)
 
 	id := "550e8400-e29b-41d4-a716-446655440000"
-	if err := registryAdd(regPath, id, "tasks_Test.md"); err != nil {
+	if err := registryAdd(regPath, id, registryEntry{FilePath: "tasks_Test.md"}); err != nil {
 		t.Fatalf("registryAdd: %v", err)
 	}
 

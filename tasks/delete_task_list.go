@@ -27,7 +27,7 @@ func (s *TaskServer) DeleteTaskList(
 	unlockReg := s.locks.Lock(regPath)
 	defer unlockReg()
 
-	filePath, found, err := registryLookup(regPath, req.GetId())
+	regEntry, found, err := registryLookup(regPath, req.GetId())
 	if err != nil {
 		s.logger.Error("failed to read registry", "id", req.GetId(), "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to read registry: %w", err))
@@ -35,6 +35,8 @@ func (s *TaskServer) DeleteTaskList(
 	if !found {
 		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("task list not found"))
 	}
+
+	filePath := regEntry.FilePath
 
 	// Validate the resolved path doesn't escape the data directory
 	absPath, err := common.ValidatePath(s.dataDir, filePath)

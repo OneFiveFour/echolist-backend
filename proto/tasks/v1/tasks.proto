@@ -31,6 +31,7 @@ message TaskList {
   string title = 3;
   repeated MainTask tasks = 4;
   int64 updated_at = 5;
+  bool is_auto_delete = 6;
 }
 
 message CreateTaskListRequest {
@@ -39,6 +40,7 @@ message CreateTaskListRequest {
   // Must not start with "/", must not contain ".." segments.
   string parent_dir = 2;
   repeated MainTask tasks = 3;
+  bool is_auto_delete = 4;
 }
 
 message CreateTaskListResponse {
@@ -67,6 +69,7 @@ message UpdateTaskListRequest {
   string id = 1;
   string title = 2;
   repeated MainTask tasks = 3;
+  bool is_auto_delete = 4;
 }
 
 message UpdateTaskListResponse {

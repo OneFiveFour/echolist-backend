@@ -26,7 +26,7 @@ func (s *TaskServer) UpdateTaskList(
 	unlockReg := s.locks.Lock(regPath)
 	defer unlockReg()
 
-	filePath, found, err := registryLookup(regPath, req.GetId())
+	regEntry, found, err := registryLookup(regPath, req.GetId())
 	if err != nil {
 		s.logger.Error("failed to read registry", "id", req.GetId(), "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to read registry: %w", err))
@@ -34,6 +34,8 @@ func (s *TaskServer) UpdateTaskList(
 	if !found {
 		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("task list not found"))
 	}
+
+	filePath := regEntry.FilePath
 
 	absPath, err := common.ValidatePath(s.dataDir, filePath)
 	if err != nil {
@@ -117,6 +119,13 @@ func (s *TaskServer) UpdateTaskList(
 		domainTasks[i].DueDate = next.Format("2006-01-02")
 	}
 
+	isAutoDelete := req.GetIsAutoDelete()
+
+	// Apply AutoDelete filtering after recurrence advancement
+	if isAutoDelete {
+		domainTasks = filterAutoDeleted(domainTasks)
+	}
+
 	currentAbsPath := absPath
 	currentFilePath := filePath
 	renamed := false
@@ -141,7 +150,7 @@ func (s *TaskServer) UpdateTaskList(
 
 		// The task-list ID remains stable, so its registry entry must be updated
 		// to the new relative file path after the rename.
-		if err := registryAdd(regPath, req.GetId(), newFilePath); err != nil {
+		if err := registryAdd(regPath, req.GetId(), registryEntry{FilePath: newFilePath, IsAutoDelete: isAutoDelete}); err != nil {
 			if rollbackErr := os.Rename(newAbsPath, absPath); rollbackErr != nil {
 				s.logger.Error("failed to roll back task list rename", "from", newFilePath, "to", filePath, "error", rollbackErr)
 			}
@@ -159,7 +168,7 @@ func (s *TaskServer) UpdateTaskList(
 		if renamed {
 			// If persisting the updated tasks fails after a rename, roll the path
 			// back so future ID lookups still match what is on disk.
-			if rollbackErr := registryAdd(regPath, req.GetId(), filePath); rollbackErr != nil {
+			if rollbackErr := registryAdd(regPath, req.GetId(), registryEntry{FilePath: filePath, IsAutoDelete: isAutoDelete}); rollbackErr != nil {
 				s.logger.Error("failed to roll back task list registry entry", "id", req.GetId(), "path", filePath, "error", rollbackErr)
 			}
 			if rollbackErr := os.Rename(currentAbsPath, absPath); rollbackErr != nil {
@@ -170,6 +179,14 @@ func (s *TaskServer) UpdateTaskList(
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to write task file: %w", err))
 	}
 
+	// Always persist the (possibly updated) isAutoDelete flag in the registry.
+	if !renamed {
+		if err := registryAdd(regPath, req.GetId(), registryEntry{FilePath: currentFilePath, IsAutoDelete: isAutoDelete}); err != nil {
+			s.logger.Error("failed to update registry entry", "id", req.GetId(), "error", err)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to persist task list id: %w", err))
+		}
+	}
+
 	info, err := os.Stat(currentAbsPath)
 	if err != nil {
 		s.logger.Error("failed to stat task file after update", "path", currentFilePath, "error", err)
@@ -177,6 +194,32 @@ func (s *TaskServer) UpdateTaskList(
 	}
 
 	return &pb.UpdateTaskListResponse{
-		TaskList: buildTaskList(req.GetId(), currentFilePath, title, domainTasks, info.ModTime().UnixMilli()),
+		TaskList: buildTaskList(req.GetId(), currentFilePath, title, domainTasks, info.ModTime().UnixMilli(), isAutoDelete),
 	}, nil
+}
+
+// filterAutoDeleted removes done tasks from the list when AutoDelete is enabled.
+// It removes MainTasks where Done == true and Recurrence == "" (non-recurring),
+// along with all their SubTasks. For surviving MainTasks, it removes SubTasks
+// where Done == true. Returns a new slice; does not mutate the input.
+func filterAutoDeleted(tasks []MainTask) []MainTask {
+	var result []MainTask
+	for _, mt := range tasks {
+		if mt.Done && mt.Recurrence == "" {
+			continue
+		}
+		filtered := MainTask{
+			Description: mt.Description,
+			Done:        mt.Done,
+			DueDate:     mt.DueDate,
+			Recurrence:  mt.Recurrence,
+		}
+		for _, st := range mt.SubTasks {
+			if !st.Done {
+				filtered.SubTasks = append(filtered.SubTasks, st)
+			}
+		}
+		result = append(result, filtered)
+	}
+	return result
 }

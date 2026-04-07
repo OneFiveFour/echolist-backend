@@ -85,12 +85,13 @@ func (s *TaskServer) CreateTaskList(
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to write task file: %w", err))
 	}
 
-	if err := registryAdd(regPath, id, relPath); err != nil {
+	isAutoDelete := req.GetIsAutoDelete()
+	if err := registryAdd(regPath, id, registryEntry{FilePath: relPath, IsAutoDelete: isAutoDelete}); err != nil {
 		s.logger.Error("failed to add registry entry", "id", id, "path", relPath, "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to persist task list id: %w", err))
 	}
 
 	return &pb.CreateTaskListResponse{
-		TaskList: buildTaskList(id, relPath, title, domainTasks, nowMillis()),
+		TaskList: buildTaskList(id, relPath, title, domainTasks, nowMillis(), isAutoDelete),
 	}, nil
 }

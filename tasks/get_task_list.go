@@ -25,7 +25,7 @@ func (s *TaskServer) GetTaskList(
 
 	// Resolve id to a file path via the registry (Req 4.1, 4.2)
 	regPath := registryPath(s.dataDir)
-	filePath, found, err := registryLookup(regPath, req.GetId())
+	regEntry, found, err := registryLookup(regPath, req.GetId())
 	if err != nil {
 		s.logger.Error("failed to read registry", "id", req.GetId(), "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to read registry: %w", err))
@@ -33,6 +33,8 @@ func (s *TaskServer) GetTaskList(
 	if !found {
 		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("task list not found"))
 	}
+
+	filePath := regEntry.FilePath
 
 	// Validate the resolved path doesn't escape the data directory
 	absPath, err := common.ValidatePath(s.dataDir, filePath)
@@ -72,6 +74,6 @@ func (s *TaskServer) GetTaskList(
 	}
 
 	return &pb.GetTaskListResponse{
-		TaskList: buildTaskList(req.GetId(), filePath, title, domainTasks, info.ModTime().UnixMilli()),
+		TaskList: buildTaskList(req.GetId(), filePath, title, domainTasks, info.ModTime().UnixMilli(), entry.IsAutoDelete),
 	}, nil
 }
