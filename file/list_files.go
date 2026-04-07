@@ -14,20 +14,26 @@ import (
 	"echolist-backend/tasks"
 )
 
-// readRegistryReverse reads a JSON registry file (map[id]filePath) and returns
-// the inverse map (filePath→id). Returns an empty map on missing/empty file.
+// readRegistryReverse reads a JSON registry file and returns the inverse map
+// (filePath→id). Both the notes and task list registries use the same JSON
+// shape: {"uuid": {"filePath": "..."}}.
+// Returns an empty map on missing/empty file or parse error.
 func readRegistryReverse(path string) map[string]string {
 	data, err := os.ReadFile(path)
 	if err != nil || len(data) == 0 {
 		return make(map[string]string)
 	}
-	forward := make(map[string]string)
-	if err := json.Unmarshal(data, &forward); err != nil {
+	var raw map[string]struct {
+		FilePath string `json:"filePath"`
+	}
+	if err := json.Unmarshal(data, &raw); err != nil {
 		return make(map[string]string)
 	}
-	reverse := make(map[string]string, len(forward))
-	for id, fp := range forward {
-		reverse[fp] = id
+	reverse := make(map[string]string, len(raw))
+	for id, entry := range raw {
+		if entry.FilePath != "" {
+			reverse[entry.FilePath] = id
+		}
 	}
 	return reverse
 }

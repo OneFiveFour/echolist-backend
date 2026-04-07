@@ -88,8 +88,8 @@ func (s *NotesServer) ListNotes(
 	}
 
 	reverseMap := make(map[string]string, len(registry))
-	for id, fp := range registry {
-		reverseMap[fp] = id
+	for id, entry := range registry {
+		reverseMap[entry.FilePath] = id
 	}
 
 	for _, n := range notes {

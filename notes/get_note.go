@@ -24,7 +24,7 @@ func (s *NotesServer) GetNote(
 
 	// Resolve id to a file path via the registry (Req 4.1, 4.2)
 	regPath := registryPath(s.dataDir)
-	filePath, found, err := registryLookup(regPath, req.GetId())
+	entry, found, err := registryLookup(regPath, req.GetId())
 	if err != nil {
 		s.logger.Error("failed to read registry", "id", req.GetId(), "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to read registry: %w", err))
@@ -32,6 +32,7 @@ func (s *NotesServer) GetNote(
 	if !found {
 		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("note not found"))
 	}
+	filePath := entry.FilePath
 
 	// Validate the resolved path doesn't escape the data directory
 	absPath, err := common.ValidatePath(s.dataDir, filePath)

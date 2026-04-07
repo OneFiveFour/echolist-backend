@@ -24,7 +24,7 @@ func (s *NotesServer) UpdateNote(
 	regPath := registryPath(s.dataDir)
 	unlockReg := s.locks.Lock(regPath)
 	defer unlockReg()
-	filePath, found, err := registryLookup(regPath, req.GetId())
+	entry, found, err := registryLookup(regPath, req.GetId())
 	if err != nil {
 		s.logger.Error("failed to read registry", "id", req.GetId(), "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to read registry: %w", err))
@@ -32,6 +32,7 @@ func (s *NotesServer) UpdateNote(
 	if !found {
 		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("note not found"))
 	}
+	filePath := entry.FilePath
 
 	absPath, err := common.ValidatePath(s.dataDir, filePath)
 	if err != nil {
@@ -96,7 +97,7 @@ func (s *NotesServer) UpdateNote(
 
 		// The ID stays stable across renames, so the registry must move to the new
 		// relative file path before later lookups by ID can succeed.
-		if err := registryAdd(regPath, req.GetId(), newFilePath); err != nil {
+		if err := registryAdd(regPath, req.GetId(), registryEntry{FilePath: newFilePath}); err != nil {
 			if rollbackErr := os.Rename(newAbsPath, absPath); rollbackErr != nil {
 				s.logger.Error("failed to roll back note rename", "from", newFilePath, "to", filePath, "error", rollbackErr)
 			}
@@ -114,7 +115,7 @@ func (s *NotesServer) UpdateNote(
 		if renamed {
 			// If the content write fails after a rename, roll the visible path back
 			// so the registry and filesystem keep pointing to the same note file.
-			if rollbackErr := registryAdd(regPath, req.GetId(), filePath); rollbackErr != nil {
+			if rollbackErr := registryAdd(regPath, req.GetId(), registryEntry{FilePath: filePath}); rollbackErr != nil {
 				s.logger.Error("failed to roll back note registry entry", "id", req.GetId(), "path", filePath, "error", rollbackErr)
 			}
 			if rollbackErr := os.Rename(currentAbsPath, absPath); rollbackErr != nil {

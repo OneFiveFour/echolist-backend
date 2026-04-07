@@ -52,7 +52,7 @@ func TestRegistryAdd_ThenLookup(t *testing.T) {
 	id := "550e8400-e29b-41d4-a716-446655440000"
 	fp := "note_Meeting.md"
 
-	if err := registryAdd(regPath, id, fp); err != nil {
+	if err := registryAdd(regPath, id, registryEntry{FilePath: fp}); err != nil {
 		t.Fatalf("registryAdd: %v", err)
 	}
 
@@ -63,8 +63,8 @@ func TestRegistryAdd_ThenLookup(t *testing.T) {
 	if !ok {
 		t.Fatal("registryLookup: expected ok=true, got false")
 	}
-	if got != fp {
-		t.Errorf("registryLookup = %q; want %q", got, fp)
+	if got.FilePath != fp {
+		t.Errorf("registryLookup FilePath = %q; want %q", got.FilePath, fp)
 	}
 }
 
@@ -86,7 +86,7 @@ func TestRegistryRemove(t *testing.T) {
 	regPath := registryPath(dir)
 
 	id := "550e8400-e29b-41d4-a716-446655440000"
-	if err := registryAdd(regPath, id, "note_Test.md"); err != nil {
+	if err := registryAdd(regPath, id, registryEntry{FilePath: "note_Test.md"}); err != nil {
 		t.Fatalf("registryAdd: %v", err)
 	}
 
