@@ -34,7 +34,7 @@ func TestProperty_NotFoundReturnsCodeNotFound(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		id := uuidV4Gen().Draw(rt, "id")
 		tmpDir := t.TempDir()
-		srv := NewNotesServer(tmpDir, nopLogger())
+		srv := NewNotesServer(tmpDir, testDB(t), nopLogger())
 		ctx := context.Background()
 
 		// GetNote with non-existent id should return CodeNotFound
@@ -83,7 +83,7 @@ func TestProperty8_InvalidUuidRejectedByRpcs(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		id := invalidUuidGen().Draw(rt, "invalidUuid")
 		tmpDir := t.TempDir()
-		srv := NewNotesServer(tmpDir, nopLogger())
+		srv := NewNotesServer(tmpDir, testDB(t), nopLogger())
 		ctx := context.Background()
 
 		// GetNote with invalid UUID should return CodeInvalidArgument

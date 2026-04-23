@@ -11,7 +11,7 @@ import (
 
 func TestUpdateNote(t *testing.T) {
 	tmp := t.TempDir()
-	s := NewNotesServer(tmp, nopLogger())
+	s := NewNotesServer(tmp, testDB(t), nopLogger())
 
 	// Create a note via the RPC to get a valid id
 	createResp, err := s.CreateNote(context.Background(), &pb.CreateNoteRequest{

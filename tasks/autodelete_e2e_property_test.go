@@ -17,7 +17,7 @@ import (
 func TestProperty1_AutoDeleteFlagRoundTrip(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		tmp := t.TempDir()
-		srv := NewTaskServer(tmp, nopLogger())
+		srv := NewTaskServer(tmp, testDB(t), nopLogger())
 		name := validNameGen().Draw(rt, "name")
 		tasks := simpleTaskListGen().Draw(rt, "tasks")
 		autoDelete := rapid.Bool().Draw(rt, "autoDelete")
@@ -101,7 +101,7 @@ func TestProperty1_AutoDeleteFlagRoundTrip(t *testing.T) {
 func TestProperty3_AutoDeleteDisabledRetainsAll(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		tmp := t.TempDir()
-		srv := NewTaskServer(tmp, nopLogger())
+		srv := NewTaskServer(tmp, testDB(t), nopLogger())
 		name := validNameGen().Draw(rt, "name")
 
 		// Create with AutoDelete OFF
@@ -164,7 +164,7 @@ func TestProperty3_AutoDeleteDisabledRetainsAll(t *testing.T) {
 func TestProperty4_AutoDeleteAdvancesRecurring(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		tmp := t.TempDir()
-		srv := NewTaskServer(tmp, nopLogger())
+		srv := NewTaskServer(tmp, testDB(t), nopLogger())
 		name := validNameGen().Draw(rt, "name")
 		rrule := validRRuleGen().Draw(rt, "rrule")
 
@@ -225,7 +225,7 @@ func TestProperty4_AutoDeleteAdvancesRecurring(t *testing.T) {
 func TestProperty6_ManualDeletionCascadesRegardlessOfAutoDelete(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		tmp := t.TempDir()
-		srv := NewTaskServer(tmp, nopLogger())
+		srv := NewTaskServer(tmp, testDB(t), nopLogger())
 		name := validNameGen().Draw(rt, "name")
 
 		// Generate 2-5 tasks with subtasks (none recurring to avoid recurrence side effects)

@@ -17,7 +17,7 @@ import (
 func TestProperty_ListFilesFilterCorrectness(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		dataDir := t.TempDir()
-		srv := NewFileServer(dataDir, nopLogger())
+		srv := NewFileServer(dataDir, testDB(t), nopLogger())
 
 		// Track what we create so we can compute expected results
 		type entry struct {

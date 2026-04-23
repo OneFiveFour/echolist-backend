@@ -52,7 +52,7 @@ func TestProperty7_ListNotesImmediateChildrenFormatting(t *testing.T) {
 			}
 		}
 
-		srv := NewNotesServer(tmp, nopLogger())
+		srv := NewNotesServer(tmp, testDB(t), nopLogger())
 		resp, err := srv.ListNotes(context.Background(), &pb.ListNotesRequest{})
 		if err != nil {
 			rt.Fatalf("ListNotes failed: %v", err)
@@ -101,7 +101,7 @@ func TestProperty8_ListNotesShallowListing(t *testing.T) {
 			rt.Fatal(err)
 		}
 
-		srv := NewNotesServer(tmp, nopLogger())
+		srv := NewNotesServer(tmp, testDB(t), nopLogger())
 		resp, err := srv.ListNotes(context.Background(), &pb.ListNotesRequest{})
 		if err != nil {
 			rt.Fatalf("ListNotes failed: %v", err)
@@ -195,7 +195,7 @@ func TestProperty2_ListNotesExcludesNonNoteFiles(t *testing.T) {
 			os.MkdirAll(filepath.Join(tmp, name), 0755)
 		}
 
-		srv := NewNotesServer(tmp, nopLogger())
+		srv := NewNotesServer(tmp, testDB(t), nopLogger())
 		resp, err := srv.ListNotes(context.Background(), &pb.ListNotesRequest{})
 		if err != nil {
 			rt.Fatalf("ListNotes failed: %v", err)
@@ -257,7 +257,7 @@ func TestProperty_ListNotesExcludesDirectories(t *testing.T) {
 			}
 		}
 
-		srv := NewNotesServer(tmp, nopLogger())
+		srv := NewNotesServer(tmp, testDB(t), nopLogger())
 		resp, err := srv.ListNotes(context.Background(), &pb.ListNotesRequest{})
 		if err != nil {
 			rt.Fatalf("ListNotes failed: %v", err)
@@ -285,7 +285,7 @@ func TestProperty_ListNotesExcludesDirectories(t *testing.T) {
 func TestProperty7_CreateThenListIncludesId(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		tmp := t.TempDir()
-		srv := NewNotesServer(tmp, nopLogger())
+		srv := NewNotesServer(tmp, testDB(t), nopLogger())
 
 		title := nameGen().Draw(rt, "title")
 		content := rapid.StringMatching(`[a-zA-Z0-9 ]{0,100}`).Draw(rt, "content")

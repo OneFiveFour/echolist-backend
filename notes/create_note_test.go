@@ -15,9 +15,7 @@ import (
 func TestCreateNote_CreatesMarkdownFile(t *testing.T) {
 	dataDir := t.TempDir()
 
-	server := &NotesServer{
-		dataDir: dataDir,
-	}
+	server := NewNotesServer(dataDir, testDB(t), nopLogger())
 
 	// Pre-create the parent directory (CreateNote no longer auto-creates intermediates)
 	if err := os.MkdirAll(filepath.Join(dataDir, "Work", "2026"), 0755); err != nil {
@@ -76,9 +74,7 @@ func TestCreateNote_CreatesMarkdownFile(t *testing.T) {
 func TestCreateNote_EmptyTitleRejected(t *testing.T) {
 	dataDir := t.TempDir()
 
-	server := &NotesServer{
-		dataDir: dataDir,
-	}
+	server := NewNotesServer(dataDir, testDB(t), nopLogger())
 
 	req := &pb.CreateNoteRequest{
 		ParentDir: "Work",
@@ -107,7 +103,7 @@ func TestCreateNote_EmptyTitleRejected(t *testing.T) {
 
 func TestCreateNote_NonExistentParentDirRejected(t *testing.T) {
 	dataDir := t.TempDir()
-	server := &NotesServer{dataDir: dataDir}
+	server := NewNotesServer(dataDir, testDB(t), nopLogger())
 
 	req := &pb.CreateNoteRequest{
 		ParentDir: "nonexistent/deep/path",
@@ -136,7 +132,7 @@ func TestCreateNote_NonExistentParentDirRejected(t *testing.T) {
 
 func TestCreateNote_ExistingParentDirSucceeds(t *testing.T) {
 	dataDir := t.TempDir()
-	server := &NotesServer{dataDir: dataDir}
+	server := NewNotesServer(dataDir, testDB(t), nopLogger())
 
 	// Pre-create the parent directory
 	parentDir := filepath.Join(dataDir, "existing")

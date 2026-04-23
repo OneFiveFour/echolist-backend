@@ -12,7 +12,7 @@ import (
 
 func TestUpdateFolder_NonExistent(t *testing.T) {
 	dataDir := t.TempDir()
-	srv := NewFileServer(dataDir, nopLogger())
+	srv := NewFileServer(dataDir, testDB(t), nopLogger())
 	_, err := srv.UpdateFolder(context.Background(), &filev1.UpdateFolderRequest{
 		FolderPath: "nonexistent",
 		NewName:    "newname",
@@ -30,7 +30,7 @@ func TestUpdateFolder_NonExistent(t *testing.T) {
 
 func TestDeleteFolder_NonExistent(t *testing.T) {
 	dataDir := t.TempDir()
-	srv := NewFileServer(dataDir, nopLogger())
+	srv := NewFileServer(dataDir, testDB(t), nopLogger())
 	_, err := srv.DeleteFolder(context.Background(), &filev1.DeleteFolderRequest{
 		FolderPath: "nonexistent",
 	})
@@ -47,7 +47,7 @@ func TestDeleteFolder_NonExistent(t *testing.T) {
 
 func TestDeleteFolder_EmptyPath(t *testing.T) {
 	dataDir := t.TempDir()
-	srv := NewFileServer(dataDir, nopLogger())
+	srv := NewFileServer(dataDir, testDB(t), nopLogger())
 	_, err := srv.DeleteFolder(context.Background(), &filev1.DeleteFolderRequest{
 		FolderPath: "",
 	})
@@ -64,7 +64,7 @@ func TestDeleteFolder_EmptyPath(t *testing.T) {
 
 func TestUpdateFolder_EmptyPath(t *testing.T) {
 	dataDir := t.TempDir()
-	srv := NewFileServer(dataDir, nopLogger())
+	srv := NewFileServer(dataDir, testDB(t), nopLogger())
 	_, err := srv.UpdateFolder(context.Background(), &filev1.UpdateFolderRequest{
 		FolderPath: "",
 		NewName:    "newname",
@@ -82,7 +82,7 @@ func TestUpdateFolder_EmptyPath(t *testing.T) {
 
 func TestUpdateFolder_PathTraversal(t *testing.T) {
 	dataDir := t.TempDir()
-	srv := NewFileServer(dataDir, nopLogger())
+	srv := NewFileServer(dataDir, testDB(t), nopLogger())
 	_, err := srv.UpdateFolder(context.Background(), &filev1.UpdateFolderRequest{
 		FolderPath: "../../etc",
 		NewName:    "hacked",
@@ -100,7 +100,7 @@ func TestUpdateFolder_PathTraversal(t *testing.T) {
 
 func TestDeleteFolder_PathTraversal(t *testing.T) {
 	dataDir := t.TempDir()
-	srv := NewFileServer(dataDir, nopLogger())
+	srv := NewFileServer(dataDir, testDB(t), nopLogger())
 	_, err := srv.DeleteFolder(context.Background(), &filev1.DeleteFolderRequest{
 		FolderPath: "../../etc",
 	})

@@ -26,7 +26,7 @@ func TestProperty4_CreatedNotesUseNotePrefix(t *testing.T) {
 		title := nameGen().Draw(rt, "title")
 		content := rapid.StringMatching(`[a-zA-Z0-9 ]{0,100}`).Draw(rt, "content")
 
-		srv := NewNotesServer(tmp, nopLogger())
+		srv := NewNotesServer(tmp, testDB(t), nopLogger())
 		resp, err := srv.CreateNote(context.Background(), &pb.CreateNoteRequest{
 			Title:   title,
 			Content: content,
@@ -68,7 +68,7 @@ func TestProperty_TitleWithPathSeparatorsRejected(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		title := titleWithPathSepGen().Draw(rt, "title")
 		tmpDir := t.TempDir()
-		srv := NewNotesServer(tmpDir, nopLogger())
+		srv := NewNotesServer(tmpDir, testDB(t), nopLogger())
 		ctx := context.Background()
 
 		_, err := srv.CreateNote(ctx, &pb.CreateNoteRequest{
@@ -146,7 +146,7 @@ func uncleanPathGen(cleanPath string) *rapid.Generator[string] {
 func TestProperty_CreateNotePathCanonicalization(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		tmp := t.TempDir()
-		srv := NewNotesServer(tmp, nopLogger())
+		srv := NewNotesServer(tmp, testDB(t), nopLogger())
 		ctx := context.Background()
 
 		cleanDir := cleanDirPathGen().Draw(rt, "cleanDir")
@@ -233,7 +233,7 @@ func TestProperty_NullByteTitlesRejected(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		title := titleWithNullByteGen().Draw(rt, "title")
 		tmpDir := t.TempDir()
-		srv := NewNotesServer(tmpDir, nopLogger())
+		srv := NewNotesServer(tmpDir, testDB(t), nopLogger())
 		ctx := context.Background()
 
 		_, err := srv.CreateNote(ctx, &pb.CreateNoteRequest{
@@ -263,7 +263,7 @@ func TestProperty_NullByteTitlesRejected(t *testing.T) {
 func TestProperty_CreateNoteDuplicateDetection(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		tmp := t.TempDir()
-		srv := NewNotesServer(tmp, nopLogger())
+		srv := NewNotesServer(tmp, testDB(t), nopLogger())
 		ctx := context.Background()
 
 		title := nameGen().Draw(rt, "title")
@@ -322,7 +322,7 @@ func TestProperty_CreateNoteDuplicateDetection(t *testing.T) {
 func TestProperty2_CreatedIdIsValidUuid(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		tmp := t.TempDir()
-		srv := NewNotesServer(tmp, nopLogger())
+		srv := NewNotesServer(tmp, testDB(t), nopLogger())
 
 		title := nameGen().Draw(rt, "title")
 		content := rapid.StringMatching(`[a-zA-Z0-9 ]{0,100}`).Draw(rt, "content")
@@ -349,7 +349,7 @@ func TestProperty2_CreatedIdIsValidUuid(t *testing.T) {
 func TestProperty3_AllCreatedIdsAreUnique(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		tmp := t.TempDir()
-		srv := NewNotesServer(tmp, nopLogger())
+		srv := NewNotesServer(tmp, testDB(t), nopLogger())
 
 		n := rapid.IntRange(2, 10).Draw(rt, "n")
 

@@ -18,7 +18,7 @@ func TestProperty1_CreateFolderRoundTrip(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		name := folderNameGen().Draw(rt, "folderName")
 		dataDir := t.TempDir()
-		srv := NewFileServer(dataDir, nopLogger())
+		srv := NewFileServer(dataDir, testDB(t), nopLogger())
 		resp, err := srv.CreateFolder(context.Background(), &filev1.CreateFolderRequest{
 			ParentDir: "",
 			Name:       name,
@@ -47,7 +47,7 @@ func TestProperty2_ExactDuplicateRejection(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		name := folderNameGen().Draw(rt, "folderName")
 		dataDir := t.TempDir()
-		srv := NewFileServer(dataDir, nopLogger())
+		srv := NewFileServer(dataDir, testDB(t), nopLogger())
 		_, err := srv.CreateFolder(context.Background(), &filev1.CreateFolderRequest{
 			Name: name,
 		})
@@ -72,7 +72,7 @@ func TestProperty2b_CaseVariantAllowed(t *testing.T) {
 			rt.Skip("name has no alphabetic characters to swap")
 		}
 		dataDir := t.TempDir()
-		srv := NewFileServer(dataDir, nopLogger())
+		srv := NewFileServer(dataDir, testDB(t), nopLogger())
 		_, err := srv.CreateFolder(context.Background(), &filev1.CreateFolderRequest{
 			Name: name,
 		})
@@ -112,7 +112,7 @@ func TestProperty3_InvalidNameRejection(t *testing.T) {
 			rapid.Map(rapid.StringMatching(`[a-z]{1,5}`), func(s string) string { return s + "\x00" }),
 		).Draw(rt, "invalidName")
 		dataDir := t.TempDir()
-		srv := NewFileServer(dataDir, nopLogger())
+		srv := NewFileServer(dataDir, testDB(t), nopLogger())
 		_, err := srv.CreateFolder(context.Background(), &filev1.CreateFolderRequest{
 			Name: invalidName,
 		})

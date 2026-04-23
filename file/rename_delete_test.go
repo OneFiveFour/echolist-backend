@@ -22,7 +22,7 @@ func TestProperty4_RenamePreservesContents(t *testing.T) {
 			rt.Skip("old and new names are equal")
 		}
 		dataDir := t.TempDir()
-		srv := NewFileServer(dataDir, nopLogger())
+		srv := NewFileServer(dataDir, testDB(t), nopLogger())
 		_, err := srv.CreateFolder(context.Background(), &filev1.CreateFolderRequest{
 			Name: oldName,
 		})
@@ -82,7 +82,7 @@ func TestProperty5_ExactDuplicateRejectionOnRename(t *testing.T) {
 			rt.Skip("names are equal")
 		}
 		dataDir := t.TempDir()
-		srv := NewFileServer(dataDir, nopLogger())
+		srv := NewFileServer(dataDir, testDB(t), nopLogger())
 		_, err := srv.CreateFolder(context.Background(), &filev1.CreateFolderRequest{
 			Name: nameA,
 		})
@@ -121,7 +121,7 @@ func TestProperty5b_RenameToCaseVariantOfSiblingAllowed(t *testing.T) {
 			rt.Skip("names collide")
 		}
 		dataDir := t.TempDir()
-		srv := NewFileServer(dataDir, nopLogger())
+		srv := NewFileServer(dataDir, testDB(t), nopLogger())
 		_, err := srv.CreateFolder(context.Background(), &filev1.CreateFolderRequest{
 			Name: nameA,
 		})
@@ -150,7 +150,7 @@ func TestProperty6_DeleteRemovesFolderAndContents(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		name := folderNameGen().Draw(rt, "folderName")
 		dataDir := t.TempDir()
-		srv := NewFileServer(dataDir, nopLogger())
+		srv := NewFileServer(dataDir, testDB(t), nopLogger())
 		_, err := srv.CreateFolder(context.Background(), &filev1.CreateFolderRequest{
 			Name: name,
 		})

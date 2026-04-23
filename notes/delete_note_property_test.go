@@ -17,7 +17,7 @@ import (
 func TestProperty5_DeleteByIdRemovesFileAndRegistryEntry(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		tmp := t.TempDir()
-		srv := NewNotesServer(tmp, nopLogger())
+		srv := NewNotesServer(tmp, testDB(t), nopLogger())
 		ctx := context.Background()
 
 		title := nameGen().Draw(rt, "title")

@@ -18,6 +18,7 @@ import (
 
 	"echolist-backend/auth"
 	"echolist-backend/common"
+	"echolist-backend/database"
 	"echolist-backend/file"
 	authv1connect "echolist-backend/proto/gen/auth/v1/authv1connect"
 	filev1connect "echolist-backend/proto/gen/file/v1/filev1connect"
@@ -74,6 +75,14 @@ func main() {
 		dataDir = "./data"
 	}
 
+	// Initialize SQLite database
+	db, err := database.New(filepath.Join(dataDir, "echolist.db"))
+	if err != nil {
+		logger.Error("failed to initialize database", "error", err)
+		os.Exit(1)
+	}
+	defer db.Close()
+
 	// Auth configuration
 	jwtSecret := os.Getenv("JWT_SECRET")
 	if jwtSecret == "" {
@@ -86,7 +95,7 @@ func main() {
 
 	// Initialize auth components — users.json lives outside the data directory
 	userStore := auth.NewUserStore(filepath.Join("auth", "users.json"))
-	err := userStore.LoadOrInitialize(
+	err = userStore.LoadOrInitialize(
 		envOrDefault("AUTH_DEFAULT_USER", "admin"),
 		os.Getenv("AUTH_DEFAULT_PASSWORD"),
 	)
@@ -110,10 +119,10 @@ func main() {
 	})
 
 	// Readiness probe — verify data dir is accessible and user store loaded
-	mux.HandleFunc("/healthz", healthzHandler(dataDir, userStore))
+	mux.HandleFunc("/healthz", healthzHandler(dataDir, db, userStore))
 
 	notesPath, notesHandler := notesv1connect.NewNoteServiceHandler(
-		notes.NewNotesServer(dataDir, logger),
+		notes.NewNotesServer(dataDir, db, logger),
 		interceptors,
 	)
 	mux.Handle(notesPath, notesHandler)
@@ -125,13 +134,13 @@ func main() {
 	mux.Handle(authPath, authHandler)
 
 	filePath, fileHandler := filev1connect.NewFileServiceHandler(
-		file.NewFileServer(dataDir, logger),
+		file.NewFileServer(dataDir, db, logger),
 		interceptors,
 	)
 	mux.Handle(filePath, fileHandler)
 
 	tasksPath, tasksHandler := tasksv1connect.NewTaskListServiceHandler(
-		tasks.NewTaskServer(dataDir, logger),
+		tasks.NewTaskServer(dataDir, db, logger),
 		interceptors,
 	)
 	mux.Handle(tasksPath, tasksHandler)
@@ -207,11 +216,16 @@ func main() {
 
 // healthzHandler returns an http.HandlerFunc that checks data directory
 // accessibility and user store state, returning 503 on failure.
-func healthzHandler(dataDir string, userStore *auth.UserStore) http.HandlerFunc {
+func healthzHandler(dataDir string, db *database.Database, userStore *auth.UserStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var checks []string
 
-		// Check 1: data directory is stat-able
+		// Check 1: database is accessible
+		if err := db.HealthCheck(); err != nil {
+			checks = append(checks, "db: "+err.Error())
+		}
+
+		// Check 2: data directory is stat-able
 		if _, err := os.Stat(dataDir); err != nil {
 			checks = append(checks, "data_dir: "+err.Error())
 		}

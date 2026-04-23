@@ -11,7 +11,6 @@ import (
 
 	"connectrpc.com/connect"
 
-	"echolist-backend/common"
 	filev1 "echolist-backend/proto/gen/file/v1"
 	"pgregory.net/rapid"
 )
@@ -21,7 +20,7 @@ import (
 func TestProperty1_ListFilesReturnsImmediateChildren(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		dataDir := t.TempDir()
-		srv := NewFileServer(dataDir, nopLogger())
+		srv := NewFileServer(dataDir, testDB(t), nopLogger())
 
 		// Generate a random number of subdirectories and files
 		numDirs := rapid.IntRange(0, 5).Draw(rt, "numDirs")
@@ -84,7 +83,8 @@ func TestProperty1_ListFilesReturnsImmediateChildren(t *testing.T) {
 			name := e.Name()
 			if e.IsDir() {
 				expectedNames = append(expectedNames, name)
-			} else if common.MatchesFileType(name, common.NoteFileType) || common.MatchesFileType(name, common.TaskListFileType) {
+			} else if (strings.HasPrefix(name, "note_") && strings.HasSuffix(name, ".md") && len(name) > len("note_")+len(".md")) ||
+				(strings.HasPrefix(name, "tasks_") && strings.HasSuffix(name, ".md") && len(name) > len("tasks_")+len(".md")) {
 				expectedNames = append(expectedNames, name)
 			}
 		}
@@ -138,7 +138,7 @@ func TestProperty2_ListFilesNonExistentPathNotFound(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		name := folderNameGen().Draw(rt, "nonExistentPath")
 		dataDir := t.TempDir()
-		srv := NewFileServer(dataDir, nopLogger())
+		srv := NewFileServer(dataDir, testDB(t), nopLogger())
 
 		_, err := srv.ListFiles(context.Background(), &filev1.ListFilesRequest{
 			ParentDir: name,
@@ -162,7 +162,7 @@ func TestProperty3_ListFilesFilePathNotFound(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		fileName := folderNameGen().Draw(rt, "fileName")
 		dataDir := t.TempDir()
-		srv := NewFileServer(dataDir, nopLogger())
+		srv := NewFileServer(dataDir, testDB(t), nopLogger())
 
 		// Create a regular file
 		filePath := filepath.Join(dataDir, fileName)
@@ -206,7 +206,7 @@ func TestProperty4_ListFilesPathTraversalInvalidArgument(t *testing.T) {
 		traversalPath += suffix
 
 		dataDir := t.TempDir()
-		srv := NewFileServer(dataDir, nopLogger())
+		srv := NewFileServer(dataDir, testDB(t), nopLogger())
 
 		_, err := srv.ListFiles(context.Background(), &filev1.ListFilesRequest{
 			ParentDir: traversalPath,
@@ -227,7 +227,7 @@ func TestProperty4_ListFilesPathTraversalInvalidArgument(t *testing.T) {
 // Validates: Requirements 8.1, 8.2
 func TestListFiles_EmptyDirectory(t *testing.T) {
 	dataDir := t.TempDir()
-	srv := NewFileServer(dataDir, nopLogger())
+	srv := NewFileServer(dataDir, testDB(t), nopLogger())
 
 	// Create an empty subdirectory
 	emptyDir := "emptydir"
@@ -249,7 +249,7 @@ func TestListFiles_EmptyDirectory(t *testing.T) {
 // Validates: Requirements 2.1, 2.2, 2.3, 2.4, 2.5
 func TestListFiles_RootPath(t *testing.T) {
 	dataDir := t.TempDir()
-	srv := NewFileServer(dataDir, nopLogger())
+	srv := NewFileServer(dataDir, testDB(t), nopLogger())
 
 	// Create some children in the data directory
 	os.Mkdir(filepath.Join(dataDir, "folderA"), 0755)
@@ -308,7 +308,7 @@ func TestListFiles_RootPath(t *testing.T) {
 
 func TestListFiles_RootSlashRejected(t *testing.T) {
 	dataDir := t.TempDir()
-	srv := NewFileServer(dataDir, nopLogger())
+	srv := NewFileServer(dataDir, testDB(t), nopLogger())
 
 	_, err := srv.ListFiles(context.Background(), &filev1.ListFilesRequest{
 		ParentDir: "/",
@@ -323,7 +323,7 @@ func TestListFiles_RootSlashRejected(t *testing.T) {
 
 func TestListFiles_EmptyParentDirListsRoot(t *testing.T) {
 	dataDir := t.TempDir()
-	srv := NewFileServer(dataDir, nopLogger())
+	srv := NewFileServer(dataDir, testDB(t), nopLogger())
 
 	os.Mkdir(filepath.Join(dataDir, "folderA"), 0755)
 	os.WriteFile(filepath.Join(dataDir, "note_hello.md"), []byte("hi"), 0644)

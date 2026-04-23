@@ -11,12 +11,12 @@ import (
 
 func TestListTaskLists_OrphanFileReturnsEmptyId(t *testing.T) {
 	dataDir := t.TempDir()
-	srv := NewTaskServer(dataDir, nopLogger())
+	srv := NewTaskServer(dataDir, testDB(t), nopLogger())
 
 	// Write a valid task list file directly on disk, bypassing CreateTaskList
 	// so no registry entry is created.
 	filename := "tasks_Orphan.md"
-	content := PrintTaskFile([]MainTask{{Description: "buy milk"}})
+	content := []byte("- [ ] buy milk")
 	if err := os.WriteFile(filepath.Join(dataDir, filename), content, 0644); err != nil {
 		t.Fatalf("failed to write orphan task file: %v", err)
 	}

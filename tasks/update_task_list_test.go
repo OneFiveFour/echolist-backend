@@ -11,7 +11,7 @@ import (
 
 func TestUpdateTaskList_RenamesFileAndUpdatesRegistry(t *testing.T) {
 	tmp := t.TempDir()
-	s := NewTaskServer(tmp, nopLogger())
+	s := NewTaskServer(tmp, testDB(t), nopLogger())
 
 	createResp, err := s.CreateTaskList(context.Background(), &pb.CreateTaskListRequest{
 		Title: "old",

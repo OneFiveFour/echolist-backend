@@ -153,58 +153,6 @@ func ValidateName(name string) error {
 	return nil
 }
 
-// FileType represents a known file type with its naming convention.
-type FileType struct {
-	Prefix string
-	Suffix string
-	Label  string
-}
-
-// Predefined file types used across the application.
-var (
-	NoteFileType     = FileType{Prefix: "note_", Suffix: ".md", Label: "note"}
-	TaskListFileType = FileType{Prefix: "tasks_", Suffix: ".md", Label: "task list"}
-)
-
-// ValidateFileType checks that the file at absPath exists, is a regular file,
-// and matches the expected naming convention.
-func ValidateFileType(absPath string, ft FileType) error {
-	info, err := os.Stat(absPath)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return connect.NewError(connect.CodeNotFound, fmt.Errorf("%s not found", ft.Label))
-		}
-		return connect.NewError(connect.CodeInternal, fmt.Errorf("failed to stat %s: %w", ft.Label, err))
-	}
-	if info.IsDir() {
-		return connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("path is a directory, not a %s", ft.Label))
-	}
-	name := filepath.Base(absPath)
-	if !strings.HasPrefix(name, ft.Prefix) || !strings.HasSuffix(name, ft.Suffix) || len(name) <= len(ft.Prefix)+len(ft.Suffix) {
-		return connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("file is not a %s", ft.Label))
-	}
-	return nil
-}
-
-// MatchesFileType returns true if name matches the prefix/suffix convention
-// of the given FileType with at least one character between them.
-func MatchesFileType(name string, ft FileType) bool {
-	return strings.HasPrefix(name, ft.Prefix) &&
-		filepath.Ext(name) == ft.Suffix &&
-		len(name) > len(ft.Prefix)+len(ft.Suffix)
-}
-
-// ExtractTitle extracts the human-readable title from a filename by stripping prefix and suffix.
-func ExtractTitle(filename, prefix, suffix, label string) (string, error) {
-	if len(filename) < len(prefix)+len(suffix)+1 {
-		return "", fmt.Errorf("filename too short to extract %s title: %q", label, filename)
-	}
-	if !strings.HasPrefix(filename, prefix) || !strings.HasSuffix(filename, suffix) {
-		return "", fmt.Errorf("filename does not match %s pattern: %q", label, filename)
-	}
-	return filename[len(prefix) : len(filename)-len(suffix)], nil
-}
-
 // RequireDir stats path and verifies it is an existing directory.
 func RequireDir(path, label string) error {
 	info, err := os.Stat(path)

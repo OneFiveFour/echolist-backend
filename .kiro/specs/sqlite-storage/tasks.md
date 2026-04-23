@@ -231,44 +231,44 @@ This plan migrates the echolist-backend from markdown-file + JSON-registry persi
   - Run `go build ./file/...` to ensure the file package compiles
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 13. Remove old storage code
-  - [ ] 13.1 Delete `tasks/parser.go`
+- [x] 13. Remove old storage code
+  - [x] 13.1 Delete `tasks/parser.go`
     - _Requirements: 14.1_
 
-  - [ ] 13.2 Delete `tasks/printer.go`
+  - [x] 13.2 Delete `tasks/printer.go`
     - _Requirements: 14.2_
 
-  - [ ] 13.3 Delete `tasks/registry.go`
+  - [x] 13.3 Delete `tasks/registry.go`
     - _Requirements: 14.3_
 
-  - [ ] 13.4 Delete `notes/registry.go`
+  - [x] 13.4 Delete `notes/registry.go`
     - _Requirements: 15.1_
 
-  - [ ] 13.5 Delete `notes/title.go` (titles come from DB, not filename parsing)
+  - [x] 13.5 Delete `notes/title.go` (titles come from DB, not filename parsing)
     - _Requirements: 14.6_
 
-  - [ ] 13.6 Delete `tasks/uuid.go` and `notes/uuid.go` (consolidated into `common/uuid.go`)
+  - [x] 13.6 Delete `tasks/uuid.go` and `notes/uuid.go` (consolidated into `common/uuid.go`)
     - _Requirements: 31.2_
 
-  - [ ] 13.7 Remove `common.TaskListFileType`, `common.NoteFileType`, `common.MatchesFileType`, `common.ExtractTitle`, `common.ValidateFileType` from `common/pathutil.go`
+  - [x] 13.7 Remove `common.TaskListFileType`, `common.NoteFileType`, `common.MatchesFileType`, `common.ExtractTitle`, `common.ValidateFileType` from `common/pathutil.go`
     - Remove the `FileType` struct, `NoteFileType`, `TaskListFileType` variables
     - Remove `ValidateFileType`, `MatchesFileType`, `ExtractTitle` functions
     - _Requirements: 14.4, 14.5_
 
-  - [ ] 13.8 Remove `ExtractTaskListTitle` from `tasks/task_server.go`
+  - [x] 13.8 Remove `ExtractTaskListTitle` from `tasks/task_server.go`
     - _Requirements: 14.6_
 
-  - [ ] 13.9 Clean up any remaining references to removed code
+  - [x] 13.9 Clean up any remaining references to removed code
     - Search for any remaining imports or calls to deleted functions/types
     - Fix any compilation errors from removals
     - _Requirements: 14.1, 14.2, 14.3, 14.4, 14.5, 15.1, 15.2_
 
-- [ ] 14. Checkpoint — Verify full project compiles after removals
+- [x] 14. Checkpoint — Verify full project compiles after removals
   - Run `go build ./...` to ensure the entire project compiles
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 15. Wire everything together in `main.go`
-  - [ ] 15.1 Update `main.go` to initialize SQLite and pass DB to services
+- [x] 15. Wire everything together in `main.go`
+  - [x] 15.1 Update `main.go` to initialize SQLite and pass DB to services
     - Open SQLite database via `database.New(filepath.Join(dataDir, "echolist.db"))`
     - If DB open fails, log error and `os.Exit(1)`
     - Pass `*database.Database` to `NewTaskServer(dataDir, db, logger)`
@@ -277,13 +277,13 @@ This plan migrates the echolist-backend from markdown-file + JSON-registry persi
     - Add `defer db.Close()` for clean shutdown
     - _Requirements: 19.1, 19.2, 19.3, 19.4, 19.5_
 
-  - [ ] 15.2 Update `healthzHandler` to include database health check
+  - [x] 15.2 Update `healthzHandler` to include database health check
     - Accept `*database.Database` parameter
     - Call `db.HealthCheck()` (runs `SELECT 1`)
     - On failure, add `"db: <error>"` to the unhealthy checks list and return HTTP 503
     - _Requirements: 18.1, 18.2, 18.3_
 
-- [ ] 16. Final checkpoint — Full build and verification
+- [x] 16. Final checkpoint — Full build and verification
   - Run `go build ./...` to ensure the entire project compiles
   - Ensure all tests pass, ask the user if questions arise.
 

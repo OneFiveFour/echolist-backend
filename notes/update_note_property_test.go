@@ -21,7 +21,7 @@ import (
 func TestProperty_UpdateNoteRejectsNonExistent(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		tmp := t.TempDir()
-		srv := NewNotesServer(tmp, nopLogger())
+		srv := NewNotesServer(tmp, testDB(t), nopLogger())
 		ctx := context.Background()
 
 		// Generate a valid UUIDv4 that was never used in CreateNote
@@ -55,7 +55,7 @@ func TestProperty_UpdateNoteRejectsNonExistent(t *testing.T) {
 func TestProperty4_UpdateByIdPreservesNoteId(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		tmp := t.TempDir()
-		srv := NewNotesServer(tmp, nopLogger())
+		srv := NewNotesServer(tmp, testDB(t), nopLogger())
 		ctx := context.Background()
 
 		title := nameGen().Draw(rt, "title")

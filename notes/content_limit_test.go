@@ -16,7 +16,7 @@ import (
 
 func TestCreateNote_ContentTooLarge(t *testing.T) {
 	dataDir := t.TempDir()
-	server := NewNotesServer(dataDir, nopLogger())
+	server := NewNotesServer(dataDir, testDB(t), nopLogger())
 
 	oversized := strings.Repeat("x", common.MaxNoteContentBytes+1)
 
@@ -40,7 +40,7 @@ func TestCreateNote_ContentTooLarge(t *testing.T) {
 
 func TestCreateNote_ContentAtLimit(t *testing.T) {
 	dataDir := t.TempDir()
-	server := NewNotesServer(dataDir, nopLogger())
+	server := NewNotesServer(dataDir, testDB(t), nopLogger())
 
 	content := strings.Repeat("x", common.MaxNoteContentBytes)
 
@@ -59,7 +59,7 @@ func TestCreateNote_ContentAtLimit(t *testing.T) {
 
 func TestUpdateNote_ContentTooLarge(t *testing.T) {
 	dataDir := t.TempDir()
-	server := NewNotesServer(dataDir, nopLogger())
+	server := NewNotesServer(dataDir, testDB(t), nopLogger())
 
 	// Create a note via the RPC to get a valid id
 	createResp, err := server.CreateNote(context.Background(), &pb.CreateNoteRequest{
@@ -101,7 +101,7 @@ func TestUpdateNote_ContentTooLarge(t *testing.T) {
 
 func TestCreateNote_TitleTooLong(t *testing.T) {
 	dataDir := t.TempDir()
-	server := NewNotesServer(dataDir, nopLogger())
+	server := NewNotesServer(dataDir, testDB(t), nopLogger())
 
 	longTitle := strings.Repeat("a", common.MaxNameLen+1)
 

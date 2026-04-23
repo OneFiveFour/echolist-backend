@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"echolist-backend/auth"
+	"echolist-backend/database"
 )
 
 func TestLivez(t *testing.T) {
@@ -33,8 +34,9 @@ func TestLivez(t *testing.T) {
 func TestHealthz_AllHealthy(t *testing.T) {
 	dataDir := t.TempDir()
 	store := loadedUserStore(t)
+	db := mainTestDB(t)
 
-	handler := healthzHandler(dataDir, store)
+	handler := healthzHandler(dataDir, db, store)
 	req := httptest.NewRequest(http.MethodGet, "/healthz", nil)
 	rec := httptest.NewRecorder()
 	handler.ServeHTTP(rec, req)
@@ -55,8 +57,9 @@ func TestHealthz_AllHealthy(t *testing.T) {
 func TestHealthz_MissingDataDir(t *testing.T) {
 	dataDir := filepath.Join(t.TempDir(), "nonexistent")
 	store := loadedUserStore(t)
+	db := mainTestDB(t)
 
-	handler := healthzHandler(dataDir, store)
+	handler := healthzHandler(dataDir, db, store)
 	req := httptest.NewRequest(http.MethodGet, "/healthz", nil)
 	rec := httptest.NewRecorder()
 	handler.ServeHTTP(rec, req)
@@ -78,7 +81,7 @@ func TestHealthz_ReadOnlyDataDir(t *testing.T) {
 
 	store := loadedUserStore(t)
 
-	handler := healthzHandler(dataDir, store)
+	handler := healthzHandler(dataDir, mainTestDB(t), store)
 	req := httptest.NewRequest(http.MethodGet, "/healthz", nil)
 	rec := httptest.NewRecorder()
 	handler.ServeHTTP(rec, req)
@@ -96,7 +99,7 @@ func TestHealthz_EmptyUserStore(t *testing.T) {
 	// UserStore with no users loaded
 	store := auth.NewUserStore(filepath.Join(t.TempDir(), "empty.json"))
 
-	handler := healthzHandler(dataDir, store)
+	handler := healthzHandler(dataDir, mainTestDB(t), store)
 	req := httptest.NewRequest(http.MethodGet, "/healthz", nil)
 	rec := httptest.NewRecorder()
 	handler.ServeHTTP(rec, req)
@@ -118,4 +121,15 @@ func loadedUserStore(t *testing.T) *auth.UserStore {
 		t.Fatalf("failed to initialize user store: %v", err)
 	}
 	return store
+}
+
+func mainTestDB(t *testing.T) *database.Database {
+	t.Helper()
+	dbPath := filepath.Join(t.TempDir(), "test.db")
+	db, err := database.New(dbPath)
+	if err != nil {
+		t.Fatalf("failed to create test database: %v", err)
+	}
+	t.Cleanup(func() { db.Close() })
+	return db
 }

@@ -120,7 +120,7 @@ func TestValidateTasks_SubtaskDescriptionTooLong(t *testing.T) {
 
 func TestCreateTaskList_DescriptionTooLong(t *testing.T) {
 	dataDir := t.TempDir()
-	srv := NewTaskServer(dataDir, nopLogger())
+	srv := NewTaskServer(dataDir, testDB(t), nopLogger())
 
 	_, err := srv.CreateTaskList(context.Background(), &pb.CreateTaskListRequest{
 		Title:     "test",
@@ -144,7 +144,7 @@ func TestCreateTaskList_DescriptionTooLong(t *testing.T) {
 
 func TestUpdateTaskList_TooManyTasks(t *testing.T) {
 	dataDir := t.TempDir()
-	srv := NewTaskServer(dataDir, nopLogger())
+	srv := NewTaskServer(dataDir, testDB(t), nopLogger())
 
 	// Create a valid task list first to get an id
 	createResp, err := srv.CreateTaskList(context.Background(), &pb.CreateTaskListRequest{

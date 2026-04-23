@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	filev1 "echolist-backend/proto/gen/file/v1"
-	"echolist-backend/tasks"
 	"pgregory.net/rapid"
 )
 
@@ -17,7 +16,7 @@ import (
 func TestProperty1_ClassificationAndFiltering(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		dataDir := t.TempDir()
-		srv := NewFileServer(dataDir, nopLogger())
+		srv := NewFileServer(dataDir, testDB(t), nopLogger())
 
 		// Generate random mix of subdirectories, note files, task files, and unrecognized files
 		numDirs := rapid.IntRange(0, 5).Draw(rt, "numDirs")
@@ -117,7 +116,7 @@ func TestProperty1_ClassificationAndFiltering(t *testing.T) {
 func TestProperty2_PathConstruction(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		dataDir := t.TempDir()
-		srv := NewFileServer(dataDir, nopLogger())
+		srv := NewFileServer(dataDir, testDB(t), nopLogger())
 
 		// Create a subdirectory with some files
 		subDir := folderNameGen().Draw(rt, "subDir")
@@ -172,7 +171,7 @@ func TestProperty2_PathConstruction(t *testing.T) {
 func TestProperty3_FolderMetadata(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		dataDir := t.TempDir()
-		srv := NewFileServer(dataDir, nopLogger())
+		srv := NewFileServer(dataDir, testDB(t), nopLogger())
 
 		// Create a folder with random children
 		folderName := folderNameGen().Draw(rt, "folderName")
@@ -243,7 +242,7 @@ func TestProperty3_FolderMetadata(t *testing.T) {
 func TestProperty4_NoteMetadata(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		dataDir := t.TempDir()
-		srv := NewFileServer(dataDir, nopLogger())
+		srv := NewFileServer(dataDir, testDB(t), nopLogger())
 
 		// Generate random note content
 		contentLen := rapid.IntRange(0, 250).Draw(rt, "contentLen")
@@ -308,25 +307,27 @@ func TestProperty4_NoteMetadata(t *testing.T) {
 func TestProperty5_TaskListMetadata(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		dataDir := t.TempDir()
-		srv := NewFileServer(dataDir, nopLogger())
+		srv := NewFileServer(dataDir, testDB(t), nopLogger())
 
 		// Generate random task list
 		numTasks := rapid.IntRange(0, 10).Draw(rt, "numTasks")
-		var mainTasks []tasks.MainTask
 		expectedDone := 0
 
+		var lines []string
 		for i := 0; i < numTasks; i++ {
 			done := rapid.Bool().Draw(rt, "done")
-			mainTasks = append(mainTasks, tasks.MainTask{
-				Description: "Task " + string(rune('A'+i)),
-				IsDone:      done,
-			})
+			checkbox := "[ ]"
 			if done {
+				checkbox = "[x]"
 				expectedDone++
 			}
+			lines = append(lines, "- "+checkbox+" Task "+string(rune('A'+i)))
 		}
 
-		content := tasks.PrintTaskFile(mainTasks)
+		var content []byte
+		if len(lines) > 0 {
+			content = []byte(strings.Join(lines, "\n"))
+		}
 		taskName := "tasks_Test.md"
 		if err := os.WriteFile(filepath.Join(dataDir, taskName), content, 0644); err != nil {
 			rt.Skipf("failed to create task file: %v", err)
@@ -381,7 +382,7 @@ func TestProperty5_TaskListMetadata(t *testing.T) {
 func TestProperty6_PathRoundTrip(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		dataDir := t.TempDir()
-		srv := NewFileServer(dataDir, nopLogger())
+		srv := NewFileServer(dataDir, testDB(t), nopLogger())
 
 		// Create a subdirectory with files
 		subDir := folderNameGen().Draw(rt, "subDir")
@@ -442,7 +443,7 @@ func TestProperty6_PathRoundTrip(t *testing.T) {
 func TestProperty7_NonRecursive(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		dataDir := t.TempDir()
-		srv := NewFileServer(dataDir, nopLogger())
+		srv := NewFileServer(dataDir, testDB(t), nopLogger())
 
 		// Create nested directory structure
 		depth := rapid.IntRange(1, 4).Draw(rt, "depth")
