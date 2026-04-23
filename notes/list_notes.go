@@ -2,14 +2,15 @@ package notes
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"connectrpc.com/connect"
 
 	"echolist-backend/common"
+	"echolist-backend/database"
 	pb "echolist-backend/proto/gen/notes/v1"
 )
 
@@ -29,79 +30,37 @@ func (s *NotesServer) ListNotes(
 		return nil, err
 	}
 
-	dirEntries, err := os.ReadDir(root)
+	// Query DB for note metadata in this directory
+	noteRows, err := s.db.ListNotes(parentDir)
 	if err != nil {
-		s.logger.Error("failed to read directory", "path", req.GetParentDir(), "error", err)
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to read directory: %w", err))
+		s.logger.Error("failed to list notes from database", "parentDir", parentDir, "error", err)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to list notes: %w", err))
 	}
 
-	type noteWithPath struct {
-		note     *pb.Note
-		filePath string
-	}
-	var notesWithPath []noteWithPath
+	var notes []*pb.Note
+	for _, row := range noteRows {
+		// Compute file path from metadata
+		notePath := database.NotePath(row.ParentDir, row.Title, row.Id)
+		absPath := filepath.Join(s.dataDir, notePath)
 
-	prefix := parentDir
-	if prefix != "" && !strings.HasSuffix(prefix, "/") {
-		prefix += "/"
-	}
-
-	for _, e := range dirEntries {
-		if e.IsDir() {
-			continue
-		}
-
-		name := e.Name()
-
-		if filepath.Ext(name) != common.NoteFileType.Suffix || !strings.HasPrefix(name, common.NoteFileType.Prefix) {
-			continue
-		}
-
-		entryPath := prefix + name
-
-		fullPath := filepath.Join(root, name)
-		info, err := e.Info()
+		// Read content from disk
+		content, err := os.ReadFile(absPath)
 		if err != nil {
-			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to stat %s: %w", fullPath, err))
+			if errors.Is(err, os.ErrNotExist) {
+				// Skip notes whose files are missing — don't fail the listing
+				s.logger.Warn("note file missing on disk, skipping", "id", row.Id, "path", notePath)
+				continue
+			}
+			s.logger.Error("failed to read note file", "id", row.Id, "path", notePath, "error", err)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to read note: %w", err))
 		}
 
-		content, err := os.ReadFile(fullPath)
-		if err != nil {
-			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to read %s: %w", fullPath, err))
-		}
-
-		title, err := ExtractNoteTitle(name)
-		if err != nil {
-			continue
-		}
-
-		notesWithPath = append(notesWithPath, noteWithPath{
-			note: &pb.Note{
-				Title:     title,
-				Content:   string(content),
-				UpdatedAt: info.ModTime().UnixMilli(),
-			},
-			filePath: entryPath,
+		notes = append(notes, &pb.Note{
+			Id:        row.Id,
+			Title:     row.Title,
+			Content:   string(content),
+			UpdatedAt: row.UpdatedAt,
 		})
-	}
-
-	// Read registry and build reverse map (filePath → id)
-	regPath := registryPath(s.dataDir)
-	registry, err := registryRead(regPath)
-	if err != nil {
-		s.logger.Error("failed to read registry", "error", err)
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to read registry: %w", err))
-	}
-
-	reverseMap := make(map[string]string, len(registry))
-	for id, entry := range registry {
-		reverseMap[entry.FilePath] = id
-	}
-
-	notes := make([]*pb.Note, len(notesWithPath))
-	for i, nwp := range notesWithPath {
-		nwp.note.Id = reverseMap[nwp.filePath] // empty string if not found
-		notes[i] = nwp.note
 	}
 
 	return &pb.ListNotesResponse{Notes: notes}, nil

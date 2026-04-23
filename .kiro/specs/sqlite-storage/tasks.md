@@ -146,14 +146,14 @@ This plan migrates the echolist-backend from markdown-file + JSON-registry persi
   - Run `go build ./tasks/...` to ensure the tasks package compiles
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 8. Rewrite note RPCs to use SQLite
-  - [ ] 8.1 Rewrite `NotesServer` struct and constructor
+- [x] 8. Rewrite note RPCs to use SQLite
+  - [x] 8.1 Rewrite `NotesServer` struct and constructor
     - Add `db *database.Database` field
     - Retain `locks common.Locker` for file I/O only
     - Update `NewNotesServer(dataDir string, db *database.Database, logger *slog.Logger) *NotesServer`
     - _Requirements: 25.1, 25.2, 25.3, 25.4, 25.5_
 
-  - [ ] 8.2 Rewrite `CreateNote` RPC
+  - [x] 8.2 Rewrite `CreateNote` RPC
     - Remove registry code
     - Generate Note_ID, compute file path via `NotePath(parentDir, title, id)`
     - Validate title, content, parent_dir; ensure parent dir exists on disk
@@ -163,14 +163,14 @@ This plan migrates the echolist-backend from markdown-file + JSON-registry persi
     - Return response with Note_ID, title, content, updated_at (no file_path)
     - _Requirements: 20.1, 20.2, 20.3, 16.1, 16.4, 26.1, 17.8, 17.9, 17.10_
 
-  - [ ] 8.3 Rewrite `GetNote` RPC
+  - [x] 8.3 Rewrite `GetNote` RPC
     - Remove registry lookup and `ValidateFileType` call
     - Query DB by Note_ID via `db.GetNote(id)`, compute file path via `NotePath`
     - Read content from disk; return NotFound if DB row missing or file missing
     - Return response with Note_ID, title, content, updated_at (no file_path)
     - _Requirements: 21.1, 21.2, 21.3, 21.4, 26.4_
 
-  - [ ] 8.4 Rewrite `UpdateNote` RPC
+  - [x] 8.4 Rewrite `UpdateNote` RPC
     - Remove registry code
     - Query DB for current metadata, compute old file path via `NotePath`
     - If title changed: compute new file path, rename file on disk, update DB row; rollback rename if DB update fails
@@ -179,7 +179,7 @@ This plan migrates the echolist-backend from markdown-file + JSON-registry persi
     - Return response with Note_ID, title, content, updated_at (no file_path)
     - _Requirements: 22.1, 22.2, 22.3, 22.4, 22.5, 16.2, 26.3, 26.4_
 
-  - [ ] 8.5 Rewrite `DeleteNote` RPC
+  - [x] 8.5 Rewrite `DeleteNote` RPC
     - Remove registry code
     - Query DB for metadata, compute file path via `NotePath`
     - Delete file from disk first, then delete DB row
@@ -187,14 +187,14 @@ This plan migrates the echolist-backend from markdown-file + JSON-registry persi
     - If DB delete fails after file removed, log error
     - _Requirements: 23.1, 23.2, 23.3, 23.4, 26.2_
 
-  - [ ] 8.6 Rewrite `ListNotes` RPC
+  - [x] 8.6 Rewrite `ListNotes` RPC
     - Remove directory scanning and registry code
     - Query DB via `db.ListNotes(parentDir)`, compute file paths via `NotePath`
     - Read content from disk for each note; skip notes whose files are missing
     - Return response with Note_ID, title, content, updated_at for each note
     - _Requirements: 24.1, 24.2, 24.3, 24.4, 26.5_
 
-- [ ] 9. Checkpoint — Verify note RPCs compile
+- [x] 9. Checkpoint — Verify note RPCs compile
   - Run `go build ./notes/...` to ensure the notes package compiles
   - Ensure all tests pass, ask the user if questions arise.
 

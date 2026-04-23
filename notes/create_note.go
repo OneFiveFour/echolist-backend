@@ -2,15 +2,16 @@ package notes
 
 import (
 	"context"
-	"crypto/rand"
 	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 
 	"connectrpc.com/connect"
+	"github.com/google/uuid"
 
 	"echolist-backend/common"
+	"echolist-backend/database"
 	pb "echolist-backend/proto/gen/notes/v1"
 )
 
@@ -21,7 +22,7 @@ func (s *NotesServer) CreateNote(
 
 	parentDir := req.GetParentDir()
 
-	// Validate path
+	// Validate parent directory path
 	dirPath, err := common.ValidateParentDir(s.dataDir, parentDir)
 	if err != nil {
 		return nil, err
@@ -40,59 +41,72 @@ func (s *NotesServer) CreateNote(
 		return nil, err
 	}
 
-	filename := common.NoteFileType.Prefix + title + common.NoteFileType.Suffix
-	absoluteFilePath := filepath.Join(dirPath, filename)
-	relativeFilePath, _ := filepath.Rel(s.dataDir, absoluteFilePath)
+	// Generate Note_ID
+	id := uuid.NewString()
 
-	// Generate UUIDv4
-	var uuid [16]byte
-	if _, err := rand.Read(uuid[:]); err != nil {
-		s.logger.Error("failed to generate UUID", "error", err)
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to generate UUID: %w", err))
-	}
-	uuid[6] = (uuid[6] & 0x0f) | 0x40 // version 4
-	uuid[8] = (uuid[8] & 0x3f) | 0x80 // variant bits
-	id := fmt.Sprintf("%08x-%04x-%04x-%04x-%012x",
-		uuid[0:4], uuid[4:6], uuid[6:8], uuid[8:10], uuid[10:16])
+	// Compute file path via NotePath helper
+	notePath := database.NotePath(parentDir, title, id)
+	absPath := filepath.Join(s.dataDir, notePath)
 
-	// Persist id→filePath mapping in the registry
-	regPath := registryPath(s.dataDir)
-	unlockReg := s.locks.Lock(regPath)
-	defer unlockReg()
-
-	// Create/update/delete all lock registry first, then file paths, so
-	// title-driven renames cannot deadlock against concurrent operations.
-	unlockFile := s.locks.Lock(absoluteFilePath)
+	// Lock the file path for concurrent safety
+	unlockFile := s.locks.Lock(absPath)
 	defer unlockFile()
 
-	// Use exclusive create to avoid TOCTOU race between existence check and write.
-	err = common.CreateExclusive(absoluteFilePath, []byte(req.Content))
+	// Create file on disk first
+	err = common.CreateExclusive(absPath, []byte(req.GetContent()))
 	if err != nil {
 		if errors.Is(err, os.ErrExist) {
 			return nil, connect.NewError(connect.CodeAlreadyExists, fmt.Errorf("note already exists"))
 		}
-		s.logger.Error("failed to write note", "path", relativeFilePath, "error", err)
+		s.logger.Error("failed to write note", "path", notePath, "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to write note: %w", err))
 	}
 
-	info, err := os.Stat(absoluteFilePath)
+	// Get updated_at from file stat
+	info, err := os.Stat(absPath)
 	if err != nil {
-		s.logger.Error("failed to stat note after create", "path", relativeFilePath, "error", err)
+		s.logger.Error("failed to stat note after create", "path", notePath, "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to stat note after create: %w", err))
 	}
+	updatedAt := info.ModTime().UnixMilli()
 
-	if err := registryAdd(regPath, id, registryEntry{FilePath: relativeFilePath}); err != nil {
-		s.logger.Error("failed to add registry entry", "id", id, "path", relativeFilePath, "error", err)
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to persist note id: %w", err))
+	// Compute preview: first 100 runes of content
+	preview := computePreview(req.GetContent())
+
+	// Insert DB row
+	err = s.db.InsertNote(database.InsertNoteParams{
+		Id:        id,
+		Title:     title,
+		ParentDir: parentDir,
+		Preview:   preview,
+		CreatedAt: updatedAt,
+		UpdatedAt: updatedAt,
+	})
+	if err != nil {
+		// Rollback: delete the file we just created
+		if removeErr := os.Remove(absPath); removeErr != nil {
+			s.logger.Error("failed to rollback note file after DB insert failure", "path", notePath, "error", removeErr)
+		}
+		s.logger.Error("failed to insert note into database", "id", id, "error", err)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to persist note metadata: %w", err))
 	}
 
 	note := &pb.Note{
 		Id:        id,
-		Title:     req.Title,
-		Content:   req.Content,
-		UpdatedAt: info.ModTime().UnixMilli(),
+		Title:     title,
+		Content:   req.GetContent(),
+		UpdatedAt: updatedAt,
 	}
 
 	return &pb.CreateNoteResponse{Note: note}, nil
+}
 
+// computePreview returns the first 100 runes of content, or the full content
+// if it is shorter.
+func computePreview(content string) string {
+	runes := []rune(content)
+	if len(runes) > 100 {
+		return string(runes[:100])
+	}
+	return content
 }

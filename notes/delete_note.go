@@ -5,10 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"connectrpc.com/connect"
 
 	"echolist-backend/common"
+	"echolist-backend/database"
 	pb "echolist-backend/proto/gen/notes/v1"
 )
 
@@ -17,53 +19,47 @@ func (s *NotesServer) DeleteNote(
 	req *pb.DeleteNoteRequest,
 ) (*pb.DeleteNoteResponse, error) {
 
-	// Validate the id field before any filesystem operations (Req 9.1, 9.2)
+	// Validate the id field
 	if err := common.ValidateUuidV4(req.GetId()); err != nil {
 		return nil, err
 	}
 
-	// Acquire registry lock first, then resolve id (Req 6.1, 6.2)
-	regPath := registryPath(s.dataDir)
-	unlockReg := s.locks.Lock(regPath)
-	defer unlockReg()
-
-	entry, found, err := registryLookup(regPath, req.GetId())
+	// Query DB for note metadata
+	noteRow, err := s.db.GetNote(req.GetId())
 	if err != nil {
-		s.logger.Error("failed to read registry", "id", req.GetId(), "error", err)
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to read registry: %w", err))
-	}
-	if !found {
-		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("note not found"))
-	}
-	filePath := entry.FilePath
-
-	// Validate the resolved path doesn't escape the data directory
-	absPath, err := common.ValidatePath(s.dataDir, filePath)
-	if err != nil {
-		return nil, err
+		if errors.Is(err, database.ErrNotFound) {
+			return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("note not found"))
+		}
+		s.logger.Error("failed to query note", "id", req.GetId(), "error", err)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to query note: %w", err))
 	}
 
-	if err := common.ValidateFileType(absPath, common.NoteFileType); err != nil {
-		return nil, err
-	}
+	// Compute file path from metadata
+	notePath := database.NotePath(noteRow.ParentDir, noteRow.Title, noteRow.Id)
+	absPath := filepath.Join(s.dataDir, notePath)
 
-	// Acquire note file lock
+	// Lock the file path
 	unlockFile := s.locks.Lock(absPath)
 	defer unlockFile()
 
-	// Delete the file
-	if err := os.Remove(absPath); err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("note not found: %w", err))
-		}
-		s.logger.Error("failed to delete note", "id", req.GetId(), "path", filePath, "error", err)
+	// Delete file from disk first
+	err = os.Remove(absPath)
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
+		s.logger.Error("failed to delete note file", "id", req.GetId(), "path", notePath, "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to delete note: %w", err))
 	}
+	// If file was missing (os.ErrNotExist), we still proceed to delete the DB row (cleanup orphan)
 
-	// Remove the registry entry (Req 2.2)
-	if err := registryRemove(regPath, req.GetId()); err != nil {
-		s.logger.Error("failed to remove registry entry", "id", req.GetId(), "error", err)
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to remove registry entry: %w", err))
+	// Delete DB row
+	deleted, err := s.db.DeleteNote(req.GetId())
+	if err != nil {
+		// File already removed but DB delete failed — log the error
+		s.logger.Error("failed to delete note from database after file removal", "id", req.GetId(), "error", err)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to delete note metadata: %w", err))
+	}
+	if !deleted {
+		// This shouldn't happen since we already found the row above, but handle it
+		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("note not found"))
 	}
 
 	return &pb.DeleteNoteResponse{}, nil

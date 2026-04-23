@@ -10,6 +10,7 @@ import (
 	"connectrpc.com/connect"
 
 	"echolist-backend/common"
+	"echolist-backend/database"
 	pb "echolist-backend/proto/gen/notes/v1"
 )
 
@@ -17,126 +18,114 @@ func (s *NotesServer) UpdateNote(
 	ctx context.Context,
 	req *pb.UpdateNoteRequest,
 ) (*pb.UpdateNoteResponse, error) {
+
+	// Validate ID
 	if err := common.ValidateUuidV4(req.GetId()); err != nil {
 		return nil, err
 	}
 
-	regPath := registryPath(s.dataDir)
-	unlockReg := s.locks.Lock(regPath)
-	defer unlockReg()
-	entry, found, err := registryLookup(regPath, req.GetId())
-	if err != nil {
-		s.logger.Error("failed to read registry", "id", req.GetId(), "error", err)
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to read registry: %w", err))
-	}
-	if !found {
-		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("note not found"))
-	}
-	filePath := entry.FilePath
-
-	absPath, err := common.ValidatePath(s.dataDir, filePath)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := common.ValidateFileType(absPath, common.NoteFileType); err != nil {
-		return nil, err
-	}
-
-	if err := common.ValidateContentLength(req.GetContent(), common.MaxNoteContentBytes, "content"); err != nil {
-		return nil, err
-	}
-
+	// Validate title
 	title := req.GetTitle()
 	if err := common.ValidateName(title); err != nil {
 		return nil, err
 	}
 
-	// Titles are encoded into filenames (note_<title>.md), so changing the title
-	// means changing the on-disk path as well as the returned metadata.
-	parentDir := filepath.Dir(filePath)
-	if parentDir == "." {
-		parentDir = ""
+	// Validate content
+	if err := common.ValidateContentLength(req.GetContent(), common.MaxNoteContentBytes, "content"); err != nil {
+		return nil, err
 	}
-	newFileName := common.NoteFileType.Prefix + title + common.NoteFileType.Suffix
-	newFilePath := filepath.Join(parentDir, newFileName)
-	newAbsPath := filepath.Join(filepath.Dir(absPath), newFileName)
 
-	unlockFiles := s.locks.LockMany(absPath, newAbsPath)
+	// Query DB for current metadata
+	noteRow, err := s.db.GetNote(req.GetId())
+	if err != nil {
+		if errors.Is(err, database.ErrNotFound) {
+			return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("note not found"))
+		}
+		s.logger.Error("failed to query note", "id", req.GetId(), "error", err)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to query note: %w", err))
+	}
+
+	// Compute old file path from current metadata
+	oldNotePath := database.NotePath(noteRow.ParentDir, noteRow.Title, noteRow.Id)
+	oldAbsPath := filepath.Join(s.dataDir, oldNotePath)
+
+	// Compute new file path (title may have changed)
+	newNotePath := database.NotePath(noteRow.ParentDir, title, noteRow.Id)
+	newAbsPath := filepath.Join(s.dataDir, newNotePath)
+
+	// Lock both file paths for concurrent safety
+	unlockFiles := s.locks.LockMany(oldAbsPath, newAbsPath)
 	defer unlockFiles()
 
-	if _, err := os.Stat(absPath); err != nil {
+	// Check that the old file exists on disk
+	if _, err := os.Stat(oldAbsPath); err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("note not found"))
 		}
-		s.logger.Error("failed to stat note", "path", filePath, "error", err)
+		s.logger.Error("failed to stat note", "path", oldNotePath, "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to stat note: %w", err))
 	}
 
-	currentAbsPath := absPath
-	currentFilePath := filePath
+	// If title changed, rename file on disk
 	renamed := false
-
-	if newAbsPath != absPath {
-		// We must reject collisions up front because another note may already use
-		// the target title in the same directory.
-		if _, err := os.Stat(newAbsPath); err == nil {
-			return nil, connect.NewError(connect.CodeAlreadyExists, fmt.Errorf("note already exists"))
-		} else if !errors.Is(err, os.ErrNotExist) {
-			s.logger.Error("failed to stat target note", "path", newFilePath, "error", err)
-			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to stat target note: %w", err))
-		}
-
-		if err := os.Rename(absPath, newAbsPath); err != nil {
+	if newAbsPath != oldAbsPath {
+		if err := os.Rename(oldAbsPath, newAbsPath); err != nil {
 			if errors.Is(err, os.ErrNotExist) {
 				return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("note not found"))
 			}
-			s.logger.Error("failed to rename note", "from", filePath, "to", newFilePath, "error", err)
+			s.logger.Error("failed to rename note", "from", oldNotePath, "to", newNotePath, "error", err)
 			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to rename note: %w", err))
 		}
-
-		// The ID stays stable across renames, so the registry must move to the new
-		// relative file path before later lookups by ID can succeed.
-		if err := registryAdd(regPath, req.GetId(), registryEntry{FilePath: newFilePath}); err != nil {
-			if rollbackErr := os.Rename(newAbsPath, absPath); rollbackErr != nil {
-				s.logger.Error("failed to roll back note rename", "from", newFilePath, "to", filePath, "error", rollbackErr)
-			}
-			s.logger.Error("failed to update registry entry", "id", req.GetId(), "path", newFilePath, "error", err)
-			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to persist note id: %w", err))
-		}
-
-		currentAbsPath = newAbsPath
-		currentFilePath = newFilePath
 		renamed = true
 	}
 
-	err = common.File(currentAbsPath, []byte(req.Content))
+	// Write new content to file
+	currentAbsPath := newAbsPath
+	currentNotePath := newNotePath
+	err = common.File(currentAbsPath, []byte(req.GetContent()))
 	if err != nil {
 		if renamed {
-			// If the content write fails after a rename, roll the visible path back
-			// so the registry and filesystem keep pointing to the same note file.
-			if rollbackErr := registryAdd(regPath, req.GetId(), registryEntry{FilePath: filePath}); rollbackErr != nil {
-				s.logger.Error("failed to roll back note registry entry", "id", req.GetId(), "path", filePath, "error", rollbackErr)
-			}
-			if rollbackErr := os.Rename(currentAbsPath, absPath); rollbackErr != nil {
-				s.logger.Error("failed to roll back note rename", "from", currentFilePath, "to", filePath, "error", rollbackErr)
+			// Rollback: rename file back
+			if rollbackErr := os.Rename(newAbsPath, oldAbsPath); rollbackErr != nil {
+				s.logger.Error("failed to rollback note rename", "from", newNotePath, "to", oldNotePath, "error", rollbackErr)
 			}
 		}
-		s.logger.Error("failed to update note", "path", currentFilePath, "error", err)
+		s.logger.Error("failed to write note content", "path", currentNotePath, "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to update note: %w", err))
 	}
 
+	// Get updated_at from file stat after write
 	info, err := os.Stat(currentAbsPath)
 	if err != nil {
-		s.logger.Error("failed to stat note after update", "path", currentFilePath, "error", err)
+		s.logger.Error("failed to stat note after update", "path", currentNotePath, "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to stat note after update: %w", err))
+	}
+	updatedAt := info.ModTime().UnixMilli()
+
+	// Compute new preview
+	preview := computePreview(req.GetContent())
+
+	// Update DB row
+	err = s.db.UpdateNote(req.GetId(), title, preview, updatedAt)
+	if err != nil {
+		if errors.Is(err, database.ErrNotFound) {
+			return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("note not found"))
+		}
+		// Rollback: if we renamed, rename back
+		if renamed {
+			if rollbackErr := os.Rename(newAbsPath, oldAbsPath); rollbackErr != nil {
+				s.logger.Error("failed to rollback note rename after DB failure", "from", newNotePath, "to", oldNotePath, "error", rollbackErr)
+			}
+		}
+		s.logger.Error("failed to update note in database", "id", req.GetId(), "error", err)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to update note metadata: %w", err))
 	}
 
 	note := &pb.Note{
 		Id:        req.GetId(),
 		Title:     title,
-		Content:   req.Content,
-		UpdatedAt: info.ModTime().UnixMilli(),
+		Content:   req.GetContent(),
+		UpdatedAt: updatedAt,
 	}
 
 	return &pb.UpdateNoteResponse{Note: note}, nil
