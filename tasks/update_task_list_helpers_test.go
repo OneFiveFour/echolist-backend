@@ -18,7 +18,7 @@ func TestReadAndParseTaskFile_Success(t *testing.T) {
 	absPath := filepath.Join(dir, "tasks_Test.md")
 	content := PrintTaskFile([]MainTask{
 		{Description: "buy milk"},
-		{Description: "walk dog", Done: true},
+		{Description: "walk dog", IsDone: true},
 	})
 	if err := os.WriteFile(absPath, content, 0644); err != nil {
 		t.Fatal(err)
@@ -34,7 +34,7 @@ func TestReadAndParseTaskFile_Success(t *testing.T) {
 	if tasks[0].Description != "buy milk" {
 		t.Fatalf("expected 'buy milk', got %q", tasks[0].Description)
 	}
-	if !tasks[1].Done {
+	if !tasks[1].IsDone {
 		t.Fatal("expected second task to be done")
 	}
 }
@@ -74,18 +74,18 @@ func TestReadAndParseTaskFile_MalformedContent(t *testing.T) {
 
 func TestAdvanceRecurringTasks_SkipsNonRecurring(t *testing.T) {
 	tasks := []MainTask{
-		{Description: "plain task", Done: true},
-		{Description: "open recurring", Recurrence: "FREQ=DAILY", Done: false, DueDate: "2026-04-01"},
+		{Description: "plain task", IsDone: true},
+		{Description: "open recurring", Recurrence: "FREQ=DAILY", IsDone: false, DueDate: "2026-04-01"},
 	}
 	if err := advanceRecurringTasks(tasks, nil); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	// Plain done task stays done
-	if !tasks[0].Done {
+	if !tasks[0].IsDone {
 		t.Fatal("non-recurring task should remain done")
 	}
 	// Open recurring task stays open with original due date
-	if tasks[1].Done {
+	if tasks[1].IsDone {
 		t.Fatal("open recurring task should remain not-done")
 	}
 	if tasks[1].DueDate != "2026-04-01" {
@@ -95,7 +95,7 @@ func TestAdvanceRecurringTasks_SkipsNonRecurring(t *testing.T) {
 
 func TestAdvanceRecurringTasks_AdvancesDoneRecurring(t *testing.T) {
 	tasks := []MainTask{
-		{Description: "weekly", Recurrence: "FREQ=WEEKLY", Done: true, DueDate: "2026-03-01"},
+		{Description: "weekly", Recurrence: "FREQ=WEEKLY", IsDone: true, DueDate: "2026-03-01"},
 	}
 	existing := []MainTask{
 		{Description: "weekly", Recurrence: "FREQ=WEEKLY", DueDate: "2026-03-01"},
@@ -104,7 +104,7 @@ func TestAdvanceRecurringTasks_AdvancesDoneRecurring(t *testing.T) {
 	if err := advanceRecurringTasks(tasks, existing); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if tasks[0].Done {
+	if tasks[0].IsDone {
 		t.Fatal("recurring task should be reset to done=false")
 	}
 	if tasks[0].DueDate <= "2026-03-01" {
@@ -114,13 +114,13 @@ func TestAdvanceRecurringTasks_AdvancesDoneRecurring(t *testing.T) {
 
 func TestAdvanceRecurringTasks_UsesOwnDueDateWhenNoExisting(t *testing.T) {
 	tasks := []MainTask{
-		{Description: "daily", Recurrence: "FREQ=DAILY", Done: true, DueDate: "2026-06-15"},
+		{Description: "daily", Recurrence: "FREQ=DAILY", IsDone: true, DueDate: "2026-06-15"},
 	}
 
 	if err := advanceRecurringTasks(tasks, nil); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if tasks[0].Done {
+	if tasks[0].IsDone {
 		t.Fatal("should be reset to done=false")
 	}
 	if tasks[0].DueDate != "2026-06-16" {
@@ -130,7 +130,7 @@ func TestAdvanceRecurringTasks_UsesOwnDueDateWhenNoExisting(t *testing.T) {
 
 func TestAdvanceRecurringTasks_InvalidRRuleReturnsError(t *testing.T) {
 	tasks := []MainTask{
-		{Description: "bad", Recurrence: "NOT_VALID", Done: true},
+		{Description: "bad", Recurrence: "NOT_VALID", IsDone: true},
 	}
 	err := advanceRecurringTasks(tasks, nil)
 	if err == nil {
@@ -273,7 +273,7 @@ func TestPersistTaskFile_WritesSuccessfully(t *testing.T) {
 
 	tasks := []MainTask{
 		{Description: "task one"},
-		{Description: "task two", Done: true},
+		{Description: "task two", IsDone: true},
 	}
 
 	err := persistTaskFile(nopLogger(), persistParams{

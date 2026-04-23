@@ -61,9 +61,6 @@ func TestProperty1_NoteCreateThenGetRoundTrip(t *testing.T) {
 		if got.Id != created.Id {
 			rt.Fatalf("get: expected id %q, got %q", created.Id, got.Id)
 		}
-		if got.FilePath != created.FilePath {
-			rt.Fatalf("get: expected file_path %q, got %q", created.FilePath, got.FilePath)
-		}
 		if got.Title != title {
 			rt.Fatalf("get: expected title %q, got %q", title, got.Title)
 		}
@@ -99,7 +96,6 @@ func TestProperty2_UpdateNoteReturnsFullNote(t *testing.T) {
 		}
 
 		noteId := createResp.Note.Id
-		filePath := createResp.Note.FilePath
 
 		updateResp, err := srv.UpdateNote(context.Background(), &pb.UpdateNoteRequest{
 			Id:      noteId,
@@ -116,9 +112,6 @@ func TestProperty2_UpdateNoteReturnsFullNote(t *testing.T) {
 		}
 		if updated.Id != noteId {
 			rt.Fatalf("expected id %q, got %q", noteId, updated.Id)
-		}
-		if updated.FilePath != filePath {
-			rt.Fatalf("expected file_path %q, got %q", filePath, updated.FilePath)
 		}
 		if updated.Title != title {
 			rt.Fatalf("expected title %q, got %q", title, updated.Title)

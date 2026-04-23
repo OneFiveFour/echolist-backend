@@ -172,7 +172,7 @@ func (s *FileServer) buildTaskListEntry(absPath, name, requestParentDir string, 
 		} else {
 			totalTaskCount = int32(len(mainTasks))
 			for _, task := range mainTasks {
-				if task.Done {
+				if task.IsDone {
 					doneTaskCount++
 				}
 			}

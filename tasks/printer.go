@@ -25,7 +25,7 @@ func PrintTaskFile(tasks []MainTask) []byte {
 }
 
 func printMainTask(buf *bytes.Buffer, mt MainTask) {
-	if mt.Done {
+	if mt.IsDone {
 		buf.WriteString("- [x] ")
 	} else {
 		buf.WriteString("- [ ] ")
@@ -42,7 +42,7 @@ func printMainTask(buf *bytes.Buffer, mt MainTask) {
 }
 
 func printSubtask(buf *bytes.Buffer, st SubTask) {
-	if st.Done {
+	if st.IsDone {
 		buf.WriteString("  - [x] ")
 	} else {
 		buf.WriteString("  - [ ] ")

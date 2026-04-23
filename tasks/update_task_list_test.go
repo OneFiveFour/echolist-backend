@@ -38,15 +38,19 @@ func TestUpdateTaskList_RenamesFileAndUpdatesRegistry(t *testing.T) {
 	if resp.TaskList.Title != "new" {
 		t.Fatalf("unexpected Title: got %s, want %s", resp.TaskList.Title, "new")
 	}
-	if resp.TaskList.FilePath != "tasks_new.md" {
-		t.Fatalf("unexpected FilePath: got %s, want %s", resp.TaskList.FilePath, "tasks_new.md")
+	if resp.TaskList.ParentDir != "" {
+		t.Fatalf("unexpected ParentDir: got %s, want empty", resp.TaskList.ParentDir)
 	}
 
-	if _, err := os.Stat(filepath.Join(tmp, createResp.TaskList.FilePath)); !os.IsNotExist(err) {
+	// Old file should be gone
+	oldFile := filepath.Join(tmp, "tasks_old.md")
+	if _, err := os.Stat(oldFile); !os.IsNotExist(err) {
 		t.Fatalf("expected old file to be gone, stat err=%v", err)
 	}
 
-	data, err := os.ReadFile(filepath.Join(tmp, resp.TaskList.FilePath))
+	// New file should exist
+	newFile := filepath.Join(tmp, "tasks_new.md")
+	data, err := os.ReadFile(newFile)
 	if err != nil {
 		t.Fatalf("reading updated task file failed: %v", err)
 	}
@@ -61,8 +65,8 @@ func TestUpdateTaskList_RenamesFileAndUpdatesRegistry(t *testing.T) {
 	if got.TaskList.Title != "new" {
 		t.Fatalf("unexpected title after get: got %s, want %s", got.TaskList.Title, "new")
 	}
-	if got.TaskList.FilePath != "tasks_new.md" {
-		t.Fatalf("unexpected file_path after get: got %s, want %s", got.TaskList.FilePath, "tasks_new.md")
+	if got.TaskList.ParentDir != "" {
+		t.Fatalf("unexpected parent_dir after get: got %s, want empty", got.TaskList.ParentDir)
 	}
 	if len(got.TaskList.Tasks) != 1 || got.TaskList.Tasks[0].Description != "updated" {
 		t.Fatalf("unexpected tasks after get: %+v", got.TaskList.Tasks)

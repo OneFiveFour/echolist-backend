@@ -176,10 +176,9 @@ func (x *ListNotesRequest) GetParentDir() string {
 type Note struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	FilePath      string                 `protobuf:"bytes,2,opt,name=file_path,json=filePath,proto3" json:"file_path,omitempty"`
-	Title         string                 `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
-	Content       string                 `protobuf:"bytes,4,opt,name=content,proto3" json:"content,omitempty"`
-	UpdatedAt     int64                  `protobuf:"varint,5,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	Title         string                 `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
+	Content       string                 `protobuf:"bytes,3,opt,name=content,proto3" json:"content,omitempty"`
+	UpdatedAt     int64                  `protobuf:"varint,4,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -217,13 +216,6 @@ func (*Note) Descriptor() ([]byte, []int) {
 func (x *Note) GetId() string {
 	if x != nil {
 		return x.Id
-	}
-	return ""
-}
-
-func (x *Note) GetFilePath() string {
-	if x != nil {
-		return x.FilePath
 	}
 	return ""
 }
@@ -579,14 +571,13 @@ const file_notes_v1_notes_proto_rawDesc = "" +
 	"\x04note\x18\x01 \x01(\v2\x0e.notes.v1.NoteR\x04note\"1\n" +
 	"\x10ListNotesRequest\x12\x1d\n" +
 	"\n" +
-	"parent_dir\x18\x01 \x01(\tR\tparentDir\"\x82\x01\n" +
+	"parent_dir\x18\x01 \x01(\tR\tparentDir\"e\n" +
 	"\x04Note\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1b\n" +
-	"\tfile_path\x18\x02 \x01(\tR\bfilePath\x12\x14\n" +
-	"\x05title\x18\x03 \x01(\tR\x05title\x12\x18\n" +
-	"\acontent\x18\x04 \x01(\tR\acontent\x12\x1d\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
+	"\x05title\x18\x02 \x01(\tR\x05title\x12\x18\n" +
+	"\acontent\x18\x03 \x01(\tR\acontent\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\x05 \x01(\x03R\tupdatedAt\"9\n" +
+	"updated_at\x18\x04 \x01(\x03R\tupdatedAt\"9\n" +
 	"\x11ListNotesResponse\x12$\n" +
 	"\x05notes\x18\x01 \x03(\v2\x0e.notes.v1.NoteR\x05notes\" \n" +
 	"\x0eGetNoteRequest\x12\x0e\n" +

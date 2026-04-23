@@ -57,7 +57,7 @@ func TestCreateTaskList_ExistingParentDirSucceeds(t *testing.T) {
 	if err != nil {
 		t.Fatalf("CreateTaskList failed: %v", err)
 	}
-	if resp.TaskList.FilePath != "existing/tasks_groceries.md" {
-		t.Fatalf("unexpected file_path: %s", resp.TaskList.FilePath)
+	if resp.TaskList.ParentDir != "existing" {
+		t.Fatalf("unexpected parent_dir: %s", resp.TaskList.ParentDir)
 	}
 }

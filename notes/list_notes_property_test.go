@@ -109,8 +109,8 @@ func TestProperty8_ListNotesShallowListing(t *testing.T) {
 
 		// The nested note must NOT appear in root listing notes
 		for _, n := range resp.Notes {
-			if strings.Contains(n.FilePath, folderName+"/") {
-				rt.Fatalf("nested note %q should not appear in shallow root listing", n.FilePath)
+			if n.Title == nestedNoteName {
+				rt.Fatalf("nested note %q should not appear in shallow root listing", n.Title)
 			}
 		}
 
@@ -272,12 +272,6 @@ func TestProperty_ListNotesExcludesDirectories(t *testing.T) {
 		for _, n := range resp.Notes {
 			if !noteNames[n.Title] {
 				rt.Fatalf("unexpected note title %q — may be a directory entry", n.Title)
-			}
-			// FilePath must not match any directory name
-			for dirName := range dirNames {
-				if n.FilePath == dirName || n.FilePath == dirName+"/" {
-					rt.Fatalf("directory %q appeared as a note entry", dirName)
-				}
 			}
 		}
 	})

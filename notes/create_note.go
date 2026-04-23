@@ -88,7 +88,6 @@ func (s *NotesServer) CreateNote(
 
 	note := &pb.Note{
 		Id:        id,
-		FilePath:  relativeFilePath,
 		Title:     req.Title,
 		Content:   req.Content,
 		UpdatedAt: info.ModTime().UnixMilli(),

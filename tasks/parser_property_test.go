@@ -15,7 +15,7 @@ func subtaskGen() *rapid.Generator[SubTask] {
 		desc := rapid.StringMatching(`[A-Za-z0-9 ]{1,40}`).Draw(t, "subtask-desc")
 		return SubTask{
 			Description: desc,
-			Done:        rapid.Bool().Draw(t, "subtask-done"),
+			IsDone:      rapid.Bool().Draw(t, "subtask-done"),
 		}
 	})
 }
@@ -43,7 +43,7 @@ func mainTaskGen() *rapid.Generator[MainTask] {
 
 		return MainTask{
 			Description: desc,
-			Done:        done,
+			IsDone:      done,
 			DueDate:     dueDate,
 			Recurrence:  recurrence,
 			SubTasks:    subtasks,

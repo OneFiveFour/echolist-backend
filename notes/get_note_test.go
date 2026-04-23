@@ -24,9 +24,6 @@ func TestGetNote(t *testing.T) {
 	if err != nil {
 		t.Fatalf("GetNote failed: %v", err)
 	}
-	if resp.Note.FilePath != "note_mytest.md" {
-		t.Fatalf("unexpected FilePath: %s", resp.Note.FilePath)
-	}
 	if resp.Note.Title != "mytest" {
 		t.Fatalf("unexpected Title: %s", resp.Note.Title)
 	}

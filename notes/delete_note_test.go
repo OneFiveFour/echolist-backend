@@ -23,7 +23,7 @@ func TestDeleteNote(t *testing.T) {
 	}
 
 	noteId := createResp.Note.Id
-	notePath := filepath.Join(tmp, createResp.Note.FilePath)
+	notePath := filepath.Join(tmp, "note_todelete.md")
 
 	_, err = s.DeleteNote(context.Background(), &pb.DeleteNoteRequest{Id: noteId})
 	if err != nil {

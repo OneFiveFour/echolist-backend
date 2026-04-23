@@ -13,21 +13,23 @@ service TaskListService {
 }
 
 message SubTask {
-  string description = 1;
-  bool done = 2;
+  string id = 1;
+  string description = 2;
+  bool is_done = 3;
 }
 
 message MainTask {
-  string description = 1;
-  bool done = 2;
-  string due_date = 3;
-  string recurrence = 4;
-  repeated SubTask sub_tasks = 5;
+  string id = 1;
+  string description = 2;
+  bool is_done = 3;
+  string due_date = 4;
+  string recurrence = 5;
+  repeated SubTask sub_tasks = 6;
 }
 
 message TaskList {
   string id = 1;
-  string file_path = 2;
+  string parent_dir = 2;
   string title = 3;
   repeated MainTask tasks = 4;
   int64 updated_at = 5;

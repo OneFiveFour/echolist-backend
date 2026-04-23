@@ -118,7 +118,7 @@ func TestProperty3_AutoDeleteDisabledRetainsAll(t *testing.T) {
 		tasks := simpleTaskListGen().Draw(rt, "tasks")
 		// Mark some as done to exercise the retention path
 		for i := range tasks {
-			tasks[i].Done = rapid.Bool().Draw(rt, fmt.Sprintf("done-%d", i))
+			tasks[i].IsDone = rapid.Bool().Draw(rt, fmt.Sprintf("done-%d", i))
 		}
 
 		updateResp, err := srv.UpdateTaskList(context.Background(), &pb.UpdateTaskListRequest{
@@ -140,15 +140,15 @@ func TestProperty3_AutoDeleteDisabledRetainsAll(t *testing.T) {
 			if g.Description != w.Description {
 				rt.Fatalf("task %d description: expected %q, got %q", i, w.Description, g.Description)
 			}
-			if g.Done != w.Done {
-				rt.Fatalf("task %d done: expected %v, got %v", i, w.Done, g.Done)
+			if g.IsDone != w.IsDone {
+				rt.Fatalf("task %d done: expected %v, got %v", i, w.IsDone, g.IsDone)
 			}
 			if len(g.SubTasks) != len(w.SubTasks) {
 				rt.Fatalf("task %d subtask count: expected %d, got %d", i, len(w.SubTasks), len(g.SubTasks))
 			}
 			for j, gs := range g.SubTasks {
 				ws := w.SubTasks[j]
-				if gs.Description != ws.Description || gs.Done != ws.Done {
+				if gs.Description != ws.Description || gs.IsDone != ws.IsDone {
 					rt.Fatalf("task %d subtask %d mismatch", i, j)
 				}
 			}
@@ -189,7 +189,7 @@ func TestProperty4_AutoDeleteAdvancesRecurring(t *testing.T) {
 			Title: name,
 			Tasks: []*pb.MainTask{{
 				Description: "recurring task",
-				Done:        true,
+				IsDone:      true,
 				Recurrence:  rrule,
 			}},
 			IsAutoDelete: true,
@@ -204,7 +204,7 @@ func TestProperty4_AutoDeleteAdvancesRecurring(t *testing.T) {
 		}
 
 		updated := updateResp.TaskList.Tasks[0]
-		if updated.Done {
+		if updated.IsDone {
 			rt.Fatal("recurring task should be reset to done=false after advance")
 		}
 		if updated.DueDate <= originalDueDate {
@@ -237,12 +237,12 @@ func TestProperty6_ManualDeletionCascadesRegardlessOfAutoDelete(t *testing.T) {
 			for j := 0; j < numSubs; j++ {
 				subs = append(subs, &pb.SubTask{
 					Description: fmt.Sprintf("sub-%d-%d", i, j),
-					Done:        rapid.Bool().Draw(rt, fmt.Sprintf("sub-done-%d-%d", i, j)),
+					IsDone:      rapid.Bool().Draw(rt, fmt.Sprintf("sub-done-%d-%d", i, j)),
 				})
 			}
 			originalTasks = append(originalTasks, &pb.MainTask{
 				Description: fmt.Sprintf("task-%d", i),
-				Done:        rapid.Bool().Draw(rt, fmt.Sprintf("done-%d", i)),
+				IsDone:      rapid.Bool().Draw(rt, fmt.Sprintf("done-%d", i)),
 				SubTasks:    subs,
 			})
 		}

@@ -35,7 +35,11 @@ func (s *NotesServer) ListNotes(
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to read directory: %w", err))
 	}
 
-	var notes []*pb.Note
+	type noteWithPath struct {
+		note     *pb.Note
+		filePath string
+	}
+	var notesWithPath []noteWithPath
 
 	prefix := parentDir
 	if prefix != "" && !strings.HasSuffix(prefix, "/") {
@@ -71,11 +75,13 @@ func (s *NotesServer) ListNotes(
 			continue
 		}
 
-		notes = append(notes, &pb.Note{
-			FilePath:  entryPath,
-			Title:     title,
-			Content:   string(content),
-			UpdatedAt: info.ModTime().UnixMilli(),
+		notesWithPath = append(notesWithPath, noteWithPath{
+			note: &pb.Note{
+				Title:     title,
+				Content:   string(content),
+				UpdatedAt: info.ModTime().UnixMilli(),
+			},
+			filePath: entryPath,
 		})
 	}
 
@@ -92,8 +98,10 @@ func (s *NotesServer) ListNotes(
 		reverseMap[entry.FilePath] = id
 	}
 
-	for _, n := range notes {
-		n.Id = reverseMap[n.FilePath] // empty string if not found
+	notes := make([]*pb.Note, len(notesWithPath))
+	for i, nwp := range notesWithPath {
+		nwp.note.Id = reverseMap[nwp.filePath] // empty string if not found
+		notes[i] = nwp.note
 	}
 
 	return &pb.ListNotesResponse{Notes: notes}, nil

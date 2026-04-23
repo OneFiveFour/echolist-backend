@@ -23,7 +23,7 @@ func TestParseTaskFile_SingleSimpleTask(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	expected := []MainTask{
-		{Description: "Buy groceries", Done: false},
+		{Description: "Buy groceries", IsDone: false},
 	}
 	if !reflect.DeepEqual(tasks, expected) {
 		t.Fatalf("got %+v, want %+v", tasks, expected)
@@ -36,7 +36,7 @@ func TestParseTaskFile_SingleDoneTask(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if len(tasks) != 1 || !tasks[0].Done || tasks[0].Description != "Clean kitchen" {
+	if len(tasks) != 1 || !tasks[0].IsDone || tasks[0].Description != "Clean kitchen" {
 		t.Fatalf("unexpected result: %+v", tasks)
 	}
 }
@@ -50,10 +50,10 @@ func TestParseTaskFile_TaskWithSubtasks(t *testing.T) {
 	expected := []MainTask{
 		{
 			Description: "Buy groceries",
-			Done:        false,
+			IsDone:      false,
 			SubTasks: []SubTask{
-				{Description: "Whole milk 2L", Done: false},
-				{Description: "Bread", Done: true},
+				{Description: "Whole milk 2L", IsDone: false},
+				{Description: "Bread", IsDone: true},
 			},
 		},
 	}
@@ -111,7 +111,7 @@ func TestParseTaskFile_MixedModes(t *testing.T) {
 			},
 		},
 		{Description: "Walk the dog"},
-		{Description: "Pay rent", Done: true, DueDate: "2025-07-01", Recurrence: "FREQ=MONTHLY"},
+		{Description: "Pay rent", IsDone: true, DueDate: "2025-07-01", Recurrence: "FREQ=MONTHLY"},
 	}
 	if !reflect.DeepEqual(tasks, expected) {
 		t.Fatalf("got %+v, want %+v", tasks, expected)
@@ -171,10 +171,10 @@ func TestPrintTaskFile_RoundTrip(t *testing.T) {
 			Description: "Buy groceries",
 			SubTasks: []SubTask{
 				{Description: "Whole milk 2L"},
-				{Description: "Bread", Done: true},
+				{Description: "Bread", IsDone: true},
 			},
 		},
-		{Description: "Clean kitchen", Done: true},
+		{Description: "Clean kitchen", IsDone: true},
 	}
 	printed := PrintTaskFile(tasks)
 	expected := "- [ ] Buy groceries\n  - [ ] Whole milk 2L\n  - [x] Bread\n- [x] Clean kitchen"

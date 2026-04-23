@@ -23,12 +23,12 @@ func autoDeleteMainTaskGen() *rapid.Generator[MainTask] {
 		for i := 0; i < numSubs; i++ {
 			subs = append(subs, SubTask{
 				Description: rapid.StringMatching(`[A-Za-z0-9 ]{1,30}`).Draw(t, fmt.Sprintf("sub-%d", i)),
-				Done:        rapid.Bool().Draw(t, fmt.Sprintf("sub-done-%d", i)),
+				IsDone:      rapid.Bool().Draw(t, fmt.Sprintf("sub-done-%d", i)),
 			})
 		}
 		return MainTask{
 			Description: desc,
-			Done:        done,
+			IsDone:      done,
 			DueDate:     dueDate,
 			Recurrence:  recurrence,
 			SubTasks:    subs,
@@ -50,7 +50,7 @@ func TestProperty2_AutoDeleteRemovesDoneNonRecurring(t *testing.T) {
 
 		// No done non-recurring MainTask should survive.
 		for i, mt := range result {
-			if mt.Done && mt.Recurrence == "" {
+			if mt.IsDone && mt.Recurrence == "" {
 				rt.Fatalf("result[%d]: done non-recurring MainTask %q should have been removed", i, mt.Description)
 			}
 		}
@@ -58,7 +58,7 @@ func TestProperty2_AutoDeleteRemovesDoneNonRecurring(t *testing.T) {
 		// The result should contain exactly the MainTasks that are either open or recurring.
 		var expected int
 		for _, mt := range tasks {
-			if !(mt.Done && mt.Recurrence == "") {
+			if !(mt.IsDone && mt.Recurrence == "") {
 				expected++
 			}
 		}
@@ -78,7 +78,7 @@ func TestProperty5_AutoDeleteRemovesDoneSubTasks(t *testing.T) {
 		// No done SubTask should survive on any surviving MainTask.
 		for i, mt := range result {
 			for j, st := range mt.SubTasks {
-				if st.Done {
+				if st.IsDone {
 					rt.Fatalf("result[%d].SubTasks[%d]: done SubTask %q should have been removed", i, j, st.Description)
 				}
 			}
@@ -88,7 +88,7 @@ func TestProperty5_AutoDeleteRemovesDoneSubTasks(t *testing.T) {
 		// filterAutoDeleted preserves order, so we walk input and result in lockstep.
 		ri := 0
 		for _, mt := range tasks {
-			if mt.Done && mt.Recurrence == "" {
+			if mt.IsDone && mt.Recurrence == "" {
 				continue // this MainTask was removed
 			}
 			if ri >= len(result) {
@@ -100,7 +100,7 @@ func TestProperty5_AutoDeleteRemovesDoneSubTasks(t *testing.T) {
 			// Count open subtasks in input.
 			var expectedOpen int
 			for _, st := range mt.SubTasks {
-				if !st.Done {
+				if !st.IsDone {
 					expectedOpen++
 				}
 			}

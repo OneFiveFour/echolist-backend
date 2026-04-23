@@ -71,7 +71,7 @@ func TestUpdateNote_ContentTooLarge(t *testing.T) {
 	}
 
 	noteId := createResp.Note.Id
-	notePath := filepath.Join(dataDir, createResp.Note.FilePath)
+	notePath := filepath.Join(dataDir, "note_test.md")
 
 	oversized := strings.Repeat("x", common.MaxNoteContentBytes+1)
 

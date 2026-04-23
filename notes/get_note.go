@@ -18,7 +18,7 @@ func (s *NotesServer) GetNote(
 ) (*pb.GetNoteResponse, error) {
 
 	// Validate the id field before any filesystem operations (Req 9.1, 9.2)
-	if err := validateUuidV4(req.GetId()); err != nil {
+	if err := common.ValidateUuidV4(req.GetId()); err != nil {
 		return nil, err
 	}
 
@@ -67,7 +67,6 @@ func (s *NotesServer) GetNote(
 
 	note := &pb.Note{
 		Id:        req.GetId(),
-		FilePath:  filePath,
 		Title:     title,
 		Content:   string(content),
 		UpdatedAt: info.ModTime().UnixMilli(),

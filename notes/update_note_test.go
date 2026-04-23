@@ -38,15 +38,14 @@ func TestUpdateNote(t *testing.T) {
 	if resp.Note.Title != "renamed" {
 		t.Fatalf("unexpected Title: got %s, want %s", resp.Note.Title, "renamed")
 	}
-	if resp.Note.FilePath != "note_renamed.md" {
-		t.Fatalf("unexpected FilePath: got %s, want %s", resp.Note.FilePath, "note_renamed.md")
-	}
 
-	// verify file contents
-	if _, err := os.Stat(filepath.Join(tmp, createResp.Note.FilePath)); !os.IsNotExist(err) {
+	// verify file contents: old file should be gone
+	oldFile := filepath.Join(tmp, "note_b.md")
+	if _, err := os.Stat(oldFile); !os.IsNotExist(err) {
 		t.Fatalf("expected old file to be gone, stat err=%v", err)
 	}
-	b, err := os.ReadFile(filepath.Join(tmp, resp.Note.FilePath))
+	newFile := filepath.Join(tmp, "note_renamed.md")
+	b, err := os.ReadFile(newFile)
 	if err != nil {
 		t.Fatalf("reading written file failed: %v", err)
 	}
@@ -60,8 +59,5 @@ func TestUpdateNote(t *testing.T) {
 	}
 	if got.Note.Title != "renamed" {
 		t.Fatalf("unexpected title after get: got %s, want %s", got.Note.Title, "renamed")
-	}
-	if got.Note.FilePath != "note_renamed.md" {
-		t.Fatalf("unexpected file_path after get: got %s, want %s", got.Note.FilePath, "note_renamed.md")
 	}
 }

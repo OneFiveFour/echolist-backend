@@ -34,11 +34,6 @@ func (s *TaskServer) ListTaskLists(
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to read directory: %w", err))
 	}
 
-	prefix := parentDir
-	if prefix != "" && !strings.HasSuffix(prefix, "/") {
-		prefix += "/"
-	}
-
 	var taskLists []*pb.TaskList
 
 	for _, e := range dirEntries {
@@ -53,7 +48,6 @@ func (s *TaskServer) ListTaskLists(
 			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to stat %s: %w", name, err))
 		}
 
-		entryPath := prefix + name
 		listName, err := ExtractTaskListTitle(name)
 		if err != nil {
 			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("invalid task list filename %s: %w", name, err))
@@ -70,7 +64,7 @@ func (s *TaskServer) ListTaskLists(
 			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to parse task file %s: %w", name, err))
 		}
 
-		taskLists = append(taskLists, buildTaskList("", entryPath, listName, domainTasks, info.ModTime().UnixMilli(), false))
+		taskLists = append(taskLists, buildTaskList("", parentDir, listName, domainTasks, info.ModTime().UnixMilli(), false))
 	}
 
 	// Read registry and build reverse map (filePath → id)
@@ -86,10 +80,18 @@ func (s *TaskServer) ListTaskLists(
 		reverseMap[entry.FilePath] = registryEntry{FilePath: id, IsAutoDelete: entry.IsAutoDelete}
 	}
 
-	for _, tl := range taskLists {
-		if re, ok := reverseMap[tl.FilePath]; ok {
-			tl.Id = re.FilePath
-			tl.IsAutoDelete = re.IsAutoDelete
+	for i, tl := range taskLists {
+		// Reconstruct the file path used as registry key
+		fileName := common.TaskListFileType.Prefix + tl.Title + common.TaskListFileType.Suffix
+		var filePath string
+		if parentDir == "" {
+			filePath = fileName
+		} else {
+			filePath = parentDir + "/" + fileName
+		}
+		if re, ok := reverseMap[filePath]; ok {
+			taskLists[i].Id = re.FilePath
+			taskLists[i].IsAutoDelete = re.IsAutoDelete
 		}
 	}
 

@@ -319,7 +319,7 @@ func TestProperty5_TaskListMetadata(t *testing.T) {
 			done := rapid.Bool().Draw(rt, "done")
 			mainTasks = append(mainTasks, tasks.MainTask{
 				Description: "Task " + string(rune('A'+i)),
-				Done:        done,
+				IsDone:      done,
 			})
 			if done {
 				expectedDone++

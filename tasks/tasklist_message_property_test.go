@@ -43,9 +43,9 @@ func TestProperty_CreateGetRoundTripTaskListMessage(t *testing.T) {
 			rt.Fatal("GetTaskListResponse.TaskList is nil")
 		}
 
-		// Both must share the same file_path
-		if createResp.TaskList.FilePath != getResp.TaskList.FilePath {
-			rt.Fatalf("file_path mismatch: create=%q get=%q", createResp.TaskList.FilePath, getResp.TaskList.FilePath)
+		// Both must share the same parent_dir
+		if createResp.TaskList.ParentDir != getResp.TaskList.ParentDir {
+			rt.Fatalf("parent_dir mismatch: create=%q get=%q", createResp.TaskList.ParentDir, getResp.TaskList.ParentDir)
 		}
 
 		// Both must share the same name
@@ -72,11 +72,11 @@ func TestProperty_CreateGetRoundTripTaskListMessage(t *testing.T) {
 			if gGot.Description != want.Description {
 				rt.Fatalf("get task %d description: expected %q, got %q", i, want.Description, gGot.Description)
 			}
-			if cGot.Done != want.Done {
-				rt.Fatalf("create task %d done: expected %v, got %v", i, want.Done, cGot.Done)
+			if cGot.IsDone != want.IsDone {
+				rt.Fatalf("create task %d done: expected %v, got %v", i, want.IsDone, cGot.IsDone)
 			}
-			if gGot.Done != want.Done {
-				rt.Fatalf("get task %d done: expected %v, got %v", i, want.Done, gGot.Done)
+			if gGot.IsDone != want.IsDone {
+				rt.Fatalf("get task %d done: expected %v, got %v", i, want.IsDone, gGot.IsDone)
 			}
 		}
 
@@ -124,9 +124,9 @@ func TestProperty_UpdateReturnsTaskListMessage(t *testing.T) {
 			rt.Fatal("UpdateTaskListResponse.TaskList is nil")
 		}
 
-		// file_path must match the original
-		if updateResp.TaskList.FilePath != createResp.TaskList.FilePath {
-			rt.Fatalf("file_path mismatch: expected %q, got %q", createResp.TaskList.FilePath, updateResp.TaskList.FilePath)
+		// parent_dir must match the original
+		if updateResp.TaskList.ParentDir != createResp.TaskList.ParentDir {
+			rt.Fatalf("parent_dir mismatch: expected %q, got %q", createResp.TaskList.ParentDir, updateResp.TaskList.ParentDir)
 		}
 
 		// name must match the original
@@ -143,8 +143,8 @@ func TestProperty_UpdateReturnsTaskListMessage(t *testing.T) {
 			if got.Description != want.Description {
 				rt.Fatalf("task %d description: expected %q, got %q", i, want.Description, got.Description)
 			}
-			if got.Done != want.Done {
-				rt.Fatalf("task %d done: expected %v, got %v", i, want.Done, got.Done)
+			if got.IsDone != want.IsDone {
+				rt.Fatalf("task %d done: expected %v, got %v", i, want.IsDone, got.IsDone)
 			}
 			if len(got.SubTasks) != len(want.SubTasks) {
 				rt.Fatalf("task %d subtask count: expected %d, got %d", i, len(want.SubTasks), len(got.SubTasks))
@@ -229,12 +229,11 @@ func TestProperty_ListReturnsFullTaskListMessages(t *testing.T) {
 			}
 		}
 
-		// Verify file_path is set correctly on each TaskList
+		// Verify parent_dir is set correctly on each TaskList
 		for _, c := range createdLists {
 			tl := tlByName[c.name]
-			expectedPath := "tasks_" + c.name + ".md"
-			if tl.FilePath != expectedPath {
-				rt.Fatalf("task list %q file_path: expected %q, got %q", c.name, expectedPath, tl.FilePath)
+			if tl.ParentDir != "" {
+				rt.Fatalf("task list %q parent_dir: expected %q, got %q", c.name, "", tl.ParentDir)
 			}
 		}
 	})

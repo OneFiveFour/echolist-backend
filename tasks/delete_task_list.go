@@ -18,7 +18,7 @@ func (s *TaskServer) DeleteTaskList(
 ) (*pb.DeleteTaskListResponse, error) {
 
 	// Validate the id field before any filesystem operations (Req 9.1, 9.2)
-	if err := validateUuidV4(req.GetId()); err != nil {
+	if err := common.ValidateUuidV4(req.GetId()); err != nil {
 		return nil, err
 	}
 

@@ -39,9 +39,6 @@ func TestListNotes_ShallowListing(t *testing.T) {
 	if len(resp.Notes) != 1 {
 		t.Fatalf("expected 1 note, got %d", len(resp.Notes))
 	}
-	if resp.Notes[0].FilePath != "note_note1.md" {
-		t.Fatalf("unexpected FilePath: %s", resp.Notes[0].FilePath)
-	}
 	if resp.Notes[0].Title != "note1" {
 		t.Fatalf("unexpected title: %s", resp.Notes[0].Title)
 	}
@@ -69,8 +66,8 @@ func TestListNotes_SubfolderPath(t *testing.T) {
 	if len(resp.Notes) != 1 {
 		t.Fatalf("expected 1 note for sub, got %d", len(resp.Notes))
 	}
-	if resp.Notes[0].FilePath != "sub/note_note2.md" {
-		t.Fatalf("unexpected FilePath: %s", resp.Notes[0].FilePath)
+	if resp.Notes[0].Title != "note2" {
+		t.Fatalf("unexpected Title: %s", resp.Notes[0].Title)
 	}
 }
 

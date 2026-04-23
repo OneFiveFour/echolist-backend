@@ -17,7 +17,7 @@ func (s *NotesServer) UpdateNote(
 	ctx context.Context,
 	req *pb.UpdateNoteRequest,
 ) (*pb.UpdateNoteResponse, error) {
-	if err := validateUuidV4(req.GetId()); err != nil {
+	if err := common.ValidateUuidV4(req.GetId()); err != nil {
 		return nil, err
 	}
 
@@ -134,7 +134,6 @@ func (s *NotesServer) UpdateNote(
 
 	note := &pb.Note{
 		Id:        req.GetId(),
-		FilePath:  currentFilePath,
 		Title:     title,
 		Content:   req.Content,
 		UpdatedAt: info.ModTime().UnixMilli(),

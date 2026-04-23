@@ -19,7 +19,7 @@ func (s *TaskServer) UpdateTaskList(
 	ctx context.Context,
 	req *pb.UpdateTaskListRequest,
 ) (*pb.UpdateTaskListResponse, error) {
-	if err := validateUuidV4(req.GetId()); err != nil {
+	if err := common.ValidateUuidV4(req.GetId()); err != nil {
 		return nil, err
 	}
 
@@ -127,8 +127,13 @@ func (s *TaskServer) UpdateTaskList(
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to stat task file after update: %w", err))
 	}
 
+	responseParentDir := filepath.Dir(rr.filePath)
+	if responseParentDir == "." {
+		responseParentDir = ""
+	}
+
 	return &pb.UpdateTaskListResponse{
-		TaskList: buildTaskList(req.GetId(), rr.filePath, title, domainTasks, info.ModTime().UnixMilli(), isAutoDelete),
+		TaskList: buildTaskList(req.GetId(), responseParentDir, title, domainTasks, info.ModTime().UnixMilli(), isAutoDelete),
 	}, nil
 }
 
@@ -165,7 +170,7 @@ func advanceRecurringTasks(domainTasks, existingTasks []MainTask) error {
 	}
 
 	for i, t := range domainTasks {
-		if t.Recurrence == "" || !t.Done {
+		if t.Recurrence == "" || !t.IsDone {
 			continue
 		}
 		var prevDue string
@@ -186,7 +191,7 @@ func advanceRecurringTasks(domainTasks, existingTasks []MainTask) error {
 		if err != nil {
 			return err
 		}
-		domainTasks[i].Done = false
+		domainTasks[i].IsDone = false
 		domainTasks[i].DueDate = next.Format("2006-01-02")
 	}
 	return nil
@@ -279,17 +284,17 @@ func persistTaskFile(logger *slog.Logger, p persistParams) error {
 func filterAutoDeleted(tasks []MainTask) []MainTask {
 	var result []MainTask
 	for _, mt := range tasks {
-		if mt.Done && mt.Recurrence == "" {
+		if mt.IsDone && mt.Recurrence == "" {
 			continue
 		}
 		filtered := MainTask{
 			Description: mt.Description,
-			Done:        mt.Done,
+			IsDone:      mt.IsDone,
 			DueDate:     mt.DueDate,
 			Recurrence:  mt.Recurrence,
 		}
 		for _, st := range mt.SubTasks {
-			if !st.Done {
+			if !st.IsDone {
 				filtered.SubTasks = append(filtered.SubTasks, st)
 			}
 		}

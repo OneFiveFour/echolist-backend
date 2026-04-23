@@ -55,10 +55,6 @@ func TestCreateNote_CreatesMarkdownFile(t *testing.T) {
 		t.Fatalf("file content mismatch")
 	}
 
-	if resp.Note.FilePath != "Work/2026/note_Meeting.md" {
-		t.Fatalf("unexpected file_path: %s", resp.Note.FilePath)
-	}
-
 	if resp.Note.Title != "Meeting" {
 		t.Fatalf("unexpected title: %s", resp.Note.Title)
 	}
@@ -158,8 +154,8 @@ func TestCreateNote_ExistingParentDirSucceeds(t *testing.T) {
 	if err != nil {
 		t.Fatalf("CreateNote failed: %v", err)
 	}
-	if resp.Note.FilePath != "existing/note_Test.md" {
-		t.Fatalf("unexpected file_path: %s", resp.Note.FilePath)
+	if resp.Note.Title != "Test" {
+		t.Fatalf("unexpected title: %s", resp.Note.Title)
 	}
 }
 

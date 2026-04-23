@@ -92,6 +92,6 @@ func (s *TaskServer) CreateTaskList(
 	}
 
 	return &pb.CreateTaskListResponse{
-		TaskList: buildTaskList(id, relPath, title, domainTasks, nowMillis(), isAutoDelete),
+		TaskList: buildTaskList(id, parentDir, title, domainTasks, nowMillis(), isAutoDelete),
 	}, nil
 }

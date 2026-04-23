@@ -63,7 +63,7 @@ func parseMainTask(line string, lineNum int) (MainTask, error) {
 	var mt MainTask
 
 	if strings.HasPrefix(line, "- [x] ") {
-		mt.Done = true
+		mt.IsDone = true
 		line = line[6:] // len("- [x] ") == 6
 	} else {
 		line = line[6:] // len("- [ ] ") == 6
@@ -82,7 +82,7 @@ func parseSubtask(line string, lineNum int) (SubTask, error) {
 	var st SubTask
 
 	if strings.HasPrefix(line, "  - [x] ") {
-		st.Done = true
+		st.IsDone = true
 		line = line[8:] // len("  - [x] ") == 8
 	} else {
 		line = line[8:] // len("  - [ ] ") == 8

@@ -5,6 +5,8 @@ import (
 	"testing"
 
 	"connectrpc.com/connect"
+
+	"echolist-backend/common"
 	"pgregory.net/rapid"
 )
 
@@ -61,17 +63,17 @@ func TestProperty8_InvalidUuidReturnsInvalidArgument(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		input := invalidUuidGen().Draw(rt, "invalidUuid")
 
-		err := validateUuidV4(input)
+		err := common.ValidateUuidV4(input)
 
 		if err == nil {
-			rt.Fatalf("validateUuidV4(%q): expected error, got nil", input)
+			rt.Fatalf("ValidateUuidV4(%q): expected error, got nil", input)
 		}
 		var connErr *connect.Error
 		if !errors.As(err, &connErr) {
-			rt.Fatalf("validateUuidV4(%q): expected connect.Error, got %T: %v", input, err, err)
+			rt.Fatalf("ValidateUuidV4(%q): expected connect.Error, got %T: %v", input, err, err)
 		}
 		if connErr.Code() != connect.CodeInvalidArgument {
-			rt.Fatalf("validateUuidV4(%q): expected CodeInvalidArgument, got %v", input, connErr.Code())
+			rt.Fatalf("ValidateUuidV4(%q): expected CodeInvalidArgument, got %v", input, connErr.Code())
 		}
 	})
 }

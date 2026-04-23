@@ -19,7 +19,7 @@ func (s *TaskServer) GetTaskList(
 ) (*pb.GetTaskListResponse, error) {
 
 	// Validate the id field before any filesystem operations (Req 9.1, 9.2)
-	if err := validateUuidV4(req.GetId()); err != nil {
+	if err := common.ValidateUuidV4(req.GetId()); err != nil {
 		return nil, err
 	}
 
@@ -73,7 +73,12 @@ func (s *TaskServer) GetTaskList(
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("invalid task list filename: %w", err))
 	}
 
+	parentDirForResponse := filepath.Dir(filePath)
+	if parentDirForResponse == "." {
+		parentDirForResponse = ""
+	}
+
 	return &pb.GetTaskListResponse{
-		TaskList: buildTaskList(req.GetId(), filePath, title, domainTasks, info.ModTime().UnixMilli(), regEntry.IsAutoDelete),
+		TaskList: buildTaskList(req.GetId(), parentDirForResponse, title, domainTasks, info.ModTime().UnixMilli(), regEntry.IsAutoDelete),
 	}, nil
 }

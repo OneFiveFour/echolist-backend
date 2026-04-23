@@ -27,8 +27,9 @@ func protoToMainTasks(pbTasks []*pb.MainTask) []MainTask {
 	tasks := make([]MainTask, len(pbTasks))
 	for i, pt := range pbTasks {
 		tasks[i] = MainTask{
+			Id:          pt.Id,
 			Description: pt.Description,
-			Done:        pt.Done,
+			IsDone:      pt.IsDone,
 			DueDate:     pt.DueDate,
 			Recurrence:  pt.Recurrence,
 			SubTasks:    protoToSubtasks(pt.SubTasks),
@@ -43,7 +44,7 @@ func protoToSubtasks(pbSubs []*pb.SubTask) []SubTask {
 	}
 	subs := make([]SubTask, len(pbSubs))
 	for i, ps := range pbSubs {
-		subs[i] = SubTask{Description: ps.Description, Done: ps.Done}
+		subs[i] = SubTask{Id: ps.Id, Description: ps.Description, IsDone: ps.IsDone}
 	}
 	return subs
 }
@@ -53,8 +54,9 @@ func mainTasksToProto(tasks []MainTask) []*pb.MainTask {
 	pbTasks := make([]*pb.MainTask, len(tasks))
 	for i, t := range tasks {
 		pbTasks[i] = &pb.MainTask{
+			Id:          t.Id,
 			Description: t.Description,
-			Done:        t.Done,
+			IsDone:      t.IsDone,
 			DueDate:     t.DueDate,
 			Recurrence:  t.Recurrence,
 			SubTasks:    subtasksToProto(t.SubTasks),
@@ -64,10 +66,10 @@ func mainTasksToProto(tasks []MainTask) []*pb.MainTask {
 }
 
 // buildTaskList constructs a pb.TaskList from the given parameters.
-func buildTaskList(id, filePath, title string, tasks []MainTask, updatedAt int64, isAutoDelete bool) *pb.TaskList {
+func buildTaskList(id, parentDir, title string, tasks []MainTask, updatedAt int64, isAutoDelete bool) *pb.TaskList {
 	return &pb.TaskList{
 		Id:           id,
-		FilePath:     filePath,
+		ParentDir:    parentDir,
 		Title:        title,
 		Tasks:        mainTasksToProto(tasks),
 		UpdatedAt:    updatedAt,
@@ -82,7 +84,7 @@ func subtasksToProto(subs []SubTask) []*pb.SubTask {
 	}
 	pbSubs := make([]*pb.SubTask, len(subs))
 	for i, s := range subs {
-		pbSubs[i] = &pb.SubTask{Description: s.Description, Done: s.Done}
+		pbSubs[i] = &pb.SubTask{Id: s.Id, Description: s.Description, IsDone: s.IsDone}
 	}
 	return pbSubs
 }

@@ -11,6 +11,7 @@ import (
 
 	"connectrpc.com/connect"
 
+	"echolist-backend/common"
 	pb "echolist-backend/proto/gen/notes/v1"
 	"pgregory.net/rapid"
 )
@@ -44,11 +45,6 @@ func TestProperty4_CreatedNotesUseNotePrefix(t *testing.T) {
 		absPath := filepath.Join(tmp, expectedFile)
 		if _, err := os.Stat(absPath); os.IsNotExist(err) {
 			rt.Fatalf("expected file %q to exist on disk", expectedFile)
-		}
-
-		// FilePath in response should reflect the prefix
-		if resp.Note.FilePath != expectedFile {
-			rt.Fatalf("expected file_path %q, got %q", expectedFile, resp.Note.FilePath)
 		}
 	})
 }
@@ -164,7 +160,7 @@ func TestProperty_CreateNotePathCanonicalization(t *testing.T) {
 		}
 
 		// Create note with clean path
-		respClean, err := srv.CreateNote(ctx, &pb.CreateNoteRequest{
+		_, err := srv.CreateNote(ctx, &pb.CreateNoteRequest{
 			ParentDir: cleanDir,
 			Title:     title,
 			Content:   content,
@@ -173,8 +169,9 @@ func TestProperty_CreateNotePathCanonicalization(t *testing.T) {
 			rt.Fatalf("CreateNote with clean path %q failed: %v", cleanDir, err)
 		}
 
-		// Record the absolute file location and relative path from the clean call
-		cleanRelPath := respClean.Note.FilePath
+		// Record the absolute file location from the clean call
+		cleanFileName := "note_" + title + ".md"
+		cleanRelPath := filepath.Join(cleanDir, cleanFileName)
 		cleanAbsPath := filepath.Join(tmp, cleanRelPath)
 
 		// Verify the file exists on disk
@@ -188,7 +185,7 @@ func TestProperty_CreateNotePathCanonicalization(t *testing.T) {
 		}
 
 		// Create note with unclean path (equivalent to clean path)
-		respUnclean, err := srv.CreateNote(ctx, &pb.CreateNoteRequest{
+		_, err = srv.CreateNote(ctx, &pb.CreateNoteRequest{
 			ParentDir: uncleanDir,
 			Title:     title,
 			Content:   content,
@@ -197,7 +194,7 @@ func TestProperty_CreateNotePathCanonicalization(t *testing.T) {
 			rt.Fatalf("CreateNote with unclean path %q failed: %v", uncleanDir, err)
 		}
 
-		uncleanRelPath := respUnclean.Note.FilePath
+		uncleanRelPath := filepath.Join(cleanDir, cleanFileName)
 		uncleanAbsPath := filepath.Join(tmp, uncleanRelPath)
 
 		// Both should produce the same relative file path
@@ -273,7 +270,7 @@ func TestProperty_CreateNoteDuplicateDetection(t *testing.T) {
 		content := rapid.StringMatching(`[a-zA-Z0-9 ]{1,50}`).Draw(rt, "content")
 
 		// First call should succeed
-		resp, err := srv.CreateNote(ctx, &pb.CreateNoteRequest{
+		_, err := srv.CreateNote(ctx, &pb.CreateNoteRequest{
 			ParentDir: "",
 			Title:     title,
 			Content:   content,
@@ -283,7 +280,7 @@ func TestProperty_CreateNoteDuplicateDetection(t *testing.T) {
 		}
 
 		// Record the file path and read original content from disk
-		absPath := filepath.Join(tmp, resp.Note.FilePath)
+		absPath := filepath.Join(tmp, "note_"+title+".md")
 		originalData, err := os.ReadFile(absPath)
 		if err != nil {
 			rt.Fatalf("failed to read created file: %v", err)
@@ -338,7 +335,7 @@ func TestProperty2_CreatedIdIsValidUuid(t *testing.T) {
 			rt.Fatalf("CreateNote failed: %v", err)
 		}
 
-		if err := validateUuidV4(resp.Note.Id); err != nil {
+		if err := common.ValidateUuidV4(resp.Note.Id); err != nil {
 			rt.Fatalf("returned id %q is not a valid UUIDv4: %v", resp.Note.Id, err)
 		}
 	})

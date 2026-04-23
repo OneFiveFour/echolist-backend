@@ -55,41 +55,41 @@ This plan migrates the echolist-backend from markdown-file + JSON-registry persi
   - Run `go build ./database/...` to ensure the new package compiles
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 3. Protobuf schema changes and code generation
-  - [ ] 3.1 Update `proto/tasks/v1/tasks.proto`
+- [x] 3. Protobuf schema changes and code generation
+  - [x] 3.1 Update `proto/tasks/v1/tasks.proto`
     - Add `string id = 1` to `SubTask`, shift `description` to 2, rename `done` to `is_done` at field 3
     - Add `string id = 1` to `MainTask`, shift `description` to 2, rename `done` to `is_done` at field 3, shift `due_date` to 4, `recurrence` to 5, `sub_tasks` to 6
     - In `TaskList`, replace `string file_path = 2` with `string parent_dir = 2`
     - _Requirements: 3.1, 3.2, 3.3, 3.4_
 
-  - [ ] 3.2 Update `proto/notes/v1/notes.proto`
+  - [x] 3.2 Update `proto/notes/v1/notes.proto`
     - Remove `file_path` field from `Note` message
     - Renumber: `title` = 2, `content` = 3, `updated_at` = 4
     - _Requirements: 3.5_
 
-  - [ ] 3.3 Run `buf generate` to regenerate Go protobuf code
+  - [x] 3.3 Run `buf generate` to regenerate Go protobuf code
     - Run `buf generate` from the `proto/` directory to regenerate `proto/gen/` files
     - Verify generated code compiles
     - _Requirements: 3.1, 3.2, 3.3, 3.5_
 
-- [ ] 4. Domain type changes and UUID consolidation
-  - [ ] 4.1 Update `tasks/types.go` — add `Id` field, rename `Done` to `IsDone`
+- [x] 4. Domain type changes and UUID consolidation
+  - [x] 4.1 Update `tasks/types.go` — add `Id` field, rename `Done` to `IsDone`
     - Add `Id string` as first field in `MainTask` struct
     - Add `Id string` as first field in `SubTask` struct
     - Rename `Done` to `IsDone` in both `MainTask` and `SubTask`
     - _Requirements: 4.1, 4.2_
 
-  - [ ] 4.2 Consolidate UUID validation into `common/uuid.go`
+  - [x] 4.2 Consolidate UUID validation into `common/uuid.go`
     - Create `common/uuid.go` with exported `ValidateUuidV4(id string) error` function (move from `tasks/uuid.go`)
     - Update `tasks/uuid.go` to call `common.ValidateUuidV4` (or remove and update callers)
     - Update `notes/uuid.go` to call `common.ValidateUuidV4` (or remove and update callers)
     - _Requirements: 31.1, 31.2_
 
-  - [ ] 4.3 Create `NotePath` helper function
+  - [x] 4.3 Create `NotePath` helper function
     - Create a function (in `database` or `common` package) `NotePath(parentDir, title, id string) string` that returns `<title>_<id>.md` when parentDir is `""`, or `<parentDir>/<title>_<id>.md` otherwise
     - _Requirements: 16.1, 16.4, 2.9_
 
-  - [ ] 4.4 Fix all compilation errors from `Done` → `IsDone` rename and proto field changes
+  - [x] 4.4 Fix all compilation errors from `Done` → `IsDone` rename and proto field changes
     - Update `tasks/validate.go`: `t.Done` → `t.IsDone`, `st.Done` → `st.IsDone`
     - Update `tasks/task_server.go`: `protoToMainTasks` and `protoToSubtasks` to map `Id` field and use `IsDone` (proto field is now `IsIsDone` or `GetIsIsDone` — check generated code); update `mainTasksToProto`, `subtasksToProto`, `buildTaskList` to use `ParentDir` instead of `FilePath`
     - Update `tasks/update_task_list.go`: `filterAutoDeleted` to use `IsDone`, `advanceRecurringTasks` to use `IsDone`
@@ -97,7 +97,7 @@ This plan migrates the echolist-backend from markdown-file + JSON-registry persi
     - Update all note RPC files that reference `pb.Note{FilePath: ...}` — remove `FilePath` field
     - _Requirements: 4.1, 4.2, 4.3, 3.3, 3.5_
 
-- [ ] 5. Checkpoint — Verify compilation after proto and domain changes
+- [x] 5. Checkpoint — Verify compilation after proto and domain changes
   - Run `go build ./...` to ensure the entire project compiles with the new proto and domain types
   - Ensure all tests pass, ask the user if questions arise.
 

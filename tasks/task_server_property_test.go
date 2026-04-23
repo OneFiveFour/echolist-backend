@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"connectrpc.com/connect"
+	"echolist-backend/common"
 	pb "echolist-backend/proto/gen/tasks/v1"
 	"pgregory.net/rapid"
 )
@@ -28,10 +29,10 @@ func simpleTaskGen() *rapid.Generator[*pb.MainTask] {
 		for i := 0; i < numSubs; i++ {
 			subs = append(subs, &pb.SubTask{
 				Description: rapid.StringMatching(`[A-Za-z0-9 ]{1,30}`).Draw(t, fmt.Sprintf("sub-%d", i)),
-				Done:        rapid.Bool().Draw(t, fmt.Sprintf("sub-done-%d", i)),
+				IsDone:      rapid.Bool().Draw(t, fmt.Sprintf("sub-done-%d", i)),
 			})
 		}
-		return &pb.MainTask{Description: desc, Done: done, SubTasks: subs}
+		return &pb.MainTask{Description: desc, IsDone: done, SubTasks: subs}
 	})
 }
 
@@ -125,8 +126,8 @@ func TestProperty5_CreatedTaskListsUseTasksPrefix(t *testing.T) {
 		if _, err := os.Stat(filepath.Join(tmp, expectedFile)); os.IsNotExist(err) {
 			rt.Fatalf("expected file %q on disk", expectedFile)
 		}
-		if resp.TaskList.FilePath != expectedFile {
-			rt.Fatalf("expected file_path %q, got %q", expectedFile, resp.TaskList.FilePath)
+		if resp.TaskList.ParentDir != "" {
+			rt.Fatalf("expected parent_dir %q, got %q", "", resp.TaskList.ParentDir)
 		}
 	})
 }
@@ -166,15 +167,15 @@ func TestProperty6_TaskListCreateThenGetRoundTrip(t *testing.T) {
 			if got.Description != want.Description {
 				rt.Fatalf("task %d description: expected %q, got %q", i, want.Description, got.Description)
 			}
-			if got.Done != want.Done {
-				rt.Fatalf("task %d done: expected %v, got %v", i, want.Done, got.Done)
+			if got.IsDone != want.IsDone {
+				rt.Fatalf("task %d done: expected %v, got %v", i, want.IsDone, got.IsDone)
 			}
 			if len(got.SubTasks) != len(want.SubTasks) {
 				rt.Fatalf("task %d subtask count: expected %d, got %d", i, len(want.SubTasks), len(got.SubTasks))
 			}
 			for j, gs := range got.SubTasks {
 				ws := want.SubTasks[j]
-				if gs.Description != ws.Description || gs.Done != ws.Done {
+				if gs.Description != ws.Description || gs.IsDone != ws.IsDone {
 					rt.Fatalf("task %d subtask %d mismatch", i, j)
 				}
 			}
@@ -328,7 +329,7 @@ func TestProperty11_RecurringTaskDoneAdvanceCycle(t *testing.T) {
 			Title: name,
 			Tasks: []*pb.MainTask{{
 				Description: "recurring task",
-				Done:        true,
+				IsDone:      true,
 				Recurrence:  rrule,
 			}},
 		})
@@ -337,7 +338,7 @@ func TestProperty11_RecurringTaskDoneAdvanceCycle(t *testing.T) {
 		}
 
 		updated := updateResp.TaskList.Tasks[0]
-		if updated.Done {
+		if updated.IsDone {
 			rt.Fatal("recurring task should be reset to done=false after advance")
 		}
 		if updated.DueDate <= originalDueDate {
@@ -537,7 +538,8 @@ func TestProperty16_DeleteRemovesTaskListFromDisk(t *testing.T) {
 		}
 
 		// File must not exist
-		absPath := filepath.Join(tmp, createResp.TaskList.FilePath)
+		expectedFile := "tasks_" + name + ".md"
+		absPath := filepath.Join(tmp, expectedFile)
 		if _, err := os.Stat(absPath); !os.IsNotExist(err) {
 			rt.Fatalf("expected file %q to be deleted", absPath)
 		}
@@ -575,7 +577,7 @@ func TestProperty2_CreatedIdIsValidUuidV4(t *testing.T) {
 		}
 
 		id := resp.TaskList.Id
-		if err := validateUuidV4(id); err != nil {
+		if err := common.ValidateUuidV4(id); err != nil {
 			rt.Fatalf("returned id %q is not a valid UUIDv4: %v", id, err)
 		}
 	})
@@ -680,7 +682,8 @@ func TestProperty5_DeleteByIdRemovesFileAndRegistryEntry(t *testing.T) {
 		}
 
 		// File must not exist on disk
-		absPath := filepath.Join(tmp, createResp.TaskList.FilePath)
+		expectedFile := "tasks_" + name + ".md"
+		absPath := filepath.Join(tmp, expectedFile)
 		if _, err := os.Stat(absPath); !os.IsNotExist(err) {
 			rt.Fatalf("expected file %q to be deleted", absPath)
 		}
@@ -785,9 +788,9 @@ func TestProperty1_CreateThenGetRoundTripWithId(t *testing.T) {
 			rt.Fatalf("title mismatch: expected %q, got %q", created.Title, got.Title)
 		}
 
-		// Verify file_path round-trips
-		if got.FilePath != created.FilePath {
-			rt.Fatalf("file_path mismatch: expected %q, got %q", created.FilePath, got.FilePath)
+		// Verify parent_dir round-trips
+		if got.ParentDir != created.ParentDir {
+			rt.Fatalf("parent_dir mismatch: expected %q, got %q", created.ParentDir, got.ParentDir)
 		}
 
 		// Verify tasks round-trip
@@ -799,15 +802,15 @@ func TestProperty1_CreateThenGetRoundTripWithId(t *testing.T) {
 			if gotTask.Description != wantTask.Description {
 				rt.Fatalf("task %d description: expected %q, got %q", i, wantTask.Description, gotTask.Description)
 			}
-			if gotTask.Done != wantTask.Done {
-				rt.Fatalf("task %d done: expected %v, got %v", i, wantTask.Done, gotTask.Done)
+			if gotTask.IsDone != wantTask.IsDone {
+				rt.Fatalf("task %d done: expected %v, got %v", i, wantTask.IsDone, gotTask.IsDone)
 			}
 			if len(gotTask.SubTasks) != len(wantTask.SubTasks) {
 				rt.Fatalf("task %d subtask count: expected %d, got %d", i, len(wantTask.SubTasks), len(gotTask.SubTasks))
 			}
 			for j, gs := range gotTask.SubTasks {
 				ws := wantTask.SubTasks[j]
-				if gs.Description != ws.Description || gs.Done != ws.Done {
+				if gs.Description != ws.Description || gs.IsDone != ws.IsDone {
 					rt.Fatalf("task %d subtask %d mismatch", i, j)
 				}
 			}
