@@ -198,13 +198,13 @@ This plan migrates the echolist-backend from markdown-file + JSON-registry persi
   - Run `go build ./notes/...` to ensure the notes package compiles
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 10. Rewrite `FileServer` and `ListFiles` for hybrid SQLite + filesystem
-  - [ ] 10.1 Update `FileServer` struct and constructor
+- [x] 10. Rewrite `FileServer` and `ListFiles` for hybrid SQLite + filesystem
+  - [x] 10.1 Update `FileServer` struct and constructor
     - Add `db *database.Database` field
     - Update `NewFileServer(dataDir string, db *database.Database, logger *slog.Logger) *FileServer`
     - _Requirements: 13.4_
 
-  - [ ] 10.2 Rewrite `ListFiles` RPC as hybrid filesystem + SQLite
+  - [x] 10.2 Rewrite `ListFiles` RPC as hybrid filesystem + SQLite
     - Walk filesystem for folders only (via `os.ReadDir`, filter `e.IsDir()`)
     - Query `db.ListTaskListsWithCounts(parentDir)` for task list entries
     - Query `db.ListNotes(parentDir)` for note entries
@@ -216,18 +216,18 @@ This plan migrates the echolist-backend from markdown-file + JSON-registry persi
     - Rewrite `buildFolderEntry` to use `db.CountChildrenInDir` instead of `MatchesFileType`
     - _Requirements: 13.1, 13.2, 13.3, 13.5, 13.6, 13.7, 15.3, 15.4_
 
-- [ ] 11. Rewrite `DeleteFolder` and `UpdateFolder` for SQLite cascade
-  - [ ] 11.1 Rewrite `DeleteFolder` to cascade to SQLite
+- [x] 11. Rewrite `DeleteFolder` and `UpdateFolder` for SQLite cascade
+  - [x] 11.1 Rewrite `DeleteFolder` to cascade to SQLite
     - Before `os.RemoveAll`, call `db.DeleteByParentDir(folderRelPath)` to delete notes and task_lists rows
     - Use a transaction for DB deletes; if filesystem deletion fails, roll back DB transaction
     - _Requirements: 29.1, 29.2, 29.3, 29.4_
 
-  - [ ] 11.2 Rewrite `UpdateFolder` to update SQLite parent directories
+  - [x] 11.2 Rewrite `UpdateFolder` to update SQLite parent directories
     - After `os.Rename` on disk, call `db.RenameParentDir(oldRelPath, newRelPath)` to update parent_dir prefix
     - If DB update fails, rename folder back on disk (rollback)
     - _Requirements: 30.1, 30.2, 30.3_
 
-- [ ] 12. Checkpoint — Verify file package compiles
+- [x] 12. Checkpoint — Verify file package compiles
   - Run `go build ./file/...` to ensure the file package compiles
   - Ensure all tests pass, ask the user if questions arise.
 

@@ -2,7 +2,6 @@ package file
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -11,42 +10,7 @@ import (
 
 	"echolist-backend/common"
 	filev1 "echolist-backend/proto/gen/file/v1"
-	"echolist-backend/tasks"
 )
-
-// readRegistryReverse reads a JSON registry file and returns the inverse map
-// (filePath→id). Both the notes and task list registries use the same JSON
-// shape: {"uuid": {"filePath": "..."}}.
-// Returns an empty map on missing/empty file or parse error.
-func readRegistryReverse(path string) map[string]string {
-	data, err := os.ReadFile(path)
-	if err != nil || len(data) == 0 {
-		return make(map[string]string)
-	}
-	var raw map[string]struct {
-		FilePath string `json:"filePath"`
-	}
-	if err := json.Unmarshal(data, &raw); err != nil {
-		return make(map[string]string)
-	}
-	reverse := make(map[string]string, len(raw))
-	for id, entry := range raw {
-		if entry.FilePath != "" {
-			reverse[entry.FilePath] = id
-		}
-	}
-	return reverse
-}
-
-// noteRegistryPath returns the path to the note id registry.
-func noteRegistryPath(dataDir string) string {
-	return filepath.Join(dataDir, ".note_id_registry.json")
-}
-
-// taskListRegistryPath returns the path to the task list id registry.
-func taskListRegistryPath(dataDir string) string {
-	return filepath.Join(dataDir, ".tasklist_id_registry.json")
-}
 
 // entryPath builds the response path for a FileEntry.
 // If requestParentDir is empty, returns name.
@@ -62,23 +26,31 @@ func entryPath(requestParentDir, name string) string {
 }
 
 // buildFolderEntry creates a FileEntry for a directory.
-// It reads the subdirectory and counts recognized children (folders, notes, task lists).
-// On ReadDir error, logs a warning and sets child_count to 0.
+// child_count = number of subdirectories (from os.ReadDir) + notes and task lists (from SQLite).
 func (s *FileServer) buildFolderEntry(absPath, name, requestParentDir string) *filev1.FileEntry {
 	childCount := int32(0)
-	
+
+	// Compute the relative path for this subdirectory.
+	folderRelPath := entryPath(requestParentDir, name)
+
+	// Count subdirectories on disk.
 	entries, err := os.ReadDir(absPath)
 	if err != nil {
 		s.logger.Warn("failed to read subdirectory for child count", "path", absPath, "error", err)
 	} else {
 		for _, e := range entries {
-			entryName := e.Name()
 			if e.IsDir() {
-				childCount++
-			} else if common.MatchesFileType(entryName, common.NoteFileType) || common.MatchesFileType(entryName, common.TaskListFileType) {
 				childCount++
 			}
 		}
+	}
+
+	// Count notes + task lists in SQLite for this subdirectory.
+	dbCount, err := s.db.CountChildrenInDir(folderRelPath)
+	if err != nil {
+		s.logger.Warn("failed to count DB children in dir", "path", folderRelPath, "error", err)
+	} else {
+		childCount += int32(dbCount)
 	}
 
 	return &filev1.FileEntry{
@@ -88,110 +60,6 @@ func (s *FileServer) buildFolderEntry(absPath, name, requestParentDir string) *f
 		Metadata: &filev1.FileEntry_FolderMetadata{
 			FolderMetadata: &filev1.FolderMetadata{
 				ChildCount: childCount,
-			},
-		},
-	}
-}
-
-// buildNoteEntry creates a FileEntry for a note file.
-// It stats the file for updated_at, reads content for preview (first 100 characters, rune-safe),
-// and extracts the title. On I/O errors, logs a warning and uses zero/empty values.
-func (s *FileServer) buildNoteEntry(absPath, name, requestParentDir string, noteIds map[string]string) *filev1.FileEntry {
-	var updatedAt int64
-	var preview string
-	
-	title, err := common.ExtractTitle(name, common.NoteFileType.Prefix, common.NoteFileType.Suffix, common.NoteFileType.Label)
-	if err != nil {
-		s.logger.Warn("failed to extract note title", "path", absPath, "error", err)
-		title = name
-	}
-
-	info, err := os.Stat(absPath)
-	if err != nil {
-		s.logger.Warn("failed to stat note file", "path", absPath, "error", err)
-	} else {
-		updatedAt = info.ModTime().UnixMilli()
-	}
-
-	content, err := os.ReadFile(absPath)
-	if err != nil {
-		s.logger.Warn("failed to read note content", "path", absPath, "error", err)
-	} else {
-		runes := []rune(string(content))
-		if len(runes) > 100 {
-			preview = string(runes[:100])
-		} else {
-			preview = string(runes)
-		}
-	}
-
-	relPath, _ := filepath.Rel(s.dataDir, absPath)
-	id := noteIds[relPath]
-
-	return &filev1.FileEntry{
-		Path:     entryPath(requestParentDir, name),
-		Title:    title,
-		ItemType: filev1.ItemType_ITEM_TYPE_NOTE,
-		Metadata: &filev1.FileEntry_NoteMetadata{
-			NoteMetadata: &filev1.NoteMetadata{
-				Id:        id,
-				UpdatedAt: updatedAt,
-				Preview:   preview,
-			},
-		},
-	}
-}
-
-// buildTaskListEntry creates a FileEntry for a task list file.
-// It stats the file for updated_at, reads and parses the file to count total and done MainTasks,
-// and extracts the title. On I/O or parse errors, logs a warning and uses zero values.
-func (s *FileServer) buildTaskListEntry(absPath, name, requestParentDir string, taskListIds map[string]string) *filev1.FileEntry {
-	var updatedAt int64
-	var totalTaskCount, doneTaskCount int32
-	
-	title, err := common.ExtractTitle(name, common.TaskListFileType.Prefix, common.TaskListFileType.Suffix, common.TaskListFileType.Label)
-	if err != nil {
-		s.logger.Warn("failed to extract task list title", "path", absPath, "error", err)
-		title = name
-	}
-
-	info, err := os.Stat(absPath)
-	if err != nil {
-		s.logger.Warn("failed to stat task list file", "path", absPath, "error", err)
-	} else {
-		updatedAt = info.ModTime().UnixMilli()
-	}
-
-	content, err := os.ReadFile(absPath)
-	if err != nil {
-		s.logger.Warn("failed to read task list content", "path", absPath, "error", err)
-	} else {
-		mainTasks, err := tasks.ParseTaskFile(content)
-		if err != nil {
-			s.logger.Warn("failed to parse task list", "path", absPath, "error", err)
-		} else {
-			totalTaskCount = int32(len(mainTasks))
-			for _, task := range mainTasks {
-				if task.IsDone {
-					doneTaskCount++
-				}
-			}
-		}
-	}
-
-	relPath, _ := filepath.Rel(s.dataDir, absPath)
-	id := taskListIds[relPath]
-
-	return &filev1.FileEntry{
-		Path:     entryPath(requestParentDir, name),
-		Title:    title,
-		ItemType: filev1.ItemType_ITEM_TYPE_TASK_LIST,
-		Metadata: &filev1.FileEntry_TaskListMetadata{
-			TaskListMetadata: &filev1.TaskListMetadata{
-				Id:             id,
-				UpdatedAt:      updatedAt,
-				TotalTaskCount: totalTaskCount,
-				DoneTaskCount:  doneTaskCount,
 			},
 		},
 	}
@@ -213,7 +81,8 @@ func (s *FileServer) ListFiles(
 		return nil, err
 	}
 
-	entries, err := os.ReadDir(parentDir)
+	// Read directory entries — only process directories (folders).
+	dirEntries, err := os.ReadDir(parentDir)
 	if err != nil {
 		s.logger.Error("failed to read directory", "path", req.GetParentDir(), "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to read directory: %w", err))
@@ -221,23 +90,60 @@ func (s *FileServer) ListFiles(
 
 	var result []*filev1.FileEntry
 
-	// Load reverse registry maps (filePath→id) for notes and task lists.
-	noteIds := readRegistryReverse(noteRegistryPath(s.dataDir))
-	taskListIds := readRegistryReverse(taskListRegistryPath(s.dataDir))
-
-	for _, e := range entries {
+	// Build folder entries from filesystem directories.
+	for _, e := range dirEntries {
+		if !e.IsDir() {
+			continue
+		}
 		name := e.Name()
 		absPath := filepath.Join(parentDir, name)
-		
-		if e.IsDir() {
-			result = append(result, s.buildFolderEntry(absPath, name, requestParentDir))
-		} else if common.MatchesFileType(name, common.NoteFileType) {
-			result = append(result, s.buildNoteEntry(absPath, name, requestParentDir, noteIds))
-		} else if common.MatchesFileType(name, common.TaskListFileType) {
-			result = append(result, s.buildTaskListEntry(absPath, name, requestParentDir, taskListIds))
-		}
-		// Skip unrecognized files
+		result = append(result, s.buildFolderEntry(absPath, name, requestParentDir))
 	}
-	
+
+	// Query SQLite for task lists in this directory.
+	taskLists, err := s.db.ListTaskListsWithCounts(requestParentDir)
+	if err != nil {
+		s.logger.Error("failed to query task lists", "parentDir", requestParentDir, "error", err)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to query task lists: %w", err))
+	}
+	for _, row := range taskLists {
+		result = append(result, &filev1.FileEntry{
+			Path:     entryPath(requestParentDir, row.Title),
+			Title:    row.Title,
+			ItemType: filev1.ItemType_ITEM_TYPE_TASK_LIST,
+			Metadata: &filev1.FileEntry_TaskListMetadata{
+				TaskListMetadata: &filev1.TaskListMetadata{
+					Id:             row.Id,
+					UpdatedAt:      row.UpdatedAt,
+					TotalTaskCount: int32(row.TotalTaskCount),
+					DoneTaskCount:  int32(row.DoneTaskCount),
+				},
+			},
+		})
+	}
+
+	// Query SQLite for notes in this directory.
+	noteRows, err := s.db.ListNotes(requestParentDir)
+	if err != nil {
+		s.logger.Error("failed to query notes", "parentDir", requestParentDir, "error", err)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to query notes: %w", err))
+	}
+	for _, row := range noteRows {
+		// Compute the note filename from the NoteRow fields.
+		noteFilename := row.Title + "_" + row.Id + ".md"
+		result = append(result, &filev1.FileEntry{
+			Path:     entryPath(requestParentDir, noteFilename),
+			Title:    row.Title,
+			ItemType: filev1.ItemType_ITEM_TYPE_NOTE,
+			Metadata: &filev1.FileEntry_NoteMetadata{
+				NoteMetadata: &filev1.NoteMetadata{
+					Id:        row.Id,
+					UpdatedAt: row.UpdatedAt,
+					Preview:   row.Preview,
+				},
+			},
+		})
+	}
+
 	return &filev1.ListFilesResponse{Entries: result}, nil
 }

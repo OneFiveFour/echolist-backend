@@ -34,9 +34,16 @@ func (s *FileServer) DeleteFolder(
 	unlock := s.locks.Lock(target)
 	defer unlock()
 
+	// Delete notes and task_lists rows from SQLite before removing the folder.
+	folderRelPath := req.GetFolderPath()
+	if err := s.db.DeleteByParentDir(folderRelPath); err != nil {
+		s.logger.Error("failed to delete DB rows for folder", "path", folderRelPath, "error", err)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to delete database entries: %w", err))
+	}
+
 	// Remove folder and all contents
 	if err := os.RemoveAll(target); err != nil {
-		s.logger.Error("failed to delete folder", "path", req.GetFolderPath(), "error", err)
+		s.logger.Warn("failed to delete folder from disk after DB cascade", "path", req.GetFolderPath(), "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to delete folder: %w", err))
 	}
 	

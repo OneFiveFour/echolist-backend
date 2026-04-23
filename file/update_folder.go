@@ -47,15 +47,28 @@ func (s *FileServer) UpdateFolder(
 		s.logger.Error("failed to rename folder", "path", req.GetFolderPath(), "newName", req.GetNewName(), "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to rename folder: %w", err))
 	}
+
+	// Update parent_dir prefix in SQLite for notes and task lists.
+	oldRelPath := req.GetFolderPath()
 	relParent, err := filepath.Rel(s.dataDir, parentDir)
 	if err != nil {
 		relParent = ""
 	}
-	relPath := filepath.Join(relParent, req.GetNewName())
-	if relPath == "." {
-		relPath = req.GetNewName()
+	newRelPath := filepath.Join(relParent, req.GetNewName())
+	if newRelPath == "." {
+		newRelPath = req.GetNewName()
 	}
-	relPath += "/"
+
+	if err := s.db.RenameParentDir(oldRelPath, newRelPath); err != nil {
+		// Rollback: rename folder back on disk.
+		if rbErr := os.Rename(newPath, oldPath); rbErr != nil {
+			s.logger.Error("failed to rollback folder rename", "newPath", newPath, "oldPath", oldPath, "error", rbErr)
+		}
+		s.logger.Error("failed to update DB parent dirs", "oldPath", oldRelPath, "newPath", newRelPath, "error", err)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to update database entries: %w", err))
+	}
+
+	relPath := newRelPath + "/"
 	return &filev1.UpdateFolderResponse{
 		Folder: &filev1.Folder{
 			Path: relPath,
