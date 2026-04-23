@@ -4,7 +4,7 @@ import (
 	"log/slog"
 	"time"
 
-	"echolist-backend/common"
+	"echolist-backend/database"
 	pb "echolist-backend/proto/gen/tasks/v1"
 	tasksv1connect "echolist-backend/proto/gen/tasks/v1/tasksv1connect"
 )
@@ -13,13 +13,13 @@ import (
 type TaskServer struct {
 	tasksv1connect.UnimplementedTaskListServiceHandler
 	dataDir string
-	locks   common.Locker
+	db      *database.Database
 	logger  *slog.Logger
 }
 
 // NewTaskServer creates a new TaskServer rooted at dataDir.
-func NewTaskServer(dataDir string, logger *slog.Logger) *TaskServer {
-	return &TaskServer{dataDir: dataDir, logger: logger.With("service", "tasks")}
+func NewTaskServer(dataDir string, db *database.Database, logger *slog.Logger) *TaskServer {
+	return &TaskServer{dataDir: dataDir, db: db, logger: logger.With("service", "tasks")}
 }
 
 // protoToMainTasks converts proto MainTask messages to domain types.
@@ -77,7 +77,6 @@ func buildTaskList(id, parentDir, title string, tasks []MainTask, updatedAt int6
 	}
 }
 
-
 func subtasksToProto(subs []SubTask) []*pb.SubTask {
 	if len(subs) == 0 {
 		return nil
@@ -93,9 +92,47 @@ func subtasksToProto(subs []SubTask) []*pb.SubTask {
 func nowMillis() int64 {
 	return time.Now().UnixMilli()
 }
-// ExtractTaskListTitle extracts the human-readable title from a task-list
-// filename (e.g. "tasks_Shopping.md" → "Shopping").
-// Returns an error if the filename is too short or doesn't match the expected pattern.
-func ExtractTaskListTitle(filename string) (string, error) {
-	return common.ExtractTitle(filename, common.TaskListFileType.Prefix, common.TaskListFileType.Suffix, common.TaskListFileType.Label)
+
+// taskRowsToMainTasks converts database TaskRows into domain MainTask slices.
+// Main tasks have TaskListId set; subtasks have ParentTaskId set.
+// Subtasks are grouped under their parent main task by ParentTaskId.
+func taskRowsToMainTasks(rows []database.TaskRow) []MainTask {
+	// First pass: build main tasks in order, index by ID.
+	mainTaskMap := make(map[string]int) // mainTask ID → index in result
+	var result []MainTask
+
+	for _, r := range rows {
+		if r.TaskListId != nil {
+			// This is a main task.
+			mt := MainTask{
+				Id:          r.Id,
+				Description: r.Description,
+				IsDone:      r.IsDone,
+			}
+			if r.DueDate != nil {
+				mt.DueDate = *r.DueDate
+			}
+			if r.Recurrence != nil {
+				mt.Recurrence = *r.Recurrence
+			}
+			mainTaskMap[r.Id] = len(result)
+			result = append(result, mt)
+		}
+	}
+
+	// Second pass: attach subtasks to their parent main tasks.
+	for _, r := range rows {
+		if r.ParentTaskId != nil {
+			st := SubTask{
+				Id:          r.Id,
+				Description: r.Description,
+				IsDone:      r.IsDone,
+			}
+			if idx, ok := mainTaskMap[*r.ParentTaskId]; ok {
+				result[idx].SubTasks = append(result[idx].SubTasks, st)
+			}
+		}
+	}
+
+	return result
 }

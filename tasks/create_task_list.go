@@ -2,16 +2,14 @@ package tasks
 
 import (
 	"context"
-	"crypto/rand"
-	"errors"
 	"fmt"
-	"os"
-	"path/filepath"
 	"time"
 
 	"connectrpc.com/connect"
+	"github.com/google/uuid"
 
 	"echolist-backend/common"
+	"echolist-backend/database"
 	pb "echolist-backend/proto/gen/tasks/v1"
 )
 
@@ -21,7 +19,6 @@ func (s *TaskServer) CreateTaskList(
 ) (*pb.CreateTaskListResponse, error) {
 	parentDir := req.GetParentDir()
 
-	// Validate path
 	dirPath, err := common.ValidateParentDir(s.dataDir, parentDir)
 	if err != nil {
 		return nil, err
@@ -36,6 +33,7 @@ func (s *TaskServer) CreateTaskList(
 	if err := validateTasks(domainTasks); err != nil {
 		return nil, err
 	}
+
 	for i, t := range domainTasks {
 		if t.Recurrence != "" {
 			next, err := ComputeNextDueDate(t.Recurrence, time.Now())
@@ -50,48 +48,64 @@ func (s *TaskServer) CreateTaskList(
 		return nil, err
 	}
 
-	filename := common.TaskListFileType.Prefix + title + common.TaskListFileType.Suffix
-	absPath := filepath.Join(dirPath, filename)
+	id := uuid.NewString()
 
-	// Generate UUIDv4
-	var uuid [16]byte
-	if _, err := rand.Read(uuid[:]); err != nil {
-		s.logger.Error("failed to generate UUID", "error", err)
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to generate UUID: %w", err))
-	}
-	uuid[6] = (uuid[6] & 0x0f) | 0x40 // version 4
-	uuid[8] = (uuid[8] & 0x3f) | 0x80 // variant bits
-	id := fmt.Sprintf("%08x-%04x-%04x-%04x-%012x",
-		uuid[0:4], uuid[4:6], uuid[6:8], uuid[8:10], uuid[10:16])
+	taskParams := make([]database.CreateTaskParams, len(domainTasks))
+	for i, mt := range domainTasks {
+		mtId := uuid.NewString()
+		domainTasks[i].Id = mtId
 
-	// Persist id→filePath mapping in the registry
-	relPath := filepath.Join(parentDir, filename)
-	regPath := registryPath(s.dataDir)
-	unlockReg := s.locks.Lock(regPath)
-	defer unlockReg()
+		subParams := make([]database.CreateTaskParams, len(mt.SubTasks))
+		for j, st := range mt.SubTasks {
+			stId := uuid.NewString()
+			domainTasks[i].SubTasks[j].Id = stId
 
-	// Create/update/delete all lock registry first, then file paths, so
-	// title-driven renames cannot deadlock against concurrent operations.
-	unlockFile := s.locks.Lock(absPath)
-	defer unlockFile()
-
-	// Use exclusive create to avoid TOCTOU race between existence check and write.
-	data := PrintTaskFile(domainTasks)
-	if err := common.CreateExclusive(absPath, data); err != nil {
-		if errors.Is(err, os.ErrExist) {
-			return nil, connect.NewError(connect.CodeAlreadyExists, fmt.Errorf("task list already exists"))
+			subParams[j] = database.CreateTaskParams{
+				Id:          stId,
+				Description: st.Description,
+				IsDone:      st.IsDone,
+			}
 		}
-		s.logger.Error("failed to write task file", "path", absPath, "error", err)
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to write task file: %w", err))
+
+		var dueDate *string
+		if mt.DueDate != "" {
+			d := domainTasks[i].DueDate
+			dueDate = &d
+		}
+		var recurrence *string
+		if mt.Recurrence != "" {
+			r := mt.Recurrence
+			recurrence = &r
+		}
+
+		taskParams[i] = database.CreateTaskParams{
+			Id:          mtId,
+			Description: mt.Description,
+			IsDone:      mt.IsDone,
+			DueDate:     dueDate,
+			Recurrence:  recurrence,
+			SubTasks:    subParams,
+		}
 	}
 
+	now := nowMillis()
 	isAutoDelete := req.GetIsAutoDelete()
-	if err := registryAdd(regPath, id, registryEntry{FilePath: relPath, IsAutoDelete: isAutoDelete}); err != nil {
-		s.logger.Error("failed to add registry entry", "id", id, "path", relPath, "error", err)
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to persist task list id: %w", err))
+
+	tlRow, _, err := s.db.CreateTaskList(database.CreateTaskListParams{
+		Id:           id,
+		Title:        title,
+		ParentDir:    parentDir,
+		IsAutoDelete: isAutoDelete,
+		CreatedAt:    now,
+		UpdatedAt:    now,
+		Tasks:        taskParams,
+	})
+	if err != nil {
+		s.logger.Error("failed to create task list", "error", err)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to create task list: %w", err))
 	}
 
 	return &pb.CreateTaskListResponse{
-		TaskList: buildTaskList(id, parentDir, title, domainTasks, nowMillis(), isAutoDelete),
+		TaskList: buildTaskList(tlRow.Id, tlRow.ParentDir, tlRow.Title, domainTasks, tlRow.UpdatedAt, tlRow.IsAutoDelete),
 	}, nil
 }

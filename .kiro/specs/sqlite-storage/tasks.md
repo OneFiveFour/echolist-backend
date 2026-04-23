@@ -101,13 +101,13 @@ This plan migrates the echolist-backend from markdown-file + JSON-registry persi
   - Run `go build ./...` to ensure the entire project compiles with the new proto and domain types
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 6. Rewrite task RPCs to use SQLite
-  - [ ] 6.1 Rewrite `TaskServer` struct and constructor
+- [x] 6. Rewrite task RPCs to use SQLite
+  - [x] 6.1 Rewrite `TaskServer` struct and constructor
     - Replace `locks common.Locker` with `db *database.Database`
     - Update `NewTaskServer(dataDir string, db *database.Database, logger *slog.Logger) *TaskServer`
     - _Requirements: 12.1, 12.2, 12.3_
 
-  - [ ] 6.2 Rewrite `CreateTaskList` RPC
+  - [x] 6.2 Rewrite `CreateTaskList` RPC
     - Remove all file I/O and registry code
     - Validate title, parent_dir, tasks (existing validation preserved)
     - Validate parent directory exists on disk via `common.RequireDir`
@@ -117,13 +117,13 @@ This plan migrates the echolist-backend from markdown-file + JSON-registry persi
     - Build and return response with generated IDs, parent_dir (not file_path)
     - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 5.1, 5.2, 5.3, 12.4, 17.1, 17.2, 17.3, 17.4, 17.5, 17.6, 17.7_
 
-  - [ ] 6.3 Rewrite `GetTaskList` RPC
+  - [x] 6.3 Rewrite `GetTaskList` RPC
     - Remove all file I/O, registry lookup, and parser calls
     - Validate ID, call `db.GetTaskList(id)`, reconstruct proto response from rows
     - Return MainTasks ordered by position, SubTasks ordered by position within each MainTask
     - _Requirements: 8.1, 8.2, 8.3, 8.4_
 
-  - [ ] 6.4 Rewrite `UpdateTaskList` RPC
+  - [x] 6.4 Rewrite `UpdateTaskList` RPC
     - Remove all file I/O, registry, rename, and persist logic
     - Validate ID, title, tasks; validate MainTask/SubTask IDs (non-empty must be valid UUIDv4)
     - Assign new IDs to tasks with empty `id` fields, preserve existing IDs
@@ -131,18 +131,18 @@ This plan migrates the echolist-backend from markdown-file + JSON-registry persi
     - Call `db.UpdateTaskList(...)` in a single transaction
     - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 5.4, 5.5, 5.6, 5.7, 6.1, 6.2, 6.3, 17.1, 17.2, 17.3, 17.4, 17.5, 17.6, 17.7_
 
-  - [ ] 6.5 Rewrite `DeleteTaskList` RPC
+  - [x] 6.5 Rewrite `DeleteTaskList` RPC
     - Remove all file I/O and registry code
     - Validate ID, call `db.DeleteTaskList(id)`, return NotFound if not found
     - Cascade foreign keys handle task row deletion automatically
     - _Requirements: 10.1, 10.2, 10.3_
 
-  - [ ] 6.6 Rewrite `ListTaskLists` RPC
+  - [x] 6.6 Rewrite `ListTaskLists` RPC
     - Remove all file scanning, registry reading, and parser calls
     - Validate parent_dir, call `db.ListTaskLists(parentDir)`, reconstruct proto response
     - _Requirements: 11.1, 11.2, 11.3_
 
-- [ ] 7. Checkpoint — Verify task RPCs compile
+- [x] 7. Checkpoint — Verify task RPCs compile
   - Run `go build ./tasks/...` to ensure the tasks package compiles
   - Ensure all tests pass, ask the user if questions arise.
 
