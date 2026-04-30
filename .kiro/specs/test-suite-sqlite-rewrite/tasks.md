@@ -98,8 +98,8 @@ This plan rewrites the test suite for the `tasks/`, `notes/`, `file/`, and `data
   - Run `go test ./database/...` and confirm all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 6. Create tasks package tests
-  - [ ] 6.1 Create tasks/crud_test.go
+- [x] 6. Create tasks package tests
+  - [x] 6.1 Create tasks/crud_test.go
     - Declare `package tasks_test`
     - Import `echolist-backend/tasks` and construct server via `tasks.NewTaskServer(t.TempDir(), tasks.TestDB(t), tasks.NopLogger())`
     - Test CreateTaskList: create with title and tasks, verify response has ID, title, tasks with IDs
@@ -113,7 +113,7 @@ This plan rewrites the test suite for the `tasks/`, `notes/`, `file/`, and `data
     - Test ListTaskLists filters by parent_dir
     - _Requirements: 1.1, 1.4, 4.1, 4.2, 4.3, 4.4, 8.1, 15.1, 15.5_
 
-  - [ ] 6.2 Create tasks/validation_test.go
+  - [x] 6.2 Create tasks/validation_test.go
     - Declare `package tasks_test`
     - Test empty title returns InvalidArgument
     - Test title with null bytes returns InvalidArgument
@@ -124,7 +124,7 @@ This plan rewrites the test suite for the `tasks/`, `notes/`, `file/`, and `data
     - Test duplicate task list name in same parent_dir returns AlreadyExists
     - _Requirements: 1.1, 1.2, 1.3, 8.1, 8.3, 8.4, 8.5, 8.6, 15.1_
 
-  - [ ] 6.3 Create tasks/property_test.go
+  - [x] 6.3 Create tasks/property_test.go
     - Declare `package tasks_test`
     - Import `pgregory.net/rapid`
     - **Property 1: Task Create-Then-Get Round Trip**
@@ -148,12 +148,12 @@ This plan rewrites the test suite for the `tasks/`, `notes/`, `file/`, and `data
     - **Property 17: ListTaskLists Parent Dir Filtering**
     - **Validates: Requirements 8.1**
 
-- [ ] 7. Checkpoint - Verify tasks tests pass
+- [x] 7. Checkpoint - Verify tasks tests pass
   - Run `go test ./tasks/...` and confirm all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 8. Create notes package tests
-  - [ ] 8.1 Create notes/crud_test.go
+- [x] 8. Create notes package tests
+  - [x] 8.1 Create notes/crud_test.go
     - Declare `package notes_test`
     - Import `echolist-backend/notes` and construct server via `notes.NewNotesServer(t.TempDir(), notes.TestDB(t), notes.NopLogger())`
     - Test CreateNote: create with title and content, verify response has ID, title, content
@@ -168,7 +168,7 @@ This plan rewrites the test suite for the `tasks/`, `notes/`, `file/`, and `data
     - Test ListNotes filters by parent_dir
     - _Requirements: 2.1, 2.4, 5.1, 5.2, 5.3, 12.1, 12.2, 12.3, 15.1, 15.5_
 
-  - [ ] 8.2 Create notes/validation_test.go
+  - [x] 8.2 Create notes/validation_test.go
     - Declare `package notes_test`
     - Test empty title returns InvalidArgument
     - Test title with null bytes returns InvalidArgument
@@ -180,7 +180,7 @@ This plan rewrites the test suite for the `tasks/`, `notes/`, `file/`, and `data
     - Test preview recomputation on update
     - _Requirements: 2.1, 2.2, 2.3, 5.1, 5.2, 5.3, 5.4, 8.5, 8.6, 15.1_
 
-  - [ ] 8.3 Create notes/property_test.go
+  - [x] 8.3 Create notes/property_test.go
     - Declare `package notes_test`
     - Import `pgregory.net/rapid`
     - **Property 2: Note Create-Then-Get Round Trip**
@@ -200,7 +200,7 @@ This plan rewrites the test suite for the `tasks/`, `notes/`, `file/`, and `data
     - **Property 17: ListNotes Parent Dir Filtering**
     - **Validates: Requirements 8.1**
 
-- [ ] 9. Checkpoint - Verify notes tests pass
+- [x] 9. Checkpoint - Verify notes tests pass
   - Run `go test ./notes/...` and confirm all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
