@@ -53,14 +53,14 @@ This plan rewrites the test suite for the `tasks/`, `notes/`, `file/`, and `data
   - Run `go build ./tasks/...`, `go build ./notes/...`, `go build ./file/...` to confirm no compile errors
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 4. Create database package tests
-  - [ ] 4.1 Create database/schema_test.go
+- [x] 4. Create database package tests
+  - [x] 4.1 Create database/schema_test.go
     - Declare `package database_test`
     - Test schema idempotency: call `database.New(path)` twice on the same path, verify both succeed without error
     - Test that tables exist by inserting and querying data after schema creation
     - _Requirements: 14.6, 15.2_
 
-  - [ ] 4.2 Create database/task_lists_test.go
+  - [x] 4.2 Create database/task_lists_test.go
     - Declare `package database_test`
     - Test `CreateTaskList` — insert a task list with main tasks and subtasks, verify returned row matches params
     - Test `GetTaskList` — create then get, verify all fields match
@@ -73,7 +73,7 @@ This plan rewrites the test suite for the `tasks/`, `notes/`, `file/`, and `data
     - Test `ListTaskListsWithCounts` — create task list with mix of done/open tasks, verify counts
     - _Requirements: 14.1, 14.5, 15.2_
 
-  - [ ] 4.3 Create database/notes_test.go
+  - [x] 4.3 Create database/notes_test.go
     - Declare `package database_test`
     - Test `InsertNote` — insert a note, verify no error
     - Test `GetNote` — insert then get, verify all fields match
@@ -85,7 +85,7 @@ This plan rewrites the test suite for the `tasks/`, `notes/`, `file/`, and `data
     - Test `ListNotes` — verify filtering by parent_dir
     - _Requirements: 14.2, 15.2_
 
-  - [ ] 4.4 Create database/cascade_test.go
+  - [x] 4.4 Create database/cascade_test.go
     - Declare `package database_test`
     - Test `DeleteTaskList` cascades to tasks: create task list with tasks, delete task list, verify tasks table is empty for that list
     - Test `DeleteByParentDir` — create notes and task lists in a directory, call DeleteByParentDir, verify GetNote/GetTaskList return ErrNotFound
@@ -94,7 +94,7 @@ This plan rewrites the test suite for the `tasks/`, `notes/`, `file/`, and `data
     - Test `RenameParentDir` with nested paths — items in subdirectories have prefix updated
     - _Requirements: 14.3, 14.4, 14.5, 15.2_
 
-- [ ] 5. Checkpoint - Verify database tests pass
+- [x] 5. Checkpoint - Verify database tests pass
   - Run `go test ./database/...` and confirm all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
@@ -124,7 +124,7 @@ This plan rewrites the test suite for the `tasks/`, `notes/`, `file/`, and `data
     - Test duplicate task list name in same parent_dir returns AlreadyExists
     - _Requirements: 1.1, 1.2, 1.3, 8.1, 8.3, 8.4, 8.5, 8.6, 15.1_
 
-  - [ ]* 6.3 Create tasks/property_test.go
+  - [ ] 6.3 Create tasks/property_test.go
     - Declare `package tasks_test`
     - Import `pgregory.net/rapid`
     - **Property 1: Task Create-Then-Get Round Trip**
@@ -180,7 +180,7 @@ This plan rewrites the test suite for the `tasks/`, `notes/`, `file/`, and `data
     - Test preview recomputation on update
     - _Requirements: 2.1, 2.2, 2.3, 5.1, 5.2, 5.3, 5.4, 8.5, 8.6, 15.1_
 
-  - [ ]* 8.3 Create notes/property_test.go
+  - [ ] 8.3 Create notes/property_test.go
     - Declare `package notes_test`
     - Import `pgregory.net/rapid`
     - **Property 2: Note Create-Then-Get Round Trip**
@@ -234,7 +234,7 @@ This plan rewrites the test suite for the `tasks/`, `notes/`, `file/`, and `data
     - Test UpdateFolder with nested subfolders: nested items have parent_dir prefix updated
     - _Requirements: 6.1, 6.2, 6.3, 6.4, 7.1, 7.2, 7.3, 7.4, 15.1_
 
-  - [ ]* 10.3 Create file/property_test.go
+  - [ ] 10.3 Create file/property_test.go
     - Declare `package file_test`
     - Import `pgregory.net/rapid`
     - **Property 11: Folder Cascade Delete Removes All DB Rows**
@@ -265,7 +265,7 @@ This plan rewrites the test suite for the `tasks/`, `notes/`, `file/`, and `data
 
 ## Notes
 
-- Tasks marked with `*` are optional and can be skipped for faster MVP
+- All tasks are mandatory
 - Each task references specific requirements for traceability
 - Checkpoints ensure incremental validation
 - Property tests validate universal correctness properties using `pgregory.net/rapid`
