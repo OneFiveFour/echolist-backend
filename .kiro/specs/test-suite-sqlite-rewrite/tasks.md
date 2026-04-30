@@ -204,8 +204,8 @@ This plan rewrites the test suite for the `tasks/`, `notes/`, `file/`, and `data
   - Run `go test ./notes/...` and confirm all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 10. Create file package tests
-  - [ ] 10.1 Create file/list_files_test.go
+- [x] 10. Create file package tests
+  - [x] 10.1 Create file/list_files_test.go
     - Declare `package file_test`
     - Import `echolist-backend/file`, `echolist-backend/tasks`, `echolist-backend/notes`
     - Construct all three servers sharing the same `db` and `dataDir`
@@ -219,7 +219,7 @@ This plan rewrites the test suite for the `tasks/`, `notes/`, `file/`, and `data
     - Test orphan `tasks_<title>.md` file on disk without DB row does NOT appear in ListFiles
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 11.1, 11.2, 11.3, 11.4, 11.5, 11.6, 11.7, 15.1_
 
-  - [ ] 10.2 Create file/folder_ops_test.go
+  - [x] 10.2 Create file/folder_ops_test.go
     - Declare `package file_test`
     - Import `echolist-backend/file`, `echolist-backend/tasks`, `echolist-backend/notes`
     - Test CreateFolder: create folder, verify it appears in ListFiles
@@ -234,7 +234,7 @@ This plan rewrites the test suite for the `tasks/`, `notes/`, `file/`, and `data
     - Test UpdateFolder with nested subfolders: nested items have parent_dir prefix updated
     - _Requirements: 6.1, 6.2, 6.3, 6.4, 7.1, 7.2, 7.3, 7.4, 15.1_
 
-  - [ ] 10.3 Create file/property_test.go
+  - [x] 10.3 Create file/property_test.go
     - Declare `package file_test`
     - Import `pgregory.net/rapid`
     - **Property 11: Folder Cascade Delete Removes All DB Rows**
@@ -246,21 +246,21 @@ This plan rewrites the test suite for the `tasks/`, `notes/`, `file/`, and `data
     - **Property 14: Orphan Disk Files Excluded from ListFiles**
     - **Validates: Requirements 11.4, 11.5**
 
-- [ ] 11. Checkpoint - Verify file tests pass
+- [x] 11. Checkpoint - Verify file tests pass
   - Run `go test ./file/...` and confirm all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 12. Final validation
-  - [ ] 12.1 Run full test suite
+- [x] 12. Final validation
+  - [x] 12.1 Run full test suite
     - Execute `go test ./...` and confirm all tests pass with zero failures
     - Verify no compilation errors across the entire project
     - _Requirements: 16.1, 16.2, 16.3, 16.4, 16.5, 16.6_
 
-  - [ ] 12.2 Verify common/ and auth/ packages are untouched
+  - [x] 12.2 Verify common/ and auth/ packages are untouched
     - Confirm no test files in `common/` or `auth/` were modified
     - _Requirements: 13.1, 13.2_
 
-- [ ] 13. Final checkpoint - Ensure all tests pass
+- [x] 13. Final checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes
