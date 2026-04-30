@@ -1,8 +1,0 @@
-# 2026/03/15 23:52:59.311094 [TestProperty_NotFoundReturnsCodeNotFound] [rapid] draw filePath: "note_A.md"
-# 2026/03/15 23:52:59.311153 [TestProperty_NotFoundReturnsCodeNotFound] GetNote: expected CodeNotFound for path "note_A.md", got invalid_argument
-# 
-v0.4.8#4124395817262125486
-0x0
-0x0
-0x0
-0x0

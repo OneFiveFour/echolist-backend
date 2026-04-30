@@ -76,7 +76,7 @@ Each package's `helpers_export_test.go` exports:
 
 | Function | Signature | Purpose |
 |----------|-----------|---------|
-| `TestDB` | `func TestDB(t *testing.T) *database.Database` | Creates in-memory SQLite DB with full schema, registers cleanup |
+| `NewTestDB` | `func NewTestDB(t *testing.T) *database.Database` | Creates in-memory SQLite DB with full schema, registers cleanup |
 | `NopLogger` | `func NopLogger() *slog.Logger` | Returns a discard logger for quiet test output |
 
 ### Server Construction Pattern
@@ -85,7 +85,7 @@ All test files construct servers identically:
 
 ```go
 dataDir := t.TempDir()
-db := tasks.TestDB(t)  // or notes.TestDB(t), file.TestDB(t)
+db := tasks.NewTestDB(t)  // or notes.NewTestDB(t), file.NewTestDB(t)
 logger := tasks.NopLogger()
 srv := tasks.NewTaskServer(dataDir, db, logger)
 ```
@@ -94,7 +94,7 @@ For `file/` tests that need cross-package data:
 
 ```go
 dataDir := t.TempDir()
-db := file.TestDB(t)
+db := file.NewTestDB(t)
 logger := file.NopLogger()
 
 taskSrv := tasks.NewTaskServer(dataDir, db, logger)

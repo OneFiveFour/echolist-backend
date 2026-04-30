@@ -12,7 +12,7 @@ This plan rewrites the test suite for the `tasks/`, `notes/`, `file/`, and `data
 
 ## Tasks
 
-- [-] 1. Clean up old test files and stale testdata
+- [x] 1. Clean up old test files and stale testdata
   - [x] 1.1 Delete all existing test files in the tasks/ package
     - Delete: `tasks/autodelete_e2e_property_test.go`, `tasks/autodelete_property_test.go`, `tasks/create_task_list_test.go`, `tasks/interface_verification_test.go`, `tasks/list_task_lists_test.go`, `tasks/rrule_test.go`, `tasks/task_server_property_test.go`, `tasks/tasklist_message_property_test.go`, `tasks/test_helpers_test.go`, `tasks/update_task_list_helpers_test.go`, `tasks/update_task_list_test.go`, `tasks/uuid_property_test.go`, `tasks/uuid_test.go`, `tasks/validate_limits_test.go`
     - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 9.6_
@@ -25,31 +25,31 @@ This plan rewrites the test suite for the `tasks/`, `notes/`, `file/`, and `data
     - Delete: `file/create_folder_test.go`, `file/error_conditions_test.go`, `file/file_api_property_test.go`, `file/list_files_enrichment_property_test.go`, `file/list_files_helpers_test.go`, `file/list_files_property_test.go`, `file/list_files_test.go`, `file/rename_delete_test.go`, `file/test_helpers_test.go`
     - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 9.6_
 
-  - [-] 1.4 Remove stale rapid failure files from testdata directories
+  - [x] 1.4 Remove stale rapid failure files from testdata directories
     - Delete all `.fail` files under `tasks/testdata/rapid/`, `notes/testdata/rapid/`, and `file/testdata/rapid/`
     - These reference test functions that no longer exist after the rewrite
     - _Requirements: 9.1_
 
-- [ ] 2. Create test helper infrastructure
-  - [ ] 2.1 Create tasks/helpers_export_test.go
+- [x] 2. Create test helper infrastructure
+  - [x] 2.1 Create tasks/helpers_export_test.go
     - Declare `package tasks` (internal test package)
     - Export `TestDB(t *testing.T) *database.Database` — creates in-memory SQLite DB via `database.New(filepath.Join(t.TempDir(), "test.db"))`, registers `t.Cleanup` for `db.Close()`
     - Export `NopLogger() *slog.Logger` — returns `slog.New(slog.NewTextHandler(io.Discard, nil))`
     - _Requirements: 10.1, 10.2, 10.3, 15.3, 15.6_
 
-  - [ ] 2.2 Create notes/helpers_export_test.go
+  - [x] 2.2 Create notes/helpers_export_test.go
     - Declare `package notes` (internal test package)
     - Export `TestDB(t *testing.T) *database.Database` — same pattern as tasks
     - Export `NopLogger() *slog.Logger` — same pattern as tasks
     - _Requirements: 10.1, 10.2, 10.4, 15.3, 15.6_
 
-  - [ ] 2.3 Create file/helpers_export_test.go
+  - [x] 2.3 Create file/helpers_export_test.go
     - Declare `package file` (internal test package)
     - Export `TestDB(t *testing.T) *database.Database` — same pattern as tasks
     - Export `NopLogger() *slog.Logger` — same pattern as tasks
     - _Requirements: 10.1, 10.2, 10.5, 15.3, 15.6_
 
-- [ ] 3. Checkpoint - Verify helper infrastructure compiles
+- [x] 3. Checkpoint - Verify helper infrastructure compiles
   - Run `go build ./tasks/...`, `go build ./notes/...`, `go build ./file/...` to confirm no compile errors
   - Ensure all tests pass, ask the user if questions arise.
 

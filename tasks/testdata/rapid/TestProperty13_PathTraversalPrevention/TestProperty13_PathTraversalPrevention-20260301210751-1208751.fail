@@ -1,6 +1,0 @@
-# 2026/03/01 21:07:51.463039 [TestProperty13_PathTraversalPrevention] [rapid] draw badPath: "..%2f..%2f"
-# 2026/03/01 21:07:51.477138 [TestProperty13_PathTraversalPrevention] CreateTaskList should reject traversal path "..%2f..%2f"
-# 
-v0.4.8#13680730186454129749
-0x6b74f03291620
-0x5
