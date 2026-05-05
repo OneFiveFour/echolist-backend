@@ -177,6 +177,52 @@ func (d *Database) ListTaskLists(parentDir string) ([]TaskListRow, map[string][]
 	return lists, tasksByList, nil
 }
 
+// GetMainTask retrieves a single main task by ID along with its subtask rows.
+// Returns ErrNotFound if the ID does not exist or is not a main task.
+func (d *Database) GetMainTask(id string) (TaskRow, []TaskRow, error) {
+	var mainRow TaskRow
+	var isDone int
+	err := d.db.QueryRow(
+		`SELECT id, task_list_id, parent_task_id, position, description, is_done, due_date, recurrence
+		 FROM tasks WHERE id = ? AND task_list_id IS NOT NULL`, id,
+	).Scan(&mainRow.Id, &mainRow.TaskListId, &mainRow.ParentTaskId, &mainRow.Position,
+		&mainRow.Description, &isDone, &mainRow.DueDate, &mainRow.Recurrence)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return TaskRow{}, nil, ErrNotFound
+		}
+		return TaskRow{}, nil, fmt.Errorf("query main task: %w", err)
+	}
+	mainRow.IsDone = isDone != 0
+
+	// Fetch subtasks ordered by position.
+	sqlRows, err := d.db.Query(
+		`SELECT id, task_list_id, parent_task_id, position, description, is_done, due_date, recurrence
+		 FROM tasks WHERE parent_task_id = ? ORDER BY position`, id,
+	)
+	if err != nil {
+		return TaskRow{}, nil, fmt.Errorf("query subtasks: %w", err)
+	}
+	defer sqlRows.Close()
+
+	var subRows []TaskRow
+	for sqlRows.Next() {
+		var r TaskRow
+		var subIsDone int
+		if err := sqlRows.Scan(&r.Id, &r.TaskListId, &r.ParentTaskId, &r.Position,
+			&r.Description, &subIsDone, &r.DueDate, &r.Recurrence); err != nil {
+			return TaskRow{}, nil, fmt.Errorf("scan subtask: %w", err)
+		}
+		r.IsDone = subIsDone != 0
+		subRows = append(subRows, r)
+	}
+	if err := sqlRows.Err(); err != nil {
+		return TaskRow{}, nil, fmt.Errorf("iterate subtasks: %w", err)
+	}
+
+	return mainRow, subRows, nil
+}
+
 // ListTaskListsWithCounts returns task lists in a parent directory with
 // aggregate task counts populated. Used by FileServer.ListFiles.
 func (d *Database) ListTaskListsWithCounts(parentDir string) ([]TaskListRow, error) {

@@ -442,3 +442,164 @@ func TestProperty_ListTaskListsParentDirFiltering(t *testing.T) {
 		}
 	})
 }
+
+// Feature: get-main-task, Property 1: Create-then-GetMainTask round trip
+// Validates: Requirements 1.1, 4.1, 4.2, 4.3
+func TestProperty_GetMainTaskRoundTrip(t *testing.T) {
+	rapid.Check(t, func(rt *rapid.T) {
+		dataDir := t.TempDir()
+		srv := tasks.NewTaskServer(dataDir, tasks.NewTestDB(t), tasks.NopLogger())
+		ctx := context.Background()
+
+		name := validNameGen().Draw(rt, "name")
+		inputTasks := simpleTaskListGen().Draw(rt, "tasks")
+
+		createResp, err := srv.CreateTaskList(ctx, &pb.CreateTaskListRequest{
+			Title:     name,
+			ParentDir: "",
+			Tasks:     inputTasks,
+		})
+		if err != nil {
+			rt.Fatalf("CreateTaskList failed: %v", err)
+		}
+
+		// Pick a random main task to fetch
+		taskIdx := rapid.IntRange(0, len(createResp.TaskList.Tasks)-1).Draw(rt, "taskIdx")
+		createdTask := createResp.TaskList.Tasks[taskIdx]
+
+		getResp, err := srv.GetMainTask(ctx, &pb.GetMainTaskRequest{Id: createdTask.Id})
+		if err != nil {
+			rt.Fatalf("GetMainTask failed: %v", err)
+		}
+
+		got := getResp.MainTask
+
+		// Verify all fields match
+		if got.Id != createdTask.Id {
+			rt.Fatalf("Id mismatch: got %q, want %q", got.Id, createdTask.Id)
+		}
+		if got.Description != createdTask.Description {
+			rt.Fatalf("Description mismatch: got %q, want %q", got.Description, createdTask.Description)
+		}
+		if got.IsDone != createdTask.IsDone {
+			rt.Fatalf("IsDone mismatch: got %v, want %v", got.IsDone, createdTask.IsDone)
+		}
+		if got.DueDate != createdTask.DueDate {
+			rt.Fatalf("DueDate mismatch: got %q, want %q", got.DueDate, createdTask.DueDate)
+		}
+		if got.Recurrence != createdTask.Recurrence {
+			rt.Fatalf("Recurrence mismatch: got %q, want %q", got.Recurrence, createdTask.Recurrence)
+		}
+
+		// Verify subtask count and ordering
+		if len(got.SubTasks) != len(createdTask.SubTasks) {
+			rt.Fatalf("SubTask count mismatch: got %d, want %d", len(got.SubTasks), len(createdTask.SubTasks))
+		}
+		for i, sub := range got.SubTasks {
+			expected := createdTask.SubTasks[i]
+			if sub.Id != expected.Id {
+				rt.Fatalf("subtask %d Id mismatch: got %q, want %q", i, sub.Id, expected.Id)
+			}
+			if sub.Description != expected.Description {
+				rt.Fatalf("subtask %d Description mismatch: got %q, want %q", i, sub.Description, expected.Description)
+			}
+			if sub.IsDone != expected.IsDone {
+				rt.Fatalf("subtask %d IsDone mismatch: got %v, want %v", i, sub.IsDone, expected.IsDone)
+			}
+		}
+	})
+}
+
+// Feature: get-main-task, Property 2: Non-existent ID returns NOT_FOUND
+// Validates: Requirements 1.2, 5.2
+func TestProperty_GetMainTaskNotFound(t *testing.T) {
+	rapid.Check(t, func(rt *rapid.T) {
+		dataDir := t.TempDir()
+		srv := tasks.NewTaskServer(dataDir, tasks.NewTestDB(t), tasks.NopLogger())
+		ctx := context.Background()
+
+		// Generate a valid UUIDv4 that won't exist in the database
+		id := fmt.Sprintf("%s-%s-4%s-%s-%s",
+			rapid.StringMatching(`[0-9a-f]{8}`).Draw(rt, "p1"),
+			rapid.StringMatching(`[0-9a-f]{4}`).Draw(rt, "p2"),
+			rapid.StringMatching(`[0-9a-f]{3}`).Draw(rt, "p3"),
+			rapid.StringMatching(`[89ab][0-9a-f]{3}`).Draw(rt, "p4"),
+			rapid.StringMatching(`[0-9a-f]{12}`).Draw(rt, "p5"),
+		)
+
+		_, err := srv.GetMainTask(ctx, &pb.GetMainTaskRequest{Id: id})
+		if err == nil {
+			rt.Fatalf("GetMainTask should return error for non-existent ID %q", id)
+		}
+		if connect.CodeOf(err) != connect.CodeNotFound {
+			rt.Fatalf("expected CodeNotFound, got %v for ID %q", connect.CodeOf(err), id)
+		}
+	})
+}
+
+// Feature: get-main-task, Property 3: Invalid UUID returns INVALID_ARGUMENT
+// Validates: Requirements 1.3
+func TestProperty_GetMainTaskInvalidUUID(t *testing.T) {
+	rapid.Check(t, func(rt *rapid.T) {
+		dataDir := t.TempDir()
+		srv := tasks.NewTaskServer(dataDir, tasks.NewTestDB(t), tasks.NopLogger())
+		ctx := context.Background()
+
+		invalidID := invalidUuidGen().Draw(rt, "invalidUUID")
+
+		_, err := srv.GetMainTask(ctx, &pb.GetMainTaskRequest{Id: invalidID})
+		if err == nil {
+			rt.Fatalf("GetMainTask should reject invalid UUID %q", invalidID)
+		}
+		if connect.CodeOf(err) != connect.CodeInvalidArgument {
+			rt.Fatalf("expected CodeInvalidArgument, got %v for ID %q", connect.CodeOf(err), invalidID)
+		}
+	})
+}
+
+// Feature: get-main-task, Property 4: GetMainTask isolation — does not return sibling tasks
+// Validates: Requirements 5.1
+func TestProperty_GetMainTaskIsolation(t *testing.T) {
+	rapid.Check(t, func(rt *rapid.T) {
+		dataDir := t.TempDir()
+		srv := tasks.NewTaskServer(dataDir, tasks.NewTestDB(t), tasks.NopLogger())
+		ctx := context.Background()
+
+		name := validNameGen().Draw(rt, "name")
+		// Generate at least 2 main tasks
+		inputTasks := rapid.SliceOfN(simpleTaskGen(), 2, 5).Draw(rt, "tasks")
+
+		createResp, err := srv.CreateTaskList(ctx, &pb.CreateTaskListRequest{
+			Title:     name,
+			ParentDir: "",
+			Tasks:     inputTasks,
+		})
+		if err != nil {
+			rt.Fatalf("CreateTaskList failed: %v", err)
+		}
+
+		// Pick a random main task
+		taskIdx := rapid.IntRange(0, len(createResp.TaskList.Tasks)-1).Draw(rt, "taskIdx")
+		targetTask := createResp.TaskList.Tasks[taskIdx]
+
+		getResp, err := srv.GetMainTask(ctx, &pb.GetMainTaskRequest{Id: targetTask.Id})
+		if err != nil {
+			rt.Fatalf("GetMainTask failed: %v", err)
+		}
+
+		got := getResp.MainTask
+
+		// Verify we only got the target task's data
+		if got.Id != targetTask.Id {
+			rt.Fatalf("got wrong task: Id %q, want %q", got.Id, targetTask.Id)
+		}
+		if got.Description != targetTask.Description {
+			rt.Fatalf("got wrong description: %q, want %q", got.Description, targetTask.Description)
+		}
+
+		// Verify subtasks belong to this task only (count matches)
+		if len(got.SubTasks) != len(targetTask.SubTasks) {
+			rt.Fatalf("subtask count mismatch: got %d, want %d (may have leaked sibling data)", len(got.SubTasks), len(targetTask.SubTasks))
+		}
+	})
+}

@@ -440,3 +440,120 @@ func TestListTaskLists_FiltersByParentDir(t *testing.T) {
 		t.Fatalf("expected 1 task list in dirB, got %d", len(listResp.TaskLists))
 	}
 }
+
+func TestGetMainTask_Success(t *testing.T) {
+	dataDir := t.TempDir()
+	srv := tasks.NewTaskServer(dataDir, tasks.NewTestDB(t), tasks.NopLogger())
+	ctx := context.Background()
+
+	// Create a task list with a main task that has subtasks
+	createResp, err := srv.CreateTaskList(ctx, &pb.CreateTaskListRequest{
+		Title:     "My List",
+		ParentDir: "",
+		Tasks: []*pb.MainTask{
+			{
+				Description: "Main task with subs",
+				IsDone:      false,
+				DueDate:     "2025-06-15",
+				SubTasks: []*pb.SubTask{
+					{Description: "Sub 1", IsDone: false},
+					{Description: "Sub 2", IsDone: true},
+				},
+			},
+		},
+		IsAutoDelete: false,
+	})
+	if err != nil {
+		t.Fatalf("CreateTaskList failed: %v", err)
+	}
+
+	mainTaskId := createResp.TaskList.Tasks[0].Id
+
+	// Fetch the main task by ID
+	getResp, err := srv.GetMainTask(ctx, &pb.GetMainTaskRequest{Id: mainTaskId})
+	if err != nil {
+		t.Fatalf("GetMainTask failed: %v", err)
+	}
+
+	got := getResp.MainTask
+	if got.Id != mainTaskId {
+		t.Fatalf("Id mismatch: got %q, want %q", got.Id, mainTaskId)
+	}
+	if got.Description != "Main task with subs" {
+		t.Fatalf("Description mismatch: got %q, want %q", got.Description, "Main task with subs")
+	}
+	if got.IsDone != false {
+		t.Fatal("expected IsDone=false")
+	}
+	if got.DueDate != "2025-06-15" {
+		t.Fatalf("DueDate mismatch: got %q, want %q", got.DueDate, "2025-06-15")
+	}
+	if len(got.SubTasks) != 2 {
+		t.Fatalf("expected 2 subtasks, got %d", len(got.SubTasks))
+	}
+	if got.SubTasks[0].Description != "Sub 1" {
+		t.Fatalf("subtask 0 description: got %q, want %q", got.SubTasks[0].Description, "Sub 1")
+	}
+	if got.SubTasks[0].IsDone != false {
+		t.Fatal("subtask 0 should not be done")
+	}
+	if got.SubTasks[1].Description != "Sub 2" {
+		t.Fatalf("subtask 1 description: got %q, want %q", got.SubTasks[1].Description, "Sub 2")
+	}
+	if got.SubTasks[1].IsDone != true {
+		t.Fatal("subtask 1 should be done")
+	}
+}
+
+func TestGetMainTask_NotFound(t *testing.T) {
+	dataDir := t.TempDir()
+	srv := tasks.NewTaskServer(dataDir, tasks.NewTestDB(t), tasks.NopLogger())
+	ctx := context.Background()
+
+	// Use a valid but non-existent UUID
+	_, err := srv.GetMainTask(ctx, &pb.GetMainTaskRequest{
+		Id: "00000000-0000-4000-a000-000000000000",
+	})
+	if err == nil {
+		t.Fatal("expected error, got nil")
+	}
+	if connect.CodeOf(err) != connect.CodeNotFound {
+		t.Fatalf("expected CodeNotFound, got %v", connect.CodeOf(err))
+	}
+}
+
+func TestGetMainTask_SubtaskIdReturnsNotFound(t *testing.T) {
+	dataDir := t.TempDir()
+	srv := tasks.NewTaskServer(dataDir, tasks.NewTestDB(t), tasks.NopLogger())
+	ctx := context.Background()
+
+	// Create a task list with a main task that has a subtask
+	createResp, err := srv.CreateTaskList(ctx, &pb.CreateTaskListRequest{
+		Title:     "List with subtask",
+		ParentDir: "",
+		Tasks: []*pb.MainTask{
+			{
+				Description: "Parent task",
+				IsDone:      false,
+				SubTasks: []*pb.SubTask{
+					{Description: "Child task", IsDone: false},
+				},
+			},
+		},
+		IsAutoDelete: false,
+	})
+	if err != nil {
+		t.Fatalf("CreateTaskList failed: %v", err)
+	}
+
+	subtaskId := createResp.TaskList.Tasks[0].SubTasks[0].Id
+
+	// Fetching by subtask ID should return NotFound (it's not a main task)
+	_, err = srv.GetMainTask(ctx, &pb.GetMainTaskRequest{Id: subtaskId})
+	if err == nil {
+		t.Fatal("expected error when fetching by subtask ID, got nil")
+	}
+	if connect.CodeOf(err) != connect.CodeNotFound {
+		t.Fatalf("expected CodeNotFound, got %v", connect.CodeOf(err))
+	}
+}

@@ -7,6 +7,7 @@ option go_package = "echolist-backend/proto/gen/tasks/v1;tasksv1";
 service TaskListService {
   rpc CreateTaskList (CreateTaskListRequest) returns (CreateTaskListResponse);
   rpc GetTaskList (GetTaskListRequest) returns (GetTaskListResponse);
+  rpc GetMainTask (GetMainTaskRequest) returns (GetMainTaskResponse);
   rpc ListTaskLists (ListTaskListsRequest) returns (ListTaskListsResponse);
   rpc UpdateTaskList (UpdateTaskListRequest) returns (UpdateTaskListResponse);
   rpc DeleteTaskList (DeleteTaskListRequest) returns (DeleteTaskListResponse);
@@ -83,3 +84,11 @@ message DeleteTaskListRequest {
 }
 
 message DeleteTaskListResponse {}
+
+message GetMainTaskRequest {
+  string id = 1;
+}
+
+message GetMainTaskResponse {
+  MainTask main_task = 1;
+}
