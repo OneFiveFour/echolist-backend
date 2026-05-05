@@ -383,6 +383,71 @@ func TestUpdateFolder_NestedSubfoldersRename(t *testing.T) {
 	}
 }
 
+func TestCreateFolder_DuplicateNameRejected(t *testing.T) {
+	dataDir := t.TempDir()
+	db := file.NewTestDB(t)
+	logger := file.NopLogger()
+	fileSrv := file.NewFileServer(dataDir, db, logger)
+	ctx := context.Background()
+
+	// Create folder "Alpha"
+	_, err := fileSrv.CreateFolder(ctx, &filev1.CreateFolderRequest{
+		ParentDir: "",
+		Name:      "Alpha",
+	})
+	if err != nil {
+		t.Fatalf("first CreateFolder failed: %v", err)
+	}
+
+	// Attempt to create folder "Alpha" again
+	_, err = fileSrv.CreateFolder(ctx, &filev1.CreateFolderRequest{
+		ParentDir: "",
+		Name:      "Alpha",
+	})
+	if err == nil {
+		t.Fatal("expected error for duplicate folder name, got nil")
+	}
+	if connect.CodeOf(err) != connect.CodeAlreadyExists {
+		t.Fatalf("expected CodeAlreadyExists, got %v", connect.CodeOf(err))
+	}
+}
+
+func TestUpdateFolder_DuplicateNameRejected(t *testing.T) {
+	dataDir := t.TempDir()
+	db := file.NewTestDB(t)
+	logger := file.NopLogger()
+	fileSrv := file.NewFileServer(dataDir, db, logger)
+	ctx := context.Background()
+
+	// Create two folders
+	_, err := fileSrv.CreateFolder(ctx, &filev1.CreateFolderRequest{
+		ParentDir: "",
+		Name:      "FolderOne",
+	})
+	if err != nil {
+		t.Fatalf("CreateFolder FolderOne failed: %v", err)
+	}
+	_, err = fileSrv.CreateFolder(ctx, &filev1.CreateFolderRequest{
+		ParentDir: "",
+		Name:      "FolderTwo",
+	})
+	if err != nil {
+		t.Fatalf("CreateFolder FolderTwo failed: %v", err)
+	}
+
+	// Attempt to rename FolderOne to FolderTwo
+	_, err = fileSrv.UpdateFolder(ctx, &filev1.UpdateFolderRequest{
+		FolderPath: "FolderOne",
+		NewName:    "FolderTwo",
+	})
+	if err == nil {
+		t.Fatal("expected error for duplicate folder name, got nil")
+	}
+	if connect.CodeOf(err) != connect.CodeAlreadyExists {
+		t.Fatalf("expected CodeAlreadyExists, got %v", connect.CodeOf(err))
+	}
+}
+
 func TestDeleteFolder_NonExistentReturnsNotFound(t *testing.T) {
 	dataDir := t.TempDir()
 	db := file.NewTestDB(t)

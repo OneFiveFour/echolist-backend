@@ -2,11 +2,13 @@ package auth
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"strings"
 
 	"connectrpc.com/connect"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 // contextKey is an unexported type for context keys in this package.
@@ -56,7 +58,7 @@ func NewAuthInterceptor(tokenService *TokenService, logger *slog.Logger) connect
 			// Validate the token.
 			claims, err := tokenService.ValidateToken(tokenStr)
 			if err != nil {
-				if strings.Contains(err.Error(), "expired") {
+				if errors.Is(err, jwt.ErrTokenExpired) {
 					logger.Debug("expired token", "procedure", req.Spec().Procedure)
 					return nil, connect.NewError(connect.CodeUnauthenticated, fmt.Errorf("token expired"))
 				}

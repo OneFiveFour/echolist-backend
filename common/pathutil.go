@@ -25,8 +25,7 @@ func IsSubPath(base, resolved string) bool {
 	}
 	return true
 }
-// NormalizeRelativePath strips leading slashes and cleans a relative path so
-// that the data-directory root is always represented as "" rather than "/" or ".".
+
 // rejectBadRelativePath returns an InvalidArgument error if the path is not a
 // clean relative path. The rules are:
 //   - empty string is allowed (represents the data-directory root)

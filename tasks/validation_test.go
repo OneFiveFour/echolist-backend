@@ -278,6 +278,82 @@ func TestUpdateTaskList_RecurringTaskAdvancement(t *testing.T) {
 	}
 }
 
+func TestUpdateTaskList_AutoDeleteFiltersDoneSubtasks(t *testing.T) {
+	srv := tasks.NewTaskServer(t.TempDir(), tasks.NewTestDB(t), tasks.NopLogger())
+	ctx := context.Background()
+
+	// Create a task list with a main task that has done and open subtasks
+	createResp, err := srv.CreateTaskList(ctx, &pb.CreateTaskListRequest{
+		Title:     "Subtask Filter Test",
+		ParentDir: "",
+		Tasks: []*pb.MainTask{
+			{
+				Description: "main task",
+				IsDone:      false,
+				SubTasks: []*pb.SubTask{
+					{Description: "done sub", IsDone: true},
+					{Description: "open sub", IsDone: false},
+					{Description: "another done sub", IsDone: true},
+				},
+			},
+		},
+		IsAutoDelete: false,
+	})
+	if err != nil {
+		t.Fatalf("CreateTaskList failed: %v", err)
+	}
+
+	listID := createResp.TaskList.Id
+	mainTaskID := createResp.TaskList.Tasks[0].Id
+	openSubID := createResp.TaskList.Tasks[0].SubTasks[1].Id
+
+	// Update with IsAutoDelete=true — done subtasks should be removed
+	_, err = srv.UpdateTaskList(ctx, &pb.UpdateTaskListRequest{
+		Id:    listID,
+		Title: "Subtask Filter Test",
+		Tasks: []*pb.MainTask{
+			{
+				Id:          mainTaskID,
+				Description: "main task",
+				IsDone:      false,
+				SubTasks: []*pb.SubTask{
+					{Id: createResp.TaskList.Tasks[0].SubTasks[0].Id, Description: "done sub", IsDone: true},
+					{Id: openSubID, Description: "open sub", IsDone: false},
+					{Id: createResp.TaskList.Tasks[0].SubTasks[2].Id, Description: "another done sub", IsDone: true},
+				},
+			},
+		},
+		IsAutoDelete: true,
+	})
+	if err != nil {
+		t.Fatalf("UpdateTaskList failed: %v", err)
+	}
+
+	// Get the task list and verify subtask filtering
+	getResp, err := srv.GetTaskList(ctx, &pb.GetTaskListRequest{Id: listID})
+	if err != nil {
+		t.Fatalf("GetTaskList failed: %v", err)
+	}
+
+	resultTasks := getResp.TaskList.Tasks
+	if len(resultTasks) != 1 {
+		t.Fatalf("expected 1 main task, got %d", len(resultTasks))
+	}
+
+	// The main task should survive (it's not done)
+	if resultTasks[0].Description != "main task" {
+		t.Fatalf("expected main task description 'main task', got %q", resultTasks[0].Description)
+	}
+
+	// Only the open subtask should remain
+	if len(resultTasks[0].SubTasks) != 1 {
+		t.Fatalf("expected 1 subtask after auto-delete filtering, got %d", len(resultTasks[0].SubTasks))
+	}
+	if resultTasks[0].SubTasks[0].Description != "open sub" {
+		t.Fatalf("expected surviving subtask 'open sub', got %q", resultTasks[0].SubTasks[0].Description)
+	}
+}
+
 func TestCreateTaskList_MutualExclusionDueDateRecurrence(t *testing.T) {
 	srv := tasks.NewTaskServer(t.TempDir(), tasks.NewTestDB(t), tasks.NopLogger())
 	ctx := context.Background()
