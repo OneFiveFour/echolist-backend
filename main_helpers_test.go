@@ -98,3 +98,41 @@ func TestMaxBytesMiddleware_RejectsOversizedBody(t *testing.T) {
 		t.Fatalf("expected 413, got %d", rec.Code)
 	}
 }
+
+// ---------------------------------------------------------------------------
+// validateJWTSecret
+// ---------------------------------------------------------------------------
+
+func TestValidateJWTSecret_Empty(t *testing.T) {
+	err := validateJWTSecret("")
+	if err == nil {
+		t.Fatal("expected error for empty secret")
+	}
+	if !strings.Contains(err.Error(), "required") {
+		t.Errorf("expected 'required' in error, got %q", err.Error())
+	}
+}
+
+func TestValidateJWTSecret_TooShort(t *testing.T) {
+	err := validateJWTSecret("short")
+	if err == nil {
+		t.Fatal("expected error for short secret")
+	}
+	if !strings.Contains(err.Error(), "at least 32 bytes") {
+		t.Errorf("expected 'at least 32 bytes' in error, got %q", err.Error())
+	}
+}
+
+func TestValidateJWTSecret_ExactlyMinLength(t *testing.T) {
+	secret := strings.Repeat("a", 32)
+	if err := validateJWTSecret(secret); err != nil {
+		t.Errorf("expected no error for 32-byte secret, got %v", err)
+	}
+}
+
+func TestValidateJWTSecret_LongSecret(t *testing.T) {
+	secret := strings.Repeat("x", 64)
+	if err := validateJWTSecret(secret); err != nil {
+		t.Errorf("expected no error for 64-byte secret, got %v", err)
+	}
+}

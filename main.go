@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -54,6 +55,18 @@ func parseDurationMinutesEnv(logger *slog.Logger, key string, defaultMinutes int
 	return time.Duration(minutes) * time.Minute
 }
 
+// validateJWTSecret checks that the JWT signing secret meets minimum security
+// requirements. HMAC-SHA256 needs at least 32 bytes to resist brute-force.
+func validateJWTSecret(secret string) error {
+	if secret == "" {
+		return fmt.Errorf("JWT_SECRET environment variable is required")
+	}
+	if len(secret) < 32 {
+		return fmt.Errorf("JWT_SECRET must be at least 32 bytes, got %d", len(secret))
+	}
+	return nil
+}
+
 // maxBytesMiddleware wraps a handler to limit request body size.
 func maxBytesMiddleware(maxBytes int64, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -85,8 +98,8 @@ func main() {
 
 	// Auth configuration
 	jwtSecret := os.Getenv("JWT_SECRET")
-	if jwtSecret == "" {
-		logger.Error("JWT_SECRET environment variable is required")
+	if err := validateJWTSecret(jwtSecret); err != nil {
+		logger.Error("invalid JWT_SECRET", "error", err.Error())
 		os.Exit(1)
 	}
 
