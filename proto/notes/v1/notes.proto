@@ -35,6 +35,8 @@ message Note {
   string title = 2;
   string content = 3;
   int64 updated_at = 4;
+  // Relative path to the parent directory. Empty string for root.
+  string parent_dir = 5;
 }
 
 message ListNotesResponse {

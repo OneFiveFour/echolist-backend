@@ -96,6 +96,7 @@ func (s *NotesServer) CreateNote(
 		Title:     title,
 		Content:   req.GetContent(),
 		UpdatedAt: updatedAt,
+		ParentDir: parentDir,
 	}
 
 	return &pb.CreateNoteResponse{Note: note}, nil

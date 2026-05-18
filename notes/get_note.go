@@ -53,6 +53,7 @@ func (s *NotesServer) GetNote(
 		Title:     noteRow.Title,
 		Content:   string(content),
 		UpdatedAt: noteRow.UpdatedAt,
+		ParentDir: noteRow.ParentDir,
 	}
 
 	return &pb.GetNoteResponse{Note: note}, nil

@@ -174,11 +174,13 @@ func (x *ListNotesRequest) GetParentDir() string {
 }
 
 type Note struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Title         string                 `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
-	Content       string                 `protobuf:"bytes,3,opt,name=content,proto3" json:"content,omitempty"`
-	UpdatedAt     int64                  `protobuf:"varint,4,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	state     protoimpl.MessageState `protogen:"open.v1"`
+	Id        string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Title     string                 `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
+	Content   string                 `protobuf:"bytes,3,opt,name=content,proto3" json:"content,omitempty"`
+	UpdatedAt int64                  `protobuf:"varint,4,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	// Relative path to the parent directory. Empty string for root.
+	ParentDir     string `protobuf:"bytes,5,opt,name=parent_dir,json=parentDir,proto3" json:"parent_dir,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -239,6 +241,13 @@ func (x *Note) GetUpdatedAt() int64 {
 		return x.UpdatedAt
 	}
 	return 0
+}
+
+func (x *Note) GetParentDir() string {
+	if x != nil {
+		return x.ParentDir
+	}
+	return ""
 }
 
 type ListNotesResponse struct {
@@ -571,13 +580,15 @@ const file_notes_v1_notes_proto_rawDesc = "" +
 	"\x04note\x18\x01 \x01(\v2\x0e.notes.v1.NoteR\x04note\"1\n" +
 	"\x10ListNotesRequest\x12\x1d\n" +
 	"\n" +
-	"parent_dir\x18\x01 \x01(\tR\tparentDir\"e\n" +
+	"parent_dir\x18\x01 \x01(\tR\tparentDir\"\x84\x01\n" +
 	"\x04Note\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12\x18\n" +
 	"\acontent\x18\x03 \x01(\tR\acontent\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\x04 \x01(\x03R\tupdatedAt\"9\n" +
+	"updated_at\x18\x04 \x01(\x03R\tupdatedAt\x12\x1d\n" +
+	"\n" +
+	"parent_dir\x18\x05 \x01(\tR\tparentDir\"9\n" +
 	"\x11ListNotesResponse\x12$\n" +
 	"\x05notes\x18\x01 \x03(\v2\x0e.notes.v1.NoteR\x05notes\" \n" +
 	"\x0eGetNoteRequest\x12\x0e\n" +

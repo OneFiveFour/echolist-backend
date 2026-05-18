@@ -60,6 +60,7 @@ func (s *NotesServer) ListNotes(
 			Title:     row.Title,
 			Content:   string(content),
 			UpdatedAt: row.UpdatedAt,
+			ParentDir: row.ParentDir,
 		})
 	}
 

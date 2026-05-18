@@ -126,6 +126,7 @@ func (s *NotesServer) UpdateNote(
 		Title:     title,
 		Content:   req.GetContent(),
 		UpdatedAt: updatedAt,
+		ParentDir: noteRow.ParentDir,
 	}
 
 	return &pb.UpdateNoteResponse{Note: note}, nil
