@@ -20,17 +20,19 @@ func (s *NotesServer) DeleteNote(
 ) (*pb.DeleteNoteResponse, error) {
 
 	// Validate the id field
-	if err := common.ValidateUuidV4(req.GetId()); err != nil {
+	id := req.GetId()
+	err := common.ValidateUuidV4(id)
+	if err != nil {
 		return nil, err
 	}
 
 	// Query DB for note metadata
-	noteRow, err := s.db.GetNote(req.GetId())
+	noteRow, err := s.db.GetNote(id)
 	if err != nil {
 		if errors.Is(err, database.ErrNotFound) {
 			return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("note not found"))
 		}
-		s.logger.Error("failed to query note", "id", req.GetId(), "error", err)
+		s.logger.Error("failed to query note", "id", id, "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to query note: %w", err))
 	}
 
@@ -45,16 +47,16 @@ func (s *NotesServer) DeleteNote(
 	// Delete file from disk first
 	err = os.Remove(absPath)
 	if err != nil && !errors.Is(err, os.ErrNotExist) {
-		s.logger.Error("failed to delete note file", "id", req.GetId(), "path", notePath, "error", err)
+		s.logger.Error("failed to delete note file", "id", id, "path", notePath, "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to delete note: %w", err))
 	}
 	// If file was missing (os.ErrNotExist), we still proceed to delete the DB row (cleanup orphan)
 
 	// Delete DB row
-	deleted, err := s.db.DeleteNote(req.GetId())
+	deleted, err := s.db.DeleteNote(id)
 	if err != nil {
 		// File already removed but DB delete failed — log the error
-		s.logger.Error("failed to delete note from database after file removal", "id", req.GetId(), "error", err)
+		s.logger.Error("failed to delete note from database after file removal", "id", id, "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to delete note metadata: %w", err))
 	}
 	if !deleted {

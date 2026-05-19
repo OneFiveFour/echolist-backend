@@ -16,38 +16,46 @@ func (s *FileServer) UpdateFolder(
 	ctx context.Context,
 	req *filev1.UpdateFolderRequest,
 ) (*filev1.UpdateFolderResponse, error) {
-	if err := common.ValidateName(req.GetNewName()); err != nil {
+	// Validate new name
+	newName := req.GetNewName()
+	err := common.ValidateName(newName)
+	if err != nil {
 		return nil, err
 	}
-	if req.GetFolderPath() == "" {
+
+	// Validate folder path
+	folderPath := req.GetFolderPath()
+	if folderPath == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("folder_path must not be empty"))
 	}
 
-	folderPath := req.GetFolderPath()
 	oldPath, err := common.ValidatePath(s.dataDir, folderPath)
 	if err != nil {
 		return nil, err
 	}
-	if err := common.RequireDir(oldPath, "folder"); err != nil {
+
+	err = common.RequireDir(oldPath, "folder")
+	if err != nil {
 		return nil, err
 	}
 
 	parentDir := filepath.Dir(oldPath)
-	newPath := filepath.Join(parentDir, req.GetNewName())
+	newPath := filepath.Join(parentDir, newName)
 	oldBase := filepath.Base(oldPath)
 
 	unlock := s.locks.Lock(oldPath)
 	defer unlock()
 
 	// Check for exact duplicate sibling (case-sensitive)
-	if req.GetNewName() != oldBase {
+	if newName != oldBase {
 		if _, err := os.Stat(newPath); err == nil {
 			return nil, connect.NewError(connect.CodeAlreadyExists, fmt.Errorf("a folder or file with that name already exists"))
 		}
 	}
 
-	if err := os.Rename(oldPath, newPath); err != nil {
-		s.logger.Error("failed to rename folder", "path", folderPath, "newName", req.GetNewName(), "error", err)
+	err = os.Rename(oldPath, newPath)
+	if err != nil {
+		s.logger.Error("failed to rename folder", "path", folderPath, "newName", newName, "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to rename folder: %w", err))
 	}
 
@@ -56,12 +64,13 @@ func (s *FileServer) UpdateFolder(
 	// The new relative path replaces the last segment with the new name.
 	oldRelPath := folderPath
 	parentRel := filepath.Dir(oldRelPath)
-	newRelPath := req.GetNewName()
+	newRelPath := newName
 	if parentRel != "." {
-		newRelPath = parentRel + "/" + req.GetNewName()
+		newRelPath = parentRel + "/" + newName
 	}
 
-	if err := s.db.RenameParentDir(oldRelPath, newRelPath); err != nil {
+	err = s.db.RenameParentDir(oldRelPath, newRelPath)
+	if err != nil {
 		// Rollback: rename folder back on disk.
 		if rbErr := os.Rename(newPath, oldPath); rbErr != nil {
 			s.logger.Error("failed to rollback folder rename", "newPath", newPath, "oldPath", oldPath, "error", rbErr)
@@ -73,7 +82,7 @@ func (s *FileServer) UpdateFolder(
 	return &filev1.UpdateFolderResponse{
 		Folder: &filev1.Folder{
 			Path: newRelPath + "/",
-			Name: req.GetNewName(),
+			Name: newName,
 		},
 	}, nil
 }

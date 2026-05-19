@@ -16,23 +16,28 @@ func (s *FileServer) CreateFolder(
 	ctx context.Context,
 	req *filev1.CreateFolderRequest,
 ) (*filev1.CreateFolderResponse, error) {
-	if err := common.ValidateName(req.GetName()); err != nil {
+	// Validate folder name
+	name := req.GetName()
+	err := common.ValidateName(name)
+	if err != nil {
 		return nil, err
 	}
 
+	// Validate parent directory path
 	parentDirRel := req.GetParentDir()
-
 	parentDir, err := common.ValidateParentDir(s.dataDir, parentDirRel)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := common.RequireDir(parentDir, "parent directory"); err != nil {
+	// Validate parent directory exists
+	err = common.RequireDir(parentDir, "parent directory")
+	if err != nil {
 		return nil, err
 	}
 
 	// Check for duplicate (case-sensitive)
-	newDir := filepath.Join(parentDir, req.GetName())
+	newDir := filepath.Join(parentDir, name)
 
 	unlock := s.locks.Lock(newDir)
 	defer unlock()
@@ -42,16 +47,16 @@ func (s *FileServer) CreateFolder(
 	}
 
 	if err := os.Mkdir(newDir, 0755); err != nil {
-		s.logger.Error("failed to create folder", "path", req.GetParentDir()+"/"+req.GetName(), "error", err)
+		s.logger.Error("failed to create folder", "path", req.GetParentDir()+"/"+name, "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to create folder: %w", err))
 	}
 
 	// Build relative path for the created folder (with trailing /)
-	relPath := filepath.Join(parentDirRel, req.GetName()) + "/"
+	relPath := filepath.Join(parentDirRel, name) + "/"
 	return &filev1.CreateFolderResponse{
 		Folder: &filev1.Folder{
 			Path: relPath,
-			Name: req.GetName(),
+			Name: name,
 		},
 	}, nil
 }

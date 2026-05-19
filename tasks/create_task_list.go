@@ -24,13 +24,17 @@ func (s *TaskServer) CreateTaskList(
 		return nil, err
 	}
 
+	// Validate title
 	title := req.GetTitle()
-	if err := common.ValidateName(title); err != nil {
+	err = common.ValidateName(title)
+	if err != nil {
 		return nil, err
 	}
 
+	// Validate tasks
 	domainTasks := protoToMainTasks(req.GetTasks())
-	if err := validateTasks(domainTasks); err != nil {
+	err = validateTasks(domainTasks)
+	if err != nil {
 		return nil, err
 	}
 
@@ -44,7 +48,9 @@ func (s *TaskServer) CreateTaskList(
 		}
 	}
 
-	if err := common.RequireDir(dirPath, "parent directory"); err != nil {
+	// Validate parent directory exists
+	err = common.RequireDir(dirPath, "parent directory")
+	if err != nil {
 		return nil, err
 	}
 

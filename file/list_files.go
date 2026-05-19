@@ -77,7 +77,8 @@ func (s *FileServer) ListFiles(
 		return nil, err
 	}
 
-	if err := common.RequireDir(parentDir, "parent directory"); err != nil {
+	err = common.RequireDir(parentDir, "parent directory")
+	if err != nil {
 		return nil, err
 	}
 

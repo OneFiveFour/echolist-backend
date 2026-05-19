@@ -26,7 +26,8 @@ func (s *NotesServer) ListNotes(
 		return nil, err
 	}
 
-	if err := common.RequireDir(root, "parent directory"); err != nil {
+	err = common.RequireDir(root, "parent directory")
+	if err != nil {
 		return nil, err
 	}
 

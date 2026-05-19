@@ -18,24 +18,32 @@ func (s *TaskServer) UpdateTaskList(
 	ctx context.Context,
 	req *pb.UpdateTaskListRequest,
 ) (*pb.UpdateTaskListResponse, error) {
-	if err := common.ValidateUuidV4(req.GetId()); err != nil {
+	// Validate ID
+	id := req.GetId()
+	err := common.ValidateUuidV4(id)
+	if err != nil {
 		return nil, err
 	}
 
+	// Validate title
 	title := req.GetTitle()
-	if err := common.ValidateName(title); err != nil {
+	err = common.ValidateName(title)
+	if err != nil {
 		return nil, err
 	}
 
+	// Validate tasks
 	domainTasks := protoToMainTasks(req.GetTasks())
-	if err := validateTasks(domainTasks); err != nil {
+	err = validateTasks(domainTasks)
+	if err != nil {
 		return nil, err
 	}
 
 	// Validate and assign IDs for main tasks and subtasks.
 	for i, mt := range domainTasks {
 		if mt.Id != "" {
-			if err := common.ValidateUuidV4(mt.Id); err != nil {
+			err = common.ValidateUuidV4(mt.Id)
+			if err != nil {
 				return nil, err
 			}
 		} else {
@@ -43,7 +51,8 @@ func (s *TaskServer) UpdateTaskList(
 		}
 		for j, st := range mt.SubTasks {
 			if st.Id != "" {
-				if err := common.ValidateUuidV4(st.Id); err != nil {
+				err = common.ValidateUuidV4(st.Id)
+				if err != nil {
 					return nil, err
 				}
 			} else {
@@ -53,17 +62,18 @@ func (s *TaskServer) UpdateTaskList(
 	}
 
 	// Get existing tasks from DB for recurrence advancement reference.
-	_, existingRows, err := s.db.GetTaskList(req.GetId())
+	_, existingRows, err := s.db.GetTaskList(id)
 	if err != nil {
 		if errors.Is(err, database.ErrNotFound) {
 			return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("task list not found"))
 		}
-		s.logger.Error("failed to get task list", "id", req.GetId(), "error", err)
+		s.logger.Error("failed to get task list", "id", id, "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to get task list: %w", err))
 	}
 	existingTasks := taskRowsToMainTasks(existingRows)
 
-	if err := advanceRecurringTasks(domainTasks, existingTasks); err != nil {
+	err = advanceRecurringTasks(domainTasks, existingTasks)
+	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to compute next due date: %w", err))
 	}
 
@@ -108,7 +118,7 @@ func (s *TaskServer) UpdateTaskList(
 	}
 
 	tlRow, _, err := s.db.UpdateTaskList(database.UpdateTaskListParams{
-		Id:           req.GetId(),
+		Id:           id,
 		Title:        title,
 		IsAutoDelete: isAutoDelete,
 		UpdatedAt:    nowMillis(),
@@ -118,7 +128,7 @@ func (s *TaskServer) UpdateTaskList(
 		if errors.Is(err, database.ErrNotFound) {
 			return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("task list not found"))
 		}
-		s.logger.Error("failed to update task list", "id", req.GetId(), "error", err)
+		s.logger.Error("failed to update task list", "id", id, "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to update task list: %w", err))
 	}
 

@@ -17,16 +17,19 @@ func (s *TaskServer) GetMainTask(
 	req *pb.GetMainTaskRequest,
 ) (*pb.GetMainTaskResponse, error) {
 
-	if err := common.ValidateUuidV4(req.GetId()); err != nil {
+	// Validate ID
+	id := req.GetId()
+	err := common.ValidateUuidV4(id)
+	if err != nil {
 		return nil, err
 	}
 
-	mainRow, subRows, err := s.db.GetMainTask(req.GetId())
+	mainRow, subRows, err := s.db.GetMainTask(id)
 	if err != nil {
 		if errors.Is(err, database.ErrNotFound) {
 			return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("main task not found"))
 		}
-		s.logger.Error("failed to get main task", "id", req.GetId(), "error", err)
+		s.logger.Error("failed to get main task", "id", id, "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to get main task: %w", err))
 	}
 

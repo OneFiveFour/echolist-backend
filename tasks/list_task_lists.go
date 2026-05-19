@@ -21,7 +21,8 @@ func (s *TaskServer) ListTaskLists(
 		return nil, err
 	}
 
-	if err := common.RequireDir(dirPath, "parent directory"); err != nil {
+	err = common.RequireDir(dirPath, "parent directory")
+	if err != nil {
 		return nil, err
 	}
 

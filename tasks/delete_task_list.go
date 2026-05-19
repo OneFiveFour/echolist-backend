@@ -15,13 +15,16 @@ func (s *TaskServer) DeleteTaskList(
 	req *pb.DeleteTaskListRequest,
 ) (*pb.DeleteTaskListResponse, error) {
 
-	if err := common.ValidateUuidV4(req.GetId()); err != nil {
+	// Validate ID
+	id := req.GetId()
+	err := common.ValidateUuidV4(id)
+	if err != nil {
 		return nil, err
 	}
 
-	found, err := s.db.DeleteTaskList(req.GetId())
+	found, err := s.db.DeleteTaskList(id)
 	if err != nil {
-		s.logger.Error("failed to delete task list", "id", req.GetId(), "error", err)
+		s.logger.Error("failed to delete task list", "id", id, "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to delete task list: %w", err))
 	}
 	if !found {

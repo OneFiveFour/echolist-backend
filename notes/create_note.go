@@ -20,24 +20,30 @@ func (s *NotesServer) CreateNote(
 	req *pb.CreateNoteRequest,
 ) (*pb.CreateNoteResponse, error) {
 
-	parentDir := req.GetParentDir()
-
 	// Validate parent directory path
+	parentDir := req.GetParentDir()
 	dirPath, err := common.ValidateParentDir(s.dataDir, parentDir)
 	if err != nil {
 		return nil, err
 	}
 
+	// Validate title
 	title := req.GetTitle()
-	if err := common.ValidateName(title); err != nil {
+	err = common.ValidateName(title)
+	if err != nil {
 		return nil, err
 	}
 
-	if err := common.ValidateContentLength(req.GetContent(), common.MaxNoteContentBytes, "content"); err != nil {
+	// Validate content length
+	content := req.GetContent()
+	err = common.ValidateContentLength(content, common.MaxNoteContentBytes, "content")
+	if err != nil {
 		return nil, err
 	}
 
-	if err := common.RequireDir(dirPath, "parent directory"); err != nil {
+	// Validate parent directory exists
+	err = common.RequireDir(dirPath, "parent directory")
+	if err != nil {
 		return nil, err
 	}
 
@@ -53,7 +59,7 @@ func (s *NotesServer) CreateNote(
 	defer unlockFile()
 
 	// Create file on disk first
-	err = common.CreateExclusive(absPath, []byte(req.GetContent()))
+	err = common.CreateExclusive(absPath, []byte(content))
 	if err != nil {
 		if errors.Is(err, os.ErrExist) {
 			return nil, connect.NewError(connect.CodeAlreadyExists, fmt.Errorf("note already exists"))
@@ -71,7 +77,7 @@ func (s *NotesServer) CreateNote(
 	updatedAt := info.ModTime().UnixMilli()
 
 	// Compute preview: first 100 runes of content
-	preview := computePreview(req.GetContent())
+	preview := computePreview(content)
 
 	// Insert DB row
 	err = s.db.InsertNote(database.InsertNoteParams{
@@ -94,7 +100,7 @@ func (s *NotesServer) CreateNote(
 	note := &pb.Note{
 		Id:        id,
 		Title:     title,
-		Content:   req.GetContent(),
+		Content:   content,
 		UpdatedAt: updatedAt,
 		ParentDir: parentDir,
 	}

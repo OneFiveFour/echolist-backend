@@ -16,18 +16,19 @@ func (s *FileServer) DeleteFolder(
 	req *filev1.DeleteFolderRequest,
 ) (*filev1.DeleteFolderResponse, error) {
 	// folder_path must not be empty (can't delete root)
-	if req.GetFolderPath() == "" {
+	folderPath := req.GetFolderPath()
+	if folderPath == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("folder_path must not be empty"))
 	}
 
-	folderPath := req.GetFolderPath()
 	target, err := common.ValidatePath(s.dataDir, folderPath)
 	if err != nil {
 		return nil, err
 	}
 
 	// Check folder exists and is a directory
-	if err := common.RequireDir(target, "folder"); err != nil {
+	err = common.RequireDir(target, "folder")
+	if err != nil {
 		return nil, err
 	}
 
@@ -35,15 +36,16 @@ func (s *FileServer) DeleteFolder(
 	defer unlock()
 
 	// Delete notes and task_lists rows from SQLite before removing the folder.
-	folderRelPath := req.GetFolderPath()
-	if err := s.db.DeleteByParentDir(folderRelPath); err != nil {
-		s.logger.Error("failed to delete DB rows for folder", "path", folderRelPath, "error", err)
+	err = s.db.DeleteByParentDir(folderPath)
+	if err != nil {
+		s.logger.Error("failed to delete DB rows for folder", "path", folderPath, "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to delete database entries: %w", err))
 	}
 
 	// Remove folder and all contents
-	if err := os.RemoveAll(target); err != nil {
-		s.logger.Warn("failed to delete folder from disk after DB cascade", "path", req.GetFolderPath(), "error", err)
+	err = os.RemoveAll(target)
+	if err != nil {
+		s.logger.Warn("failed to delete folder from disk after DB cascade", "path", folderPath, "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to delete folder: %w", err))
 	}
 	

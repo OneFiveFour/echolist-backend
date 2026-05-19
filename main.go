@@ -98,7 +98,8 @@ func main() {
 
 	// Auth configuration
 	jwtSecret := os.Getenv("JWT_SECRET")
-	if err := validateJWTSecret(jwtSecret); err != nil {
+	err = validateJWTSecret(jwtSecret)
+	if err != nil {
 		logger.Error("invalid JWT_SECRET", "error", err.Error())
 		os.Exit(1)
 	}

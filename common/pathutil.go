@@ -94,7 +94,8 @@ func resolveSymlinks(path string) (string, error) {
 }
 
 func validatePath(dataDir, relativePath string, allowRoot bool) (string, error) {
-	if err := rejectBadRelativePath(relativePath); err != nil {
+	err := rejectBadRelativePath(relativePath)
+	if err != nil {
 		return "", err
 	}
 

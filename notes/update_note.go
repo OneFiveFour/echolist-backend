@@ -20,28 +20,33 @@ func (s *NotesServer) UpdateNote(
 ) (*pb.UpdateNoteResponse, error) {
 
 	// Validate ID
-	if err := common.ValidateUuidV4(req.GetId()); err != nil {
+	id := req.GetId()
+	err := common.ValidateUuidV4(id)
+	if err != nil {
 		return nil, err
 	}
 
 	// Validate title
 	title := req.GetTitle()
-	if err := common.ValidateName(title); err != nil {
+	err = common.ValidateName(title)
+	if err != nil {
 		return nil, err
 	}
 
 	// Validate content
-	if err := common.ValidateContentLength(req.GetContent(), common.MaxNoteContentBytes, "content"); err != nil {
+	content := req.GetContent()
+	err = common.ValidateContentLength(content, common.MaxNoteContentBytes, "content")
+	if err != nil {
 		return nil, err
 	}
 
 	// Query DB for current metadata
-	noteRow, err := s.db.GetNote(req.GetId())
+	noteRow, err := s.db.GetNote(id)
 	if err != nil {
 		if errors.Is(err, database.ErrNotFound) {
 			return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("note not found"))
 		}
-		s.logger.Error("failed to query note", "id", req.GetId(), "error", err)
+		s.logger.Error("failed to query note", "id", id, "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to query note: %w", err))
 	}
 
@@ -82,7 +87,7 @@ func (s *NotesServer) UpdateNote(
 	// Write new content to file
 	currentAbsPath := newAbsPath
 	currentNotePath := newNotePath
-	err = common.File(currentAbsPath, []byte(req.GetContent()))
+	err = common.File(currentAbsPath, []byte(content))
 	if err != nil {
 		if renamed {
 			// Rollback: rename file back
@@ -103,10 +108,10 @@ func (s *NotesServer) UpdateNote(
 	updatedAt := info.ModTime().UnixMilli()
 
 	// Compute new preview
-	preview := computePreview(req.GetContent())
+	preview := computePreview(content)
 
 	// Update DB row
-	err = s.db.UpdateNote(req.GetId(), title, preview, updatedAt)
+	err = s.db.UpdateNote(id, title, preview, updatedAt)
 	if err != nil {
 		if errors.Is(err, database.ErrNotFound) {
 			return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("note not found"))
@@ -117,14 +122,14 @@ func (s *NotesServer) UpdateNote(
 				s.logger.Error("failed to rollback note rename after DB failure", "from", newNotePath, "to", oldNotePath, "error", rollbackErr)
 			}
 		}
-		s.logger.Error("failed to update note in database", "id", req.GetId(), "error", err)
+		s.logger.Error("failed to update note in database", "id", id, "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to update note metadata: %w", err))
 	}
 
 	note := &pb.Note{
-		Id:        req.GetId(),
+		Id:        id,
 		Title:     title,
-		Content:   req.GetContent(),
+		Content:   content,
 		UpdatedAt: updatedAt,
 		ParentDir: noteRow.ParentDir,
 	}

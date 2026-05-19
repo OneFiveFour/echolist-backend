@@ -20,17 +20,19 @@ func (s *NotesServer) GetNote(
 ) (*pb.GetNoteResponse, error) {
 
 	// Validate the id field
-	if err := common.ValidateUuidV4(req.GetId()); err != nil {
+	id := req.GetId()
+	err := common.ValidateUuidV4(id)
+	if err != nil {
 		return nil, err
 	}
 
 	// Query DB for note metadata
-	noteRow, err := s.db.GetNote(req.GetId())
+	noteRow, err := s.db.GetNote(id)
 	if err != nil {
 		if errors.Is(err, database.ErrNotFound) {
 			return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("note not found"))
 		}
-		s.logger.Error("failed to query note", "id", req.GetId(), "error", err)
+		s.logger.Error("failed to query note", "id", id, "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to query note: %w", err))
 	}
 

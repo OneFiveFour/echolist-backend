@@ -17,16 +17,19 @@ func (s *TaskServer) GetTaskList(
 	req *pb.GetTaskListRequest,
 ) (*pb.GetTaskListResponse, error) {
 
-	if err := common.ValidateUuidV4(req.GetId()); err != nil {
+	// Validate ID
+	id := req.GetId()
+	err := common.ValidateUuidV4(id)
+	if err != nil {
 		return nil, err
 	}
 
-	tlRow, taskRows, err := s.db.GetTaskList(req.GetId())
+	tlRow, taskRows, err := s.db.GetTaskList(id)
 	if err != nil {
 		if errors.Is(err, database.ErrNotFound) {
 			return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("task list not found"))
 		}
-		s.logger.Error("failed to get task list", "id", req.GetId(), "error", err)
+		s.logger.Error("failed to get task list", "id", id, "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to get task list: %w", err))
 	}
 
