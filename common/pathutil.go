@@ -165,16 +165,6 @@ func RequireDir(path string) error {
 	return nil
 }
 
-// Content size limits for per-field validation.
-const (
-	MaxNoteContentBytes        = 1 << 20 // 1 MiB
-	MaxNameLen                 = 255
-	MaxTaskDescriptionBytes    = 1024
-	MaxSubtaskDescriptionBytes = 1024
-	MaxTasksPerList            = 1000
-	MaxSubtasksPerTask         = 100
-)
-
 // ValidateContentLength returns an InvalidArgument error if len(data) exceeds max.
 func ValidateContentLength(data string, max int, field string) error {
 	if len(data) > max {
