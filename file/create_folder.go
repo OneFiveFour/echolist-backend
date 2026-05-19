@@ -31,7 +31,7 @@ func (s *FileServer) CreateFolder(
 	}
 
 	// Validate parent directory exists
-	err = common.RequireDir(parentDir, "parent directory")
+	err = common.RequireDir(parentDir)
 	if err != nil {
 		return nil, err
 	}

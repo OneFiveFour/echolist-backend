@@ -27,7 +27,7 @@ func (s *FileServer) DeleteFolder(
 	}
 
 	// Check folder exists and is a directory
-	err = common.RequireDir(target, "folder")
+	err = common.RequireDir(target)
 	if err != nil {
 		return nil, err
 	}

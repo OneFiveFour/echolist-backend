@@ -34,7 +34,7 @@ func (s *FileServer) UpdateFolder(
 		return nil, err
 	}
 
-	err = common.RequireDir(oldPath, "folder")
+	err = common.RequireDir(oldPath)
 	if err != nil {
 		return nil, err
 	}

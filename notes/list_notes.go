@@ -19,13 +19,12 @@ func (s *NotesServer) ListNotes(
 ) (*pb.ListNotesResponse, error) {
 
 	parentDir := req.GetParentDir()
-
 	root, err := common.ValidateParentDir(s.dataDir, parentDir)
 	if err != nil {
 		return nil, err
 	}
 
-	err = common.RequireDir(root, "parent directory")
+	err = common.RequireDir(root)
 	if err != nil {
 		return nil, err
 	}

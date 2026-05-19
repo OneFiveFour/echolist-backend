@@ -154,13 +154,13 @@ func ValidateName(name string) error {
 }
 
 // RequireDir stats path and verifies it is an existing directory.
-func RequireDir(path, label string) error {
+func RequireDir(path string) error {
 	info, err := os.Stat(path)
 	if err != nil {
-		return connect.NewError(connect.CodeNotFound, fmt.Errorf("%s does not exist", label))
+		return connect.NewError(connect.CodeNotFound, fmt.Errorf("directory does not exist"))
 	}
 	if !info.IsDir() {
-		return connect.NewError(connect.CodeNotFound, fmt.Errorf("%s is not a directory", label))
+		return connect.NewError(connect.CodeNotFound, fmt.Errorf("path is not a directory"))
 	}
 	return nil
 }

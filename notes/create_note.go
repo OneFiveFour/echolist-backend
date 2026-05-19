@@ -42,7 +42,7 @@ func (s *NotesServer) CreateNote(
 	}
 
 	// Validate parent directory exists
-	err = common.RequireDir(dirPath, "parent directory")
+	err = common.RequireDir(dirPath)
 	if err != nil {
 		return nil, err
 	}

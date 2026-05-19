@@ -10,14 +10,15 @@ import (
 
 func TestRequireDir_ExistingDirectory(t *testing.T) {
 	dir := t.TempDir()
-	if err := RequireDir(dir, "folder"); err != nil {
+	err := RequireDir(dir)
+	if err != nil {
 		t.Fatalf("expected no error for existing directory, got %v", err)
 	}
 }
 
 func TestRequireDir_NonExistentPath(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "nope")
-	err := RequireDir(path, "folder")
+	err := RequireDir(path)
 	if err == nil {
 		t.Fatal("expected error for non-existent path")
 	}
@@ -33,7 +34,7 @@ func TestRequireDir_FileNotDirectory(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err := RequireDir(p, "parent directory")
+	err := RequireDir(p)
 	if err == nil {
 		t.Fatal("expected error when path is a file, not a directory")
 	}

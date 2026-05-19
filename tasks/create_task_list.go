@@ -49,7 +49,7 @@ func (s *TaskServer) CreateTaskList(
 	}
 
 	// Validate parent directory exists
-	err = common.RequireDir(dirPath, "parent directory")
+	err = common.RequireDir(dirPath)
 	if err != nil {
 		return nil, err
 	}
