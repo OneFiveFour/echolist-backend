@@ -37,7 +37,7 @@ func (s *NotesServer) DeleteNote(
 	}
 
 	// Compute file path from metadata
-	notePath := database.NotePath(noteRow.ParentDir, noteRow.Title, noteRow.Id)
+	notePath := NotePath(noteRow.ParentDir, noteRow.Title, noteRow.Id)
 	absPath := filepath.Join(s.dataDir, notePath)
 
 	// Lock the file path

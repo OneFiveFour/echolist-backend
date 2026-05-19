@@ -9,7 +9,6 @@ import (
 	"connectrpc.com/connect"
 
 	"echolist-backend/common"
-	"echolist-backend/database"
 	"echolist-backend/notes"
 	pb "echolist-backend/proto/gen/notes/v1"
 )
@@ -61,7 +60,7 @@ func TestCreateNote_FileExistsOnDisk(t *testing.T) {
 	}
 
 	note := resp.Note
-	notePath := database.NotePath("", note.Title, note.Id)
+	notePath := notes.NotePath("", note.Title, note.Id)
 	absPath := filepath.Join(dataDir, notePath)
 
 	data, err := os.ReadFile(absPath)
@@ -180,14 +179,14 @@ func TestUpdateNote_FileRenamed(t *testing.T) {
 	}
 
 	// Old file should no longer exist
-	oldPath := database.NotePath("", "Original", id)
+	oldPath := notes.NotePath("", "Original", id)
 	oldAbsPath := filepath.Join(dataDir, oldPath)
 	if _, err := os.Stat(oldAbsPath); !os.IsNotExist(err) {
 		t.Fatalf("expected old file to be removed, but it still exists at %s", oldAbsPath)
 	}
 
 	// New file should exist with the new content
-	newPath := database.NotePath("", "Renamed", id)
+	newPath := notes.NotePath("", "Renamed", id)
 	newAbsPath := filepath.Join(dataDir, newPath)
 	data, err := os.ReadFile(newAbsPath)
 	if err != nil {
@@ -246,7 +245,7 @@ func TestDeleteNote_FileRemoved(t *testing.T) {
 	}
 
 	id := createResp.Note.Id
-	notePath := database.NotePath("", "FileGone", id)
+	notePath := notes.NotePath("", "FileGone", id)
 	absPath := filepath.Join(dataDir, notePath)
 
 	// Verify file exists before delete

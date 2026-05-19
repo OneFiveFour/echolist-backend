@@ -1,4 +1,4 @@
-package database
+package notes
 
 // NotePath computes the relative file path for a note from its metadata.
 // Returns "<title>_<id>.md" when parentDir is "" (root), or

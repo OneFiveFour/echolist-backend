@@ -51,7 +51,7 @@ func (s *NotesServer) CreateNote(
 	id := uuid.NewString()
 
 	// Compute file path via NotePath helper
-	notePath := database.NotePath(parentDir, title, id)
+	notePath := NotePath(parentDir, title, id)
 	absPath := filepath.Join(s.dataDir, notePath)
 
 	// Lock the file path for concurrent safety

@@ -51,11 +51,11 @@ func (s *NotesServer) UpdateNote(
 	}
 
 	// Compute old file path from current metadata
-	oldNotePath := database.NotePath(noteRow.ParentDir, noteRow.Title, noteRow.Id)
+	oldNotePath := NotePath(noteRow.ParentDir, noteRow.Title, noteRow.Id)
 	oldAbsPath := filepath.Join(s.dataDir, oldNotePath)
 
 	// Compute new file path (title may have changed)
-	newNotePath := database.NotePath(noteRow.ParentDir, title, noteRow.Id)
+	newNotePath := NotePath(noteRow.ParentDir, title, noteRow.Id)
 	newAbsPath := filepath.Join(s.dataDir, newNotePath)
 
 	// Lock both file paths for concurrent safety

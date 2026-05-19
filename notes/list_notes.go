@@ -10,7 +10,6 @@ import (
 	"connectrpc.com/connect"
 
 	"echolist-backend/common"
-	"echolist-backend/database"
 	pb "echolist-backend/proto/gen/notes/v1"
 )
 
@@ -41,7 +40,7 @@ func (s *NotesServer) ListNotes(
 	var notes []*pb.Note
 	for _, row := range noteRows {
 		// Compute file path from metadata
-		notePath := database.NotePath(row.ParentDir, row.Title, row.Id)
+		notePath := NotePath(row.ParentDir, row.Title, row.Id)
 		absPath := filepath.Join(s.dataDir, notePath)
 
 		// Read content from disk

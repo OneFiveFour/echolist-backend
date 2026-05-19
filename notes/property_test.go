@@ -12,7 +12,6 @@ import (
 	"connectrpc.com/connect"
 
 	"echolist-backend/common"
-	"echolist-backend/database"
 	"echolist-backend/notes"
 	pb "echolist-backend/proto/gen/notes/v1"
 
@@ -272,7 +271,7 @@ func TestProperty_NoteFilePathConvention(t *testing.T) {
 		id := createResp.Note.Id
 
 		// Verify file exists at expected path
-		expectedPath := database.NotePath("", name, id)
+		expectedPath := notes.NotePath("", name, id)
 		absPath := filepath.Join(dataDir, expectedPath)
 		if _, err := os.Stat(absPath); err != nil {
 			rt.Fatalf("file not found at expected path %q: %v", expectedPath, err)
@@ -297,7 +296,7 @@ func TestProperty_NoteFilePathConvention(t *testing.T) {
 		}
 
 		// Verify new file exists at updated path
-		newExpectedPath := database.NotePath("", newName, id)
+		newExpectedPath := notes.NotePath("", newName, id)
 		newAbsPath := filepath.Join(dataDir, newExpectedPath)
 		if _, err := os.Stat(newAbsPath); err != nil {
 			rt.Fatalf("file not found at new path %q: %v", newExpectedPath, err)
