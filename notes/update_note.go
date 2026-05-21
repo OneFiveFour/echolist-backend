@@ -72,16 +72,17 @@ func (s *NotesServer) UpdateNote(
 	}
 
 	// If title changed, rename file on disk
-	renamed := false
+	wasRenamed := false
 	if newAbsPath != oldAbsPath {
-		if err := os.Rename(oldAbsPath, newAbsPath); err != nil {
+		err := os.Rename(oldAbsPath, newAbsPath)
+		if err != nil {
 			if errors.Is(err, os.ErrNotExist) {
 				return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("note not found"))
 			}
 			s.logger.Error("failed to rename note", "from", oldNotePath, "to", newNotePath, "error", err)
 			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to rename note: %w", err))
 		}
-		renamed = true
+		wasRenamed = true
 	}
 
 	// Write new content to file
@@ -89,7 +90,7 @@ func (s *NotesServer) UpdateNote(
 	currentNotePath := newNotePath
 	err = common.File(currentAbsPath, []byte(content))
 	if err != nil {
-		if renamed {
+		if wasRenamed {
 			// Rollback: rename file back
 			if rollbackErr := os.Rename(newAbsPath, oldAbsPath); rollbackErr != nil {
 				s.logger.Error("failed to rollback note rename", "from", newNotePath, "to", oldNotePath, "error", rollbackErr)

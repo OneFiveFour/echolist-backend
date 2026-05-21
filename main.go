@@ -88,6 +88,13 @@ func main() {
 		dataDir = "./data"
 	}
 
+	// Resolve symlinks once at boot so validatePath can skip per-request resolution.
+	dataDir, err := filepath.EvalSymlinks(dataDir)
+	if err != nil {
+		logger.Error("failed to resolve data directory", "error", err)
+		os.Exit(1)
+	}
+
 	// Initialize SQLite database
 	db, err := database.New(filepath.Join(dataDir, "echolist.db"))
 	if err != nil {

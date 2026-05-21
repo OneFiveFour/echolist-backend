@@ -7,41 +7,41 @@ import (
 
 // Locker provides per-path mutual exclusion. The zero value is ready to use.
 type Locker struct {
-	mu    sync.Mutex
+	mutex sync.Mutex
 	locks map[string]*entry
 }
 
 type entry struct {
-	mu      sync.Mutex
+	mutex   sync.Mutex
 	waiters int
 }
 
 // Lock acquires an exclusive lock for the given path.
 // Callers must call the returned unlock function when done.
-func (l *Locker) Lock(path string) (unlock func()) {
-	l.mu.Lock()
-	if l.locks == nil {
-		l.locks = make(map[string]*entry)
+func (locker *Locker) Lock(path string) (unlock func()) {
+	locker.mutex.Lock()
+	if locker.locks == nil {
+		locker.locks = make(map[string]*entry)
 	}
-	e, ok := l.locks[path]
+	ent, ok := locker.locks[path]
 	if !ok {
-		e = &entry{}
-		l.locks[path] = e
+		ent = &entry{}
+		locker.locks[path] = ent
 	}
-	e.waiters++
-	l.mu.Unlock()
+	ent.waiters++
+	locker.mutex.Unlock()
 
-	e.mu.Lock()
+	ent.mutex.Lock()
 
 	return func() {
-		e.mu.Unlock()
+		ent.mutex.Unlock()
 
-		l.mu.Lock()
-		e.waiters--
-		if e.waiters == 0 {
-			delete(l.locks, path)
+		locker.mutex.Lock()
+		ent.waiters--
+		if ent.waiters == 0 {
+			delete(locker.locks, path)
 		}
-		l.mu.Unlock()
+		locker.mutex.Unlock()
 	}
 }
 
@@ -49,7 +49,7 @@ func (l *Locker) Lock(path string) (unlock func()) {
 // Sorting keeps lock acquisition deterministic when an operation touches
 // multiple paths at once, such as a file rename from old title -> new title.
 // Duplicate paths are ignored. Callers must invoke the returned unlock function.
-func (l *Locker) LockMany(paths ...string) (unlock func()) {
+func (locker *Locker) LockMany(paths ...string) (unlock func()) {
 	seen := make(map[string]struct{}, len(paths))
 	unique := make([]string, 0, len(paths))
 	for _, path := range paths {
@@ -64,7 +64,7 @@ func (l *Locker) LockMany(paths ...string) (unlock func()) {
 
 	unlocks := make([]func(), 0, len(unique))
 	for _, path := range unique {
-		unlocks = append(unlocks, l.Lock(path))
+		unlocks = append(unlocks, locker.Lock(path))
 	}
 
 	return func() {

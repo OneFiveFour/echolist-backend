@@ -9,9 +9,18 @@ import (
 	"connectrpc.com/connect"
 )
 
-// IsSubPath checks that resolved is a strict child of base (prevents path traversal).
-func IsSubPath(base, resolved string) bool {
-	rel, err := filepath.Rel(base, resolved)
+// IsSubPath checks that candidate is a strict child of base (prevents path traversal).
+// It computes the relative path from base to candidate via filepath.Rel. 
+// 
+// filepath.Rel("/data", "/data/notes/foo.md")  → "notes/foo.md", nil
+// filepath.Rel("/data", "/data")               → ".", nil
+// filepath.Rel("/data", "/etc/passwd")         → "../etc/passwd", nil
+//
+// If the result contains ".." segments, the candidate escapes the base directory. 
+// If it equals ".", they are the same path (not a strict child). 
+// Only a clean relative path without ".." means the candidate is genuinely nested inside base.
+func IsSubPath(base, candidate string) bool {
+	rel, err := filepath.Rel(base, candidate)
 	if err != nil {
 		return false
 	}
@@ -60,6 +69,15 @@ func rejectBadRelativePath(p string) error {
 }
 
 // resolveSymlinks resolves symlinks on the longest existing prefix of path.
+//
+// This is used by validatePath to defeat symlink-based path traversal: a symlink
+// inside the data directory could point outside of it, so we need the real
+// filesystem location before checking containment with IsSubPath.
+//
+// We can't use filepath.EvalSymlinks directly because it fails when the target
+// file doesn't exist yet. Since we often validate a path before creating the
+// file, this function walks up the path until it finds an existing ancestor,
+// resolves that, then re-appends the non-existent tail segments.
 func resolveSymlinks(path string) (string, error) {
 	resolved, err := filepath.EvalSymlinks(path)
 	if err == nil {
@@ -93,34 +111,41 @@ func resolveSymlinks(path string) (string, error) {
 	return resolved, nil
 }
 
+// validatePath ensures a user-supplied relative path stays within the data directory.
+// It combines syntactic validation (rejectBadRelativePath) with filesystem-level
+// symlink resolution to prevent both logical and symlink-based path traversal.
+// When allowRoot is true, the path may resolve to the data directory itself (used
+// for parent_dir validation where "" means the root). Otherwise it must be a strict child.
+//
+// dataDir must already be resolved via ResolveDataDir at boot time.
 func validatePath(dataDir, relativePath string, allowRoot bool) (string, error) {
+	// Reject obviously malformed paths before touching the filesystem.
 	err := rejectBadRelativePath(relativePath)
 	if err != nil {
 		return "", err
 	}
 
-	cleaned := filepath.Join(dataDir, filepath.Clean(relativePath))
+	// Build the absolute path by joining the data directory with the cleaned relative path.
+	cleanedPath := filepath.Join(dataDir, filepath.Clean(relativePath))
 
-	resolved, err := resolveSymlinks(cleaned)
+	// Resolve symlinks on the candidate to get its real filesystem location.
+	// dataDir is already resolved at boot, so no per-request resolution needed.
+	resolvedPath, err := resolveSymlinks(cleanedPath)
 	if err != nil {
 		return "", connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("cannot resolve path: %w", err))
 	}
 
-	resolvedBase, err := resolveSymlinks(dataDir)
-	if err != nil {
-		return "", connect.NewError(connect.CodeInternal, fmt.Errorf("cannot resolve data directory: %w", err))
-	}
-
+	// Check containment on the resolved (real) paths so symlinks can't escape.
 	if allowRoot {
-		if resolved != resolvedBase && !IsSubPath(resolvedBase, resolved) {
+		if resolvedPath != dataDir && !IsSubPath(dataDir, resolvedPath) {
 			return "", connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("path escapes data directory"))
 		}
 	} else {
-		if !IsSubPath(resolvedBase, resolved) {
+		if !IsSubPath(dataDir, resolvedPath) {
 			return "", connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("path escapes data directory"))
 		}
 	}
-	return resolved, nil
+	return resolvedPath, nil
 }
 
 // ValidatePath ensures a path doesn't escape the data directory root.

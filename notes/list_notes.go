@@ -29,7 +29,7 @@ func (s *NotesServer) ListNotes(
 		return nil, err
 	}
 
-	// Query DB for note metadata in this directory
+	// Query DB for notes metadata in this directory
 	noteRows, err := s.db.ListNotes(parentDir)
 	if err != nil {
 		s.logger.Error("failed to list notes from database", "parentDir", parentDir, "error", err)

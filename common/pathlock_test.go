@@ -71,8 +71,8 @@ func TestLocker_CleansUpEntries(t *testing.T) {
 	unlock := l.Lock("/tmp/file")
 	unlock()
 
-	l.mu.Lock()
-	defer l.mu.Unlock()
+	l.mutex.Lock()
+	defer l.mutex.Unlock()
 	if len(l.locks) != 0 {
 		t.Errorf("expected empty lock map after unlock, got %d entries", len(l.locks))
 	}
