@@ -13,14 +13,14 @@ import (
 // constraints are evaluated relative to the original start. For bare rules without
 // DTSTART, `after` is used as the starting point.
 func ComputeNextDueDate(rruleStr string, after time.Time) (time.Time, error) {
-	r, err := rrule.StrToRRule(rruleStr)
+	rule, err := rrule.StrToRRule(rruleStr)
 	if err != nil {
 		return time.Time{}, fmt.Errorf("invalid recurrence rule: %w", err)
 	}
 	if !strings.Contains(rruleStr, "DTSTART") {
-		r.DTStart(after)
+		rule.DTStart(after)
 	}
-	next := r.After(after, false)
+	next := rule.After(after, false)
 	if next.IsZero() {
 		return time.Time{}, fmt.Errorf("no next occurrence for recurrence rule %q after %s", rruleStr, after.Format("2006-01-02"))
 	}

@@ -42,35 +42,35 @@ func (s *TaskServer) GetMainTask(
 
 // singleTaskRowToMainTask converts a main task row and its subtask rows into a domain MainTask.
 func singleTaskRowToMainTask(mainRow database.TaskRow, subRows []database.TaskRow) MainTask {
-	mt := MainTask{
+	mainTask := MainTask{
 		Id:          mainRow.Id,
 		Description: mainRow.Description,
 		IsDone:      mainRow.IsDone,
 	}
 	if mainRow.DueDate != nil {
-		mt.DueDate = *mainRow.DueDate
+		mainTask.DueDate = *mainRow.DueDate
 	}
 	if mainRow.Recurrence != nil {
-		mt.Recurrence = *mainRow.Recurrence
+		mainTask.Recurrence = *mainRow.Recurrence
 	}
-	for _, r := range subRows {
-		mt.SubTasks = append(mt.SubTasks, SubTask{
-			Id:          r.Id,
-			Description: r.Description,
-			IsDone:      r.IsDone,
+	for _, subRow := range subRows {
+		mainTask.SubTasks = append(mainTask.SubTasks, SubTask{
+			Id:          subRow.Id,
+			Description: subRow.Description,
+			IsDone:      subRow.IsDone,
 		})
 	}
-	return mt
+	return mainTask
 }
 
 // mainTaskToProto converts a single domain MainTask to its proto representation.
-func mainTaskToProto(t MainTask) *pb.MainTask {
+func mainTaskToProto(task MainTask) *pb.MainTask {
 	return &pb.MainTask{
-		Id:          t.Id,
-		Description: t.Description,
-		IsDone:      t.IsDone,
-		DueDate:     t.DueDate,
-		Recurrence:  t.Recurrence,
-		SubTasks:    subtasksToProto(t.SubTasks),
+		Id:          task.Id,
+		Description: task.Description,
+		IsDone:      task.IsDone,
+		DueDate:     task.DueDate,
+		Recurrence:  task.Recurrence,
+		SubTasks:    subtasksToProto(task.SubTasks),
 	}
 }

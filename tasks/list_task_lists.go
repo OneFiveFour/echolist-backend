@@ -33,9 +33,9 @@ func (s *TaskServer) ListTaskLists(
 	}
 
 	taskLists := make([]*pb.TaskList, len(tlRows))
-	for i, tl := range tlRows {
-		domainTasks := taskRowsToMainTasks(tasksByList[tl.Id])
-		taskLists[i] = buildTaskList(tl.Id, tl.ParentDir, tl.Title, domainTasks, tl.UpdatedAt, tl.IsAutoDelete)
+	for i, taskListRow := range tlRows {
+		domainTasks := taskRowsToMainTasks(tasksByList[taskListRow.Id])
+		taskLists[i] = buildTaskList(taskListRow.Id, taskListRow.ParentDir, taskListRow.Title, domainTasks, taskListRow.UpdatedAt, taskListRow.IsAutoDelete)
 	}
 
 	return &pb.ListTaskListsResponse{TaskLists: taskLists}, nil

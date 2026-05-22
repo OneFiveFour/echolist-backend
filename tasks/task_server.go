@@ -25,14 +25,14 @@ func NewTaskServer(dataDir string, db *database.Database, logger *slog.Logger) *
 // protoToMainTasks converts proto MainTask messages to domain types.
 func protoToMainTasks(pbTasks []*pb.MainTask) []MainTask {
 	tasks := make([]MainTask, len(pbTasks))
-	for i, pt := range pbTasks {
+	for i, protoTask := range pbTasks {
 		tasks[i] = MainTask{
-			Id:          pt.Id,
-			Description: pt.Description,
-			IsDone:      pt.IsDone,
-			DueDate:     pt.DueDate,
-			Recurrence:  pt.Recurrence,
-			SubTasks:    protoToSubtasks(pt.SubTasks),
+			Id:          protoTask.Id,
+			Description: protoTask.Description,
+			IsDone:      protoTask.IsDone,
+			DueDate:     protoTask.DueDate,
+			Recurrence:  protoTask.Recurrence,
+			SubTasks:    protoToSubtasks(protoTask.SubTasks),
 		}
 	}
 	return tasks
@@ -43,8 +43,8 @@ func protoToSubtasks(pbSubs []*pb.SubTask) []SubTask {
 		return nil
 	}
 	subs := make([]SubTask, len(pbSubs))
-	for i, ps := range pbSubs {
-		subs[i] = SubTask{Id: ps.Id, Description: ps.Description, IsDone: ps.IsDone}
+	for i, protoSub := range pbSubs {
+		subs[i] = SubTask{Id: protoSub.Id, Description: protoSub.Description, IsDone: protoSub.IsDone}
 	}
 	return subs
 }
@@ -52,14 +52,14 @@ func protoToSubtasks(pbSubs []*pb.SubTask) []SubTask {
 // mainTasksToProto converts domain types to proto MainTask messages.
 func mainTasksToProto(tasks []MainTask) []*pb.MainTask {
 	pbTasks := make([]*pb.MainTask, len(tasks))
-	for i, t := range tasks {
+	for i, task := range tasks {
 		pbTasks[i] = &pb.MainTask{
-			Id:          t.Id,
-			Description: t.Description,
-			IsDone:      t.IsDone,
-			DueDate:     t.DueDate,
-			Recurrence:  t.Recurrence,
-			SubTasks:    subtasksToProto(t.SubTasks),
+			Id:          task.Id,
+			Description: task.Description,
+			IsDone:      task.IsDone,
+			DueDate:     task.DueDate,
+			Recurrence:  task.Recurrence,
+			SubTasks:    subtasksToProto(task.SubTasks),
 		}
 	}
 	return pbTasks
@@ -82,8 +82,8 @@ func subtasksToProto(subs []SubTask) []*pb.SubTask {
 		return nil
 	}
 	pbSubs := make([]*pb.SubTask, len(subs))
-	for i, s := range subs {
-		pbSubs[i] = &pb.SubTask{Id: s.Id, Description: s.Description, IsDone: s.IsDone}
+	for i, sub := range subs {
+		pbSubs[i] = &pb.SubTask{Id: sub.Id, Description: sub.Description, IsDone: sub.IsDone}
 	}
 	return pbSubs
 }
@@ -101,35 +101,35 @@ func taskRowsToMainTasks(rows []database.TaskRow) []MainTask {
 	mainTaskMap := make(map[string]int) // mainTask ID → index in result
 	var result []MainTask
 
-	for _, r := range rows {
-		if r.TaskListId != nil {
+	for _, row := range rows {
+		if row.TaskListId != nil {
 			// This is a main task.
-			mt := MainTask{
-				Id:          r.Id,
-				Description: r.Description,
-				IsDone:      r.IsDone,
+			mainTask := MainTask{
+				Id:          row.Id,
+				Description: row.Description,
+				IsDone:      row.IsDone,
 			}
-			if r.DueDate != nil {
-				mt.DueDate = *r.DueDate
+			if row.DueDate != nil {
+				mainTask.DueDate = *row.DueDate
 			}
-			if r.Recurrence != nil {
-				mt.Recurrence = *r.Recurrence
+			if row.Recurrence != nil {
+				mainTask.Recurrence = *row.Recurrence
 			}
-			mainTaskMap[r.Id] = len(result)
-			result = append(result, mt)
+			mainTaskMap[row.Id] = len(result)
+			result = append(result, mainTask)
 		}
 	}
 
 	// Second pass: attach subtasks to their parent main tasks.
-	for _, r := range rows {
-		if r.ParentTaskId != nil {
-			st := SubTask{
-				Id:          r.Id,
-				Description: r.Description,
-				IsDone:      r.IsDone,
+	for _, row := range rows {
+		if row.ParentTaskId != nil {
+			subTask := SubTask{
+				Id:          row.Id,
+				Description: row.Description,
+				IsDone:      row.IsDone,
 			}
-			if idx, ok := mainTaskMap[*r.ParentTaskId]; ok {
-				result[idx].SubTasks = append(result[idx].SubTasks, st)
+			if idx, ok := mainTaskMap[*row.ParentTaskId]; ok {
+				result[idx].SubTasks = append(result[idx].SubTasks, subTask)
 			}
 		}
 	}

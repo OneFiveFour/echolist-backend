@@ -40,18 +40,18 @@ func (s *TaskServer) UpdateTaskList(
 	}
 
 	// Validate and assign IDs for main tasks and subtasks.
-	for i, mt := range domainTasks {
-		if mt.Id != "" {
-			err = common.ValidateUuidV4(mt.Id)
+	for i, mainTask := range domainTasks {
+		if mainTask.Id != "" {
+			err = common.ValidateUuidV4(mainTask.Id)
 			if err != nil {
 				return nil, err
 			}
 		} else {
 			domainTasks[i].Id = uuid.NewString()
 		}
-		for j, st := range mt.SubTasks {
-			if st.Id != "" {
-				err = common.ValidateUuidV4(st.Id)
+		for j, subTask := range mainTask.SubTasks {
+			if subTask.Id != "" {
+				err = common.ValidateUuidV4(subTask.Id)
 				if err != nil {
 					return nil, err
 				}
@@ -86,34 +86,34 @@ func (s *TaskServer) UpdateTaskList(
 
 	// Build CreateTaskParams for the database update.
 	taskParams := make([]database.CreateTaskParams, len(domainTasks))
-	for i, mt := range domainTasks {
-		subParams := make([]database.CreateTaskParams, len(mt.SubTasks))
-		for j, st := range mt.SubTasks {
-			subParams[j] = database.CreateTaskParams{
-				Id:          st.Id,
-				Description: st.Description,
-				IsDone:      st.IsDone,
+	for i, mainTask := range domainTasks {
+		subTaskParams := make([]database.CreateTaskParams, len(mainTask.SubTasks))
+		for j, subTask := range mainTask.SubTasks {
+			subTaskParams[j] = database.CreateTaskParams{
+				Id:          subTask.Id,
+				Description: subTask.Description,
+				IsDone:      subTask.IsDone,
 			}
 		}
 
 		var dueDate *string
-		if mt.DueDate != "" {
-			d := mt.DueDate
-			dueDate = &d
+		if mainTask.DueDate != "" {
+			dueDateValue := mainTask.DueDate
+			dueDate = &dueDateValue
 		}
 		var recurrence *string
-		if mt.Recurrence != "" {
-			r := mt.Recurrence
-			recurrence = &r
+		if mainTask.Recurrence != "" {
+			recurrenceValue := mainTask.Recurrence
+			recurrence = &recurrenceValue
 		}
 
 		taskParams[i] = database.CreateTaskParams{
-			Id:          mt.Id,
-			Description: mt.Description,
-			IsDone:      mt.IsDone,
+			Id:          mainTask.Id,
+			Description: mainTask.Description,
+			IsDone:      mainTask.IsDone,
 			DueDate:     dueDate,
 			Recurrence:  recurrence,
-			SubTasks:    subParams,
+			SubTasks:    subTaskParams,
 		}
 	}
 
@@ -143,21 +143,21 @@ func (s *TaskServer) UpdateTaskList(
 func advanceRecurringTasks(domainTasks, existingTasks []MainTask) error {
 	type taskKey struct{ desc, recurrence string }
 	existingByKey := make(map[taskKey]MainTask, len(existingTasks))
-	for _, et := range existingTasks {
-		if et.Recurrence != "" {
-			existingByKey[taskKey{et.Description, et.Recurrence}] = et
+	for _, existingTask := range existingTasks {
+		if existingTask.Recurrence != "" {
+			existingByKey[taskKey{existingTask.Description, existingTask.Recurrence}] = existingTask
 		}
 	}
 
-	for i, t := range domainTasks {
-		if t.Recurrence == "" || !t.IsDone {
+	for i, task := range domainTasks {
+		if task.Recurrence == "" || !task.IsDone {
 			continue
 		}
 		var prevDue string
-		if et, ok := existingByKey[taskKey{t.Description, t.Recurrence}]; ok {
-			prevDue = et.DueDate
+		if existingTask, ok := existingByKey[taskKey{task.Description, task.Recurrence}]; ok {
+			prevDue = existingTask.DueDate
 		} else {
-			prevDue = t.DueDate
+			prevDue = task.DueDate
 		}
 
 		after := time.Now()
@@ -167,7 +167,7 @@ func advanceRecurringTasks(domainTasks, existingTasks []MainTask) error {
 			}
 		}
 
-		next, err := ComputeNextDueDate(t.Recurrence, after)
+		next, err := ComputeNextDueDate(task.Recurrence, after)
 		if err != nil {
 			return err
 		}
@@ -183,20 +183,20 @@ func advanceRecurringTasks(domainTasks, existingTasks []MainTask) error {
 // where IsDone == true. Returns a new slice; does not mutate the input.
 func filterAutoDeleted(tasks []MainTask) []MainTask {
 	var result []MainTask
-	for _, mt := range tasks {
-		if mt.IsDone && mt.Recurrence == "" {
+	for _, mainTask := range tasks {
+		if mainTask.IsDone && mainTask.Recurrence == "" {
 			continue
 		}
 		filtered := MainTask{
-			Id:          mt.Id,
-			Description: mt.Description,
-			IsDone:      mt.IsDone,
-			DueDate:     mt.DueDate,
-			Recurrence:  mt.Recurrence,
+			Id:          mainTask.Id,
+			Description: mainTask.Description,
+			IsDone:      mainTask.IsDone,
+			DueDate:     mainTask.DueDate,
+			Recurrence:  mainTask.Recurrence,
 		}
-		for _, st := range mt.SubTasks {
-			if !st.IsDone {
-				filtered.SubTasks = append(filtered.SubTasks, st)
+		for _, subTask := range mainTask.SubTasks {
+			if !subTask.IsDone {
+				filtered.SubTasks = append(filtered.SubTasks, subTask)
 			}
 		}
 		result = append(result, filtered)

@@ -118,7 +118,7 @@ func (s *NotesServer) UpdateNote(
 			return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("note not found"))
 		}
 		// Rollback: if we renamed, rename back
-		if renamed {
+		if wasRenamed {
 			if rollbackErr := os.Rename(newAbsPath, oldAbsPath); rollbackErr != nil {
 				s.logger.Error("failed to rollback note rename after DB failure", "from", newNotePath, "to", oldNotePath, "error", rollbackErr)
 			}

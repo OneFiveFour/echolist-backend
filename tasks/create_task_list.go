@@ -38,9 +38,9 @@ func (s *TaskServer) CreateTaskList(
 		return nil, err
 	}
 
-	for i, t := range domainTasks {
-		if t.Recurrence != "" {
-			next, err := ComputeNextDueDate(t.Recurrence, time.Now())
+	for i, task := range domainTasks {
+		if task.Recurrence != "" {
+			next, err := ComputeNextDueDate(task.Recurrence, time.Now())
 			if err != nil {
 				return nil, connect.NewError(connect.CodeInvalidArgument, err)
 			}
@@ -57,40 +57,40 @@ func (s *TaskServer) CreateTaskList(
 	id := uuid.NewString()
 
 	taskParams := make([]database.CreateTaskParams, len(domainTasks))
-	for i, mt := range domainTasks {
-		mtId := uuid.NewString()
-		domainTasks[i].Id = mtId
+	for i, mainTask := range domainTasks {
+		mainTaskId := uuid.NewString()
+		domainTasks[i].Id = mainTaskId
 
-		subParams := make([]database.CreateTaskParams, len(mt.SubTasks))
-		for j, st := range mt.SubTasks {
-			stId := uuid.NewString()
-			domainTasks[i].SubTasks[j].Id = stId
+		subTaskParams := make([]database.CreateTaskParams, len(mainTask.SubTasks))
+		for j, subTask := range mainTask.SubTasks {
+			subTaskId := uuid.NewString()
+			domainTasks[i].SubTasks[j].Id = subTaskId
 
-			subParams[j] = database.CreateTaskParams{
-				Id:          stId,
-				Description: st.Description,
-				IsDone:      st.IsDone,
+			subTaskParams[j] = database.CreateTaskParams{
+				Id:          subTaskId,
+				Description: subTask.Description,
+				IsDone:      subTask.IsDone,
 			}
 		}
 
 		var dueDate *string
-		if mt.DueDate != "" {
-			d := domainTasks[i].DueDate
-			dueDate = &d
+		if mainTask.DueDate != "" {
+			dueDateValue := domainTasks[i].DueDate
+			dueDate = &dueDateValue
 		}
 		var recurrence *string
-		if mt.Recurrence != "" {
-			r := mt.Recurrence
-			recurrence = &r
+		if mainTask.Recurrence != "" {
+			recurrenceValue := mainTask.Recurrence
+			recurrence = &recurrenceValue
 		}
 
 		taskParams[i] = database.CreateTaskParams{
-			Id:          mtId,
-			Description: mt.Description,
-			IsDone:      mt.IsDone,
+			Id:          mainTaskId,
+			Description: mainTask.Description,
+			IsDone:      mainTask.IsDone,
 			DueDate:     dueDate,
 			Recurrence:  recurrence,
-			SubTasks:    subParams,
+			SubTasks:    subTaskParams,
 		}
 	}
 

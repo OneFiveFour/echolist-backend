@@ -102,8 +102,13 @@ func (d *Database) UpdateTaskList(params UpdateTaskListParams) (TaskListRow, []T
 		return TaskListRow{}, nil, fmt.Errorf("update task_lists: %w", err)
 	}
 
-	// Delete existing main tasks (cascade deletes subtasks).
-	_, err = tx.Exec(`DELETE FROM tasks WHERE task_list_id = ?`, params.Id)
+	// Delete all tasks (main and sub) belonging to this task list.
+	// Subtasks have task_list_id=NULL and reference a parent task via
+	// parent_task_id, so we match both in a single statement.
+	_, err = tx.Exec(
+		`DELETE FROM tasks WHERE task_list_id = ? OR parent_task_id IN (SELECT id FROM tasks WHERE task_list_id = ?)`,
+		params.Id, params.Id,
+	)
 	if err != nil {
 		return TaskListRow{}, nil, fmt.Errorf("delete existing tasks: %w", err)
 	}

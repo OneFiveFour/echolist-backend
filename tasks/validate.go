@@ -13,25 +13,25 @@ func validateTasks(tasks []MainTask) error {
 	if len(tasks) > common.MaxTasksPerList {
 		return connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("too many tasks: %d exceeds %d limit", len(tasks), common.MaxTasksPerList))
 	}
-	for i, t := range tasks {
-		err := common.ValidateContentLength(t.Description, common.MaxTaskDescriptionBytes, fmt.Sprintf("task %d description", i))
+	for i, task := range tasks {
+		err := common.ValidateContentLength(task.Description, common.MaxTaskDescriptionBytes, fmt.Sprintf("task %d description", i))
 		if err != nil {
 			return err
 		}
-		if len(t.SubTasks) > common.MaxSubtasksPerTask {
-			return connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("task %d: too many subtasks: %d exceeds %d limit", i, len(t.SubTasks), common.MaxSubtasksPerTask))
+		if len(task.SubTasks) > common.MaxSubtasksPerTask {
+			return connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("task %d: too many subtasks: %d exceeds %d limit", i, len(task.SubTasks), common.MaxSubtasksPerTask))
 		}
-		for j, st := range t.SubTasks {
-			err := common.ValidateContentLength(st.Description, common.MaxSubtaskDescriptionBytes, fmt.Sprintf("task %d subtask %d description", i, j))
+		for j, subTask := range task.SubTasks {
+			err := common.ValidateContentLength(subTask.Description, common.MaxSubtaskDescriptionBytes, fmt.Sprintf("task %d subtask %d description", i, j))
 			if err != nil {
 				return err
 			}
 		}
-		if t.DueDate != "" && t.Recurrence != "" {
+		if task.DueDate != "" && task.Recurrence != "" {
 			return connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("task %d: due_date must not be specified when recurrence is set (due date is computed automatically)", i))
 		}
-		if t.Recurrence != "" {
-			err := ValidateRRule(t.Recurrence)
+		if task.Recurrence != "" {
+			err := ValidateRRule(task.Recurrence)
 			if err != nil {
 				return connect.NewError(connect.CodeInvalidArgument, err)
 			}

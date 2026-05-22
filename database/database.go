@@ -21,6 +21,11 @@ func New(dbPath string) (*Database, error) {
 		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
 
+	// Limit to a single connection so that per-connection PRAGMAs (like
+	// foreign_keys) remain effective for all operations. SQLite only
+	// supports one writer at a time anyway.
+	db.SetMaxOpenConns(1)
+
 	// Enable WAL mode for concurrent readers with a single writer.
 	if _, err := db.Exec("PRAGMA journal_mode=WAL"); err != nil {
 		db.Close()
