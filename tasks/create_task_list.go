@@ -3,7 +3,6 @@ package tasks
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"connectrpc.com/connect"
 	"github.com/google/uuid"
@@ -36,16 +35,6 @@ func (s *TaskServer) CreateTaskList(
 	err = validateTasks(domainTasks)
 	if err != nil {
 		return nil, err
-	}
-
-	for i, task := range domainTasks {
-		if task.Recurrence != "" {
-			next, err := ComputeNextDueDate(task.Recurrence, time.Now())
-			if err != nil {
-				return nil, connect.NewError(connect.CodeInvalidArgument, err)
-			}
-			domainTasks[i].DueDate = next.Format("2006-01-02")
-		}
 	}
 
 	// Validate parent directory exists

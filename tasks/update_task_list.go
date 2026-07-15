@@ -137,37 +137,35 @@ func (s *TaskServer) UpdateTaskList(
 	}, nil
 }
 
-// advanceRecurringTasks resets done recurring tasks and computes their next due
-// date based on the recurrence rule. existingTasks is used to look up the
-// previous due date for matching recurring tasks. domainTasks is modified in place.
+// advanceRecurringTasks checks each incoming task for a false→true is_done
+// transition. When a recurring task (recurrence non-empty) is newly completed,
+// it advances due_date by one RRULE interval and resets is_done to false.
+// existingTasks provides the previously persisted state for comparison.
+// domainTasks is modified in place.
 func advanceRecurringTasks(domainTasks, existingTasks []MainTask) error {
-	type taskKey struct{ desc, recurrence string }
-	existingByKey := make(map[taskKey]MainTask, len(existingTasks))
-	for _, existingTask := range existingTasks {
-		if existingTask.Recurrence != "" {
-			existingByKey[taskKey{existingTask.Description, existingTask.Recurrence}] = existingTask
-		}
+	existingById := make(map[string]MainTask, len(existingTasks))
+	for _, t := range existingTasks {
+		existingById[t.Id] = t
 	}
 
 	for i, task := range domainTasks {
 		if task.Recurrence == "" || !task.IsDone {
 			continue
 		}
-		var prevDue string
-		if existingTask, ok := existingByKey[taskKey{task.Description, task.Recurrence}]; ok {
-			prevDue = existingTask.DueDate
-		} else {
-			prevDue = task.DueDate
+
+		// Only advance if is_done transitioned from false → true.
+		prev, exists := existingById[task.Id]
+		if !exists || prev.IsDone {
+			continue
 		}
 
-		after := time.Now()
-		if prevDue != "" {
-			if parsed, err := time.Parse("2006-01-02", prevDue); err == nil {
-				after = parsed
-			}
+		// Parse the current due_date as the reference point for advancement.
+		parsed, err := time.Parse("2006-01-02", task.DueDate)
+		if err != nil {
+			return fmt.Errorf("task %s: cannot parse due_date %q: %w", task.Id, task.DueDate, err)
 		}
 
-		next, err := ComputeNextDueDate(task.Recurrence, after)
+		next, err := ComputeNextDueDate(task.Recurrence, parsed)
 		if err != nil {
 			return err
 		}

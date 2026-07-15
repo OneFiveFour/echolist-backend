@@ -144,13 +144,15 @@ func TestCreateTaskList_AutoDeleteFiltersDoneTasks(t *testing.T) {
 	srv := tasks.NewTaskServer(t.TempDir(), tasks.NewTestDB(t), tasks.NopLogger())
 	ctx := context.Background()
 
-	// Create a task list with IsAutoDelete=false and 3 tasks
+	// Create a task list with IsAutoDelete=false and 3 tasks.
+	// The recurring task starts with IsDone=false so that the update can trigger
+	// the false→true transition needed for recurrence advancement.
 	createResp, err := srv.CreateTaskList(ctx, &pb.CreateTaskListRequest{
 		Title:     "Auto Delete Test",
 		ParentDir: "",
 		Tasks: []*pb.MainTask{
-			{Description: "done non-recurring", IsDone: true},
-			{Description: "done recurring", IsDone: true, Recurrence: "FREQ=DAILY"},
+			{Description: "done non-recurring", IsDone: false},
+			{Description: "done recurring", IsDone: false, DueDate: "2025-06-01", Recurrence: "FREQ=DAILY"},
 			{Description: "open task", IsDone: false},
 		},
 		IsAutoDelete: false,
@@ -168,14 +170,14 @@ func TestCreateTaskList_AutoDeleteFiltersDoneTasks(t *testing.T) {
 	}
 	createdTasks := getResp.TaskList.Tasks
 
-	// Now update with IsAutoDelete=true, marking the done non-recurring task as done
-	// and the done recurring task as done
+	// Now update with IsAutoDelete=true, marking the non-recurring and recurring tasks as done.
+	// This triggers a false→true transition for both.
 	_, err = srv.UpdateTaskList(ctx, &pb.UpdateTaskListRequest{
 		Id:    listID,
 		Title: "Auto Delete Test",
 		Tasks: []*pb.MainTask{
 			{Id: createdTasks[0].Id, Description: "done non-recurring", IsDone: true},
-			{Id: createdTasks[1].Id, Description: "done recurring", IsDone: true, Recurrence: "FREQ=DAILY"},
+			{Id: createdTasks[1].Id, Description: "done recurring", IsDone: true, DueDate: "2025-06-01", Recurrence: "FREQ=DAILY"},
 			{Id: createdTasks[2].Id, Description: "open task", IsDone: false},
 		},
 		IsAutoDelete: true,
@@ -230,12 +232,12 @@ func TestUpdateTaskList_RecurringTaskAdvancement(t *testing.T) {
 	srv := tasks.NewTaskServer(t.TempDir(), tasks.NewTestDB(t), tasks.NopLogger())
 	ctx := context.Background()
 
-	// Create a task list with a recurring task
+	// Create a task list with a recurring task (due_date required with recurrence)
 	createResp, err := srv.CreateTaskList(ctx, &pb.CreateTaskListRequest{
 		Title:     "Recurring Test",
 		ParentDir: "",
 		Tasks: []*pb.MainTask{
-			{Description: "daily task", IsDone: false, Recurrence: "FREQ=DAILY"},
+			{Description: "daily task", IsDone: false, DueDate: "2025-06-01", Recurrence: "FREQ=DAILY"},
 		},
 		IsAutoDelete: false,
 	})
@@ -252,7 +254,7 @@ func TestUpdateTaskList_RecurringTaskAdvancement(t *testing.T) {
 		Id:    listID,
 		Title: "Recurring Test",
 		Tasks: []*pb.MainTask{
-			{Id: taskID, Description: "daily task", IsDone: true, Recurrence: "FREQ=DAILY"},
+			{Id: taskID, Description: "daily task", IsDone: true, DueDate: "2025-06-01", Recurrence: "FREQ=DAILY"},
 		},
 		IsAutoDelete: false,
 	})
@@ -275,6 +277,11 @@ func TestUpdateTaskList_RecurringTaskAdvancement(t *testing.T) {
 	// DueDate should not be empty
 	if advancedTask.DueDate == "" {
 		t.Error("recurring task DueDate should not be empty after advancement")
+	}
+
+	// DueDate should be exactly one day after the original (FREQ=DAILY)
+	if advancedTask.DueDate != "2025-06-02" {
+		t.Errorf("expected DueDate 2025-06-02 after daily advancement, got %q", advancedTask.DueDate)
 	}
 }
 
@@ -354,19 +361,44 @@ func TestUpdateTaskList_AutoDeleteFiltersDoneSubtasks(t *testing.T) {
 	}
 }
 
-func TestCreateTaskList_MutualExclusionDueDateRecurrence(t *testing.T) {
+func TestCreateTaskList_DueDateAndRecurrenceAllowed(t *testing.T) {
 	srv := tasks.NewTaskServer(t.TempDir(), tasks.NewTestDB(t), tasks.NopLogger())
 	ctx := context.Background()
 
-	_, err := srv.CreateTaskList(ctx, &pb.CreateTaskListRequest{
-		Title:     "Mutual Exclusion",
+	// Under the new semantics, having both DueDate and Recurrence is the normal
+	// valid state for a recurring task.
+	resp, err := srv.CreateTaskList(ctx, &pb.CreateTaskListRequest{
+		Title:     "Both Fields Set",
 		ParentDir: "",
 		Tasks: []*pb.MainTask{
-			{Description: "bad task", IsDone: false, DueDate: "2025-01-01", Recurrence: "FREQ=DAILY"},
+			{Description: "recurring with date", IsDone: false, DueDate: "2025-01-01", Recurrence: "FREQ=DAILY"},
+		},
+	})
+	if err != nil {
+		t.Fatalf("expected no error when both DueDate and Recurrence are set, got %v", err)
+	}
+	if resp.TaskList.Tasks[0].DueDate != "2025-01-01" {
+		t.Errorf("expected DueDate to be stored as-is, got %q", resp.TaskList.Tasks[0].DueDate)
+	}
+	if resp.TaskList.Tasks[0].Recurrence != "FREQ=DAILY" {
+		t.Errorf("expected Recurrence to be stored as-is, got %q", resp.TaskList.Tasks[0].Recurrence)
+	}
+}
+
+func TestCreateTaskList_RecurrenceWithoutDueDateRejected(t *testing.T) {
+	srv := tasks.NewTaskServer(t.TempDir(), tasks.NewTestDB(t), tasks.NopLogger())
+	ctx := context.Background()
+
+	// Recurrence without due_date must be rejected.
+	_, err := srv.CreateTaskList(ctx, &pb.CreateTaskListRequest{
+		Title:     "Missing DueDate",
+		ParentDir: "",
+		Tasks: []*pb.MainTask{
+			{Description: "bad task", IsDone: false, Recurrence: "FREQ=DAILY"},
 		},
 	})
 	if err == nil {
-		t.Fatal("expected error for mutual exclusion of DueDate and Recurrence, got nil")
+		t.Fatal("expected error when recurrence is set without due_date, got nil")
 	}
 	if connect.CodeOf(err) != connect.CodeInvalidArgument {
 		t.Fatalf("expected CodeInvalidArgument, got %v", connect.CodeOf(err))
@@ -381,7 +413,7 @@ func TestCreateTaskList_InvalidRRuleRejected(t *testing.T) {
 		Title:     "Bad RRule",
 		ParentDir: "",
 		Tasks: []*pb.MainTask{
-			{Description: "bad recurrence", IsDone: false, Recurrence: "NOT_VALID"},
+			{Description: "bad recurrence", IsDone: false, DueDate: "2025-01-01", Recurrence: "NOT_VALID"},
 		},
 	})
 	if err == nil {
