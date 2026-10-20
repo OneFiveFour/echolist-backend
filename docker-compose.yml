@@ -13,6 +13,8 @@ services:
       - AUTH_DEFAULT_PASSWORD=${AUTH_DEFAULT_PASSWORD:?AUTH_DEFAULT_PASSWORD is required}
       - ACCESS_TOKEN_EXPIRY_MINUTES=${ACCESS_TOKEN_EXPIRY_MINUTES:-15}
       - REFRESH_TOKEN_EXPIRY_MINUTES=${REFRESH_TOKEN_EXPIRY_MINUTES:-10080}
+      # Comma-separated browser origins allowed to call the Connect RPC API.
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-}
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/healthz"]

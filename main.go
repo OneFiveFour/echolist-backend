@@ -9,6 +9,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
@@ -21,11 +22,11 @@ import (
 	"echolist-backend/common"
 	"echolist-backend/database"
 	"echolist-backend/file"
+	"echolist-backend/notes"
 	authv1connect "echolist-backend/proto/gen/auth/v1/authv1connect"
 	filev1connect "echolist-backend/proto/gen/file/v1/filev1connect"
 	notesv1connect "echolist-backend/proto/gen/notes/v1/notesv1connect"
 	tasksv1connect "echolist-backend/proto/gen/tasks/v1/tasksv1connect"
-	"echolist-backend/notes"
 	"echolist-backend/tasks"
 )
 
@@ -71,6 +72,37 @@ func validateJWTSecret(secret string) error {
 func maxBytesMiddleware(maxBytes int64, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		r.Body = http.MaxBytesReader(w, r.Body, maxBytes)
+		next.ServeHTTP(w, r)
+	})
+}
+
+// corsMiddleware permits only explicitly configured browser origins. Connect RPC
+// requests use custom headers, so the browser performs a preflight before POSTing.
+func corsMiddleware(allowedOrigins []string, next http.Handler) http.Handler {
+	allowed := make(map[string]struct{}, len(allowedOrigins))
+	for _, origin := range allowedOrigins {
+		if trimmed := strings.TrimSpace(origin); trimmed != "" {
+			allowed[trimmed] = struct{}{}
+		}
+	}
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		origin := r.Header.Get("Origin")
+		if _, ok := allowed[origin]; !ok {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		w.Header().Set("Access-Control-Allow-Origin", origin)
+		w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Accept, Authorization, Connect-Protocol-Version, Connect-Timeout-Ms, Content-Type, Grpc-Timeout, X-Grpc-Web, X-User-Agent")
+		w.Header().Set("Access-Control-Expose-Headers", "Connect-Protocol-Version, Grpc-Message, Grpc-Status, Grpc-Status-Details-Bin")
+		w.Header().Set("Vary", "Origin")
+
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
 		next.ServeHTTP(w, r)
 	})
 }
@@ -195,6 +227,8 @@ func main() {
 	}
 
 	handler := maxBytesMiddleware(maxBodyBytes, mux)
+	allowedOrigins := strings.Split(os.Getenv("CORS_ALLOWED_ORIGINS"), ",")
+	handler = corsMiddleware(allowedOrigins, handler)
 
 	// Graceful shutdown
 	shutdownTimeout := 30 * time.Second
