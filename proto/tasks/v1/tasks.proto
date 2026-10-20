@@ -105,6 +105,8 @@ message UpcomingMainTask {
   string title = 2;
   // Stored UTC calendar date in YYYY-MM-DD format; no timezone conversion.
   string due_date = 3;
+  // ID of the task list containing this main task.
+  string tasklist_id = 4;
 }
 
 message ListUpcomingMainTasksResponse {

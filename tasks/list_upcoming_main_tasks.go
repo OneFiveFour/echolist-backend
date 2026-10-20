@@ -34,9 +34,10 @@ func (s *TaskServer) ListUpcomingMainTasks(
 	tasks := make([]*pb.UpcomingMainTask, len(rows))
 	for i, row := range rows {
 		tasks[i] = &pb.UpcomingMainTask{
-			TaskId:  row.TaskId,
-			Title:   row.Title,
-			DueDate: row.DueDate,
+			TaskId:     row.TaskId,
+			TasklistId: row.TaskListId,
+			Title:      row.Title,
+			DueDate:    row.DueDate,
 		}
 	}
 	return &pb.ListUpcomingMainTasksResponse{Tasks: tasks}, nil

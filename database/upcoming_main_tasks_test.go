@@ -46,10 +46,10 @@ func TestListUpcomingMainTasks_FilterAndOrder(t *testing.T) {
 		t.Fatal(err)
 	}
 	want := []database.UpcomingMainTaskRow{
-		{TaskId: "a-today", Title: "Today A", DueDate: "2026-10-04"},
-		{TaskId: "z-today", Title: "Today Z", DueDate: "2026-10-04"},
-		{TaskId: "recurring", Title: "Recurring", DueDate: "2026-10-05"},
-		{TaskId: "future", Title: "Next year", DueDate: "2027-01-01"},
+		{TaskId: "a-today", TaskListId: "nested", Title: "Today A", DueDate: "2026-10-04"},
+		{TaskId: "z-today", TaskListId: "root", Title: "Today Z", DueDate: "2026-10-04"},
+		{TaskId: "recurring", TaskListId: "nested", Title: "Recurring", DueDate: "2026-10-05"},
+		{TaskId: "future", TaskListId: "root", Title: "Next year", DueDate: "2027-01-01"},
 	}
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("got %+v, want %+v", got, want)

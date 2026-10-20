@@ -143,10 +143,33 @@ func TestListUpcomingMainTasks_HttpContract(t *testing.T) {
 				}
 				return
 			}
-			want := []map[string]any{{"taskId": taskId, "title": "Call dentist", "dueDate": dueDate}}
+			want := []map[string]any{{"taskId": taskId, "tasklistId": "list", "title": "Call dentist", "dueDate": dueDate}}
 			if !reflect.DeepEqual(got.Tasks, want) {
 				t.Fatalf("expected only notification fields %v, got %v", want, got.Tasks)
 			}
 		})
+	}
+
+	// Exercise the generated client using binary Protobuf, as native clients do.
+	httpServer := httptest.NewServer(mux)
+	defer httpServer.Close()
+	client := tasksv1connect.NewTaskListServiceClient(httpServer.Client(), httpServer.URL,
+		connect.WithInterceptors(connect.UnaryInterceptorFunc(func(next connect.UnaryFunc) connect.UnaryFunc {
+			return func(ctx context.Context, req connect.AnyRequest) (connect.AnyResponse, error) {
+				req.Header().Set("Authorization", "Bearer "+accessToken)
+				return next(ctx, req)
+			}
+		})),
+	)
+	request := &pb.ListUpcomingMainTasksRequest{FromDate: dueDate}
+	response, err := client.ListUpcomingMainTasks(context.Background(), request)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(response.GetTasks()) != 1 {
+		t.Fatalf("expected one upcoming task, got %v", response.GetTasks())
+	}
+	if got := response.GetTasks()[0]; got.GetTaskId() != taskId || got.GetTasklistId() != "list" {
+		t.Fatalf("unexpected task/list association: %v", got)
 	}
 }
