@@ -9,6 +9,9 @@ service TaskListService {
   rpc GetTaskList (GetTaskListRequest) returns (GetTaskListResponse);
   rpc GetMainTask (GetMainTaskRequest) returns (GetMainTaskResponse);
   rpc ListTaskLists (ListTaskListsRequest) returns (ListTaskListsResponse);
+  // Lists uncompleted main tasks due on or after the supplied UTC date,
+  // across all task lists and folders. Notification preferences remain on-device.
+  rpc ListUpcomingMainTasks (ListUpcomingMainTasksRequest) returns (ListUpcomingMainTasksResponse);
   rpc UpdateTaskList (UpdateTaskListRequest) returns (UpdateTaskListResponse);
   rpc DeleteTaskList (DeleteTaskListRequest) returns (DeleteTaskListResponse);
 }
@@ -91,4 +94,27 @@ message GetMainTaskRequest {
 
 message GetMainTaskResponse {
   MainTask main_task = 1;
+}
+
+message ListUpcomingMainTasksRequest {
+  // Required inclusive cutoff: a UTC calendar date in YYYY-MM-DD format.
+  // Clients should send today's UTC date to retrieve upcoming tasks.
+  string from_date = 1;
+}
+
+// The information needed to display and schedule a device-local notification.
+message UpcomingMainTask {
+  // Stable main-task UUID, usable to identify the task for notification actions.
+  string task_id = 1;
+  // The main task's description, used as the notification title.
+  string title = 2;
+  // Stored UTC calendar date in YYYY-MM-DD format; no timezone conversion.
+  string due_date = 3;
+}
+
+message ListUpcomingMainTasksResponse {
+  // All matching tasks, ordered by due_date ascending, then task_id ascending.
+  // Includes recurring tasks with a matching stored due date. No pagination.
+  // Empty when no tasks match; contains no subtasks or notification preferences.
+  repeated UpcomingMainTask tasks = 1;
 }
