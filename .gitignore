@@ -42,3 +42,6 @@ data/
 
 # rapid property-test repro artifacts
 **/testdata/rapid/**/*.fail
+
+# Local Go build and test cache
+/.gocache/
