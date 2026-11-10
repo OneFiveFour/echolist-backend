@@ -38,6 +38,20 @@ var migrations = []string{
 		created_at INTEGER NOT NULL,
 		updated_at INTEGER NOT NULL
 	);`,
+	// Version 2: persistent, independently revocable device sessions.
+	`CREATE TABLE auth_sessions (
+		id TEXT PRIMARY KEY,
+		username TEXT NOT NULL,
+		device_name TEXT NOT NULL,
+		created_at INTEGER NOT NULL,
+		last_used_at INTEGER NOT NULL,
+		expires_at INTEGER NOT NULL,
+		refresh_id TEXT NOT NULL,
+		previous_refresh_id TEXT NOT NULL DEFAULT '',
+		previous_valid_until INTEGER NOT NULL DEFAULT 0,
+		revoked_at INTEGER NOT NULL DEFAULT 0
+	);
+	CREATE INDEX auth_sessions_user ON auth_sessions(username);`,
 }
 
 // createSchema reads the current schema version from the database and applies

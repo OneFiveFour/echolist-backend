@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"time"
 
+	"echolist-backend/database"
 	"github.com/golang-jwt/jwt/v5"
 )
 
 // TokenClaims represents the custom claims embedded in a JWT token.
 type TokenClaims struct {
 	Username  string `json:"username"`
+	SessionID string `json:"sid,omitempty"`
 	TokenType string `json:"type"`
 	jwt.RegisteredClaims
 }
@@ -71,7 +73,7 @@ func (t *TokenService) ValidateToken(tokenStr string) (*TokenClaims, error) {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 		return t.secret, nil
-	})
+	}, jwt.WithValidMethods([]string{"HS256"}), jwt.WithExpirationRequired())
 	if err != nil {
 		return nil, fmt.Errorf("invalid token: %w", err)
 	}
@@ -82,4 +84,22 @@ func (t *TokenService) ValidateToken(tokenStr string) (*TokenClaims, error) {
 	}
 
 	return claims, nil
+}
+
+// SessionTokens binds both tokens to a server-side session. Refresh tokens are
+// reproducible so concurrent refreshes and lost responses recover the current token.
+func (t *TokenService) SessionTokens(s *database.DeviceSession) (string, string, error) {
+	now := time.Now()
+	access, err := t.signSessionToken(s, "access", "", now, now.Add(t.accessTokenTtl))
+	if err != nil {
+		return "", "", err
+	}
+	refresh, err := t.signSessionToken(s, "refresh", s.RefreshID, time.UnixMilli(s.LastUsedAt), time.UnixMilli(s.ExpiresAt))
+	return access, refresh, err
+}
+
+func (t *TokenService) signSessionToken(s *database.DeviceSession, kind, id string, issued, expires time.Time) (string, error) {
+	claims := TokenClaims{Username: s.Username, SessionID: s.ID, TokenType: kind,
+		RegisteredClaims: jwt.RegisteredClaims{Subject: s.Username, ID: id, IssuedAt: jwt.NewNumericDate(issued), ExpiresAt: jwt.NewNumericDate(expires)}}
+	return jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString(t.secret)
 }

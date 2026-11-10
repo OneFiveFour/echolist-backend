@@ -1,6 +1,9 @@
 package auth
 
 import (
+	"context"
+	"echolist-backend/database"
+	"github.com/google/uuid"
 	"os"
 	"path/filepath"
 	"testing"
@@ -32,9 +35,9 @@ func TestProperty4_ValidCredentialsProduceValidTokens(t *testing.T) {
 		}
 
 		tokenService := NewTokenService(secret, 15*time.Minute, 7*24*time.Hour)
-		server := NewAuthServer(store, tokenService, nopLogger())
+		server := newTestAuthServer(t, store, tokenService)
 
-		resp, err := server.Login(nil, loginRequest(username, password))
+		resp, err := server.Login(context.Background(), loginRequest(username, password))
 		if err != nil {
 			rt.Fatalf("Login failed for valid credentials: %v", err)
 		}
@@ -84,12 +87,6 @@ func TestProperty8_ValidRefreshTokenProducesNewAccessToken(t *testing.T) {
 
 		tokenService := NewTokenService(secret, 15*time.Minute, 7*24*time.Hour)
 
-		// Generate a valid refresh token
-		refreshToken, err := tokenService.GenerateRefreshToken(username)
-		if err != nil {
-			rt.Fatal(err)
-		}
-
 		// UserStore not needed for RefreshToken, but AuthServer requires it
 		dir := t.TempDir()
 		filePath := filepath.Join(dir, "users.json")
@@ -102,9 +99,10 @@ func TestProperty8_ValidRefreshTokenProducesNewAccessToken(t *testing.T) {
 			rt.Fatal(err)
 		}
 
-		server := NewAuthServer(store, tokenService, nopLogger())
+		server := newTestAuthServer(t, store, tokenService)
 
-		resp, err := server.RefreshToken(nil, refreshTokenRequest(refreshToken))
+		refreshToken := testSessionRefresh(t, server, username)
+		resp, err := server.RefreshToken(context.Background(), refreshTokenRequest(refreshToken))
 		if err != nil {
 			rt.Fatalf("RefreshToken failed: %v", err)
 		}
@@ -123,7 +121,6 @@ func TestProperty8_ValidRefreshTokenProducesNewAccessToken(t *testing.T) {
 	})
 }
 
-
 // --- Unit Tests ---
 
 func TestLogin_InvalidUsername(t *testing.T) {
@@ -136,9 +133,9 @@ func TestLogin_InvalidUsername(t *testing.T) {
 	}
 
 	tokenService := NewTokenService("testsecret123456", 15*time.Minute, 7*24*time.Hour)
-	server := NewAuthServer(store, tokenService, nopLogger())
+	server := newTestAuthServer(t, store, tokenService)
 
-	_, err := server.Login(nil, loginRequest("nonexistent", "password123"))
+	_, err := server.Login(context.Background(), loginRequest("nonexistent", "password123"))
 	if err == nil {
 		t.Fatal("expected error for invalid username")
 	}
@@ -155,9 +152,9 @@ func TestLogin_WrongPassword(t *testing.T) {
 	}
 
 	tokenService := NewTokenService("testsecret123456", 15*time.Minute, 7*24*time.Hour)
-	server := NewAuthServer(store, tokenService, nopLogger())
+	server := newTestAuthServer(t, store, tokenService)
 
-	_, err := server.Login(nil, loginRequest("admin", "wrongpassword"))
+	_, err := server.Login(context.Background(), loginRequest("admin", "wrongpassword"))
 	if err == nil {
 		t.Fatal("expected error for wrong password")
 	}
@@ -174,10 +171,10 @@ func TestLogin_ErrorMessagesIdentical(t *testing.T) {
 	}
 
 	tokenService := NewTokenService("testsecret123456", 15*time.Minute, 7*24*time.Hour)
-	server := NewAuthServer(store, tokenService, nopLogger())
+	server := newTestAuthServer(t, store, tokenService)
 
-	_, errBadUser := server.Login(nil, loginRequest("nonexistent", "password123"))
-	_, errBadPass := server.Login(nil, loginRequest("admin", "wrongpassword"))
+	_, errBadUser := server.Login(context.Background(), loginRequest("nonexistent", "password123"))
+	_, errBadPass := server.Login(context.Background(), loginRequest("admin", "wrongpassword"))
 
 	if errBadUser == nil || errBadPass == nil {
 		t.Fatal("expected errors for both cases")
@@ -209,12 +206,12 @@ func TestRefreshToken_ExpiredToken(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	server := NewAuthServer(store, serverTokenService, nopLogger())
+	server := newTestAuthServer(t, store, serverTokenService)
 
 	// Wait briefly to ensure the token is expired
 	time.Sleep(10 * time.Millisecond)
 
-	_, err = server.RefreshToken(nil, refreshTokenRequest(refreshToken))
+	_, err = server.RefreshToken(context.Background(), refreshTokenRequest(refreshToken))
 	if err == nil {
 		t.Fatal("expected error for expired refresh token")
 	}
@@ -234,9 +231,9 @@ func TestRefreshToken_MalformedToken(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	server := NewAuthServer(store, tokenService, nopLogger())
+	server := newTestAuthServer(t, store, tokenService)
 
-	_, err := server.RefreshToken(nil, refreshTokenRequest("not-a-valid-jwt"))
+	_, err := server.RefreshToken(context.Background(), refreshTokenRequest("not-a-valid-jwt"))
 	if err == nil {
 		t.Fatal("expected error for malformed refresh token")
 	}
@@ -293,7 +290,7 @@ func TestProperty_RefreshEndpointEnforcesTokenType(t *testing.T) {
 			rt.Fatal(err)
 		}
 
-		server := NewAuthServer(store, tokenService, nopLogger())
+		server := newTestAuthServer(t, store, tokenService)
 
 		// Part 1: Access token should be rejected by RefreshToken endpoint
 		accessToken, err := tokenService.GenerateAccessToken(username)
@@ -301,7 +298,7 @@ func TestProperty_RefreshEndpointEnforcesTokenType(t *testing.T) {
 			rt.Fatalf("GenerateAccessToken failed: %v", err)
 		}
 
-		_, err = server.RefreshToken(nil, refreshTokenRequest(accessToken))
+		_, err = server.RefreshToken(context.Background(), refreshTokenRequest(accessToken))
 		if err == nil {
 			rt.Fatal("expected error when using access token for refresh, got nil")
 		}
@@ -310,12 +307,9 @@ func TestProperty_RefreshEndpointEnforcesTokenType(t *testing.T) {
 		}
 
 		// Part 2: Refresh token should succeed
-		refreshToken, err := tokenService.GenerateRefreshToken(username)
-		if err != nil {
-			rt.Fatalf("GenerateRefreshToken failed: %v", err)
-		}
+		refreshToken := testSessionRefresh(t, server, username)
 
-		resp, err := server.RefreshToken(nil, refreshTokenRequest(refreshToken))
+		resp, err := server.RefreshToken(context.Background(), refreshTokenRequest(refreshToken))
 		if err != nil {
 			rt.Fatalf("RefreshToken with valid refresh token failed: %v", err)
 		}
@@ -336,4 +330,32 @@ func TestProperty_RefreshEndpointEnforcesTokenType(t *testing.T) {
 			rt.Fatalf("returned token type: got %q, want %q", claims.TokenType, "access")
 		}
 	})
+}
+
+func newTestAuthServer(t *testing.T, users *UserStore, tokens *TokenService) *AuthServer {
+	t.Helper()
+	db, err := database.New(filepath.Join(t.TempDir(), "sessions.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { db.Close() })
+	return NewAuthServer(users, tokens, db, nopLogger())
+}
+
+func testSessionRefresh(t *testing.T, server *AuthServer, username string) string {
+	t.Helper()
+	if _, err := server.userStore.getUser(username); err != nil {
+		server.userStore.users = append(server.userStore.users, User{Username: username})
+	}
+	now := time.Now()
+	session := &database.DeviceSession{ID: uuid.NewString(), Username: username, DeviceName: "Test device",
+		CreatedAt: now.UnixMilli(), LastUsedAt: now.UnixMilli(), ExpiresAt: now.Add(server.tokenService.refreshTokenTtl).UnixMilli(), RefreshID: uuid.NewString()}
+	if err := server.db.CreateSession(context.Background(), session); err != nil {
+		t.Fatal(err)
+	}
+	_, refresh, err := server.tokenService.SessionTokens(session)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return refresh
 }
