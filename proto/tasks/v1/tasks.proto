@@ -107,6 +107,8 @@ message UpcomingMainTask {
   string due_date = 3;
   // ID of the task list containing this main task.
   string tasklist_id = 4;
+  // Always populated: true when the task has a non-empty recurrence rule.
+  optional bool is_recurring = 5;
 }
 
 message ListUpcomingMainTasksResponse {

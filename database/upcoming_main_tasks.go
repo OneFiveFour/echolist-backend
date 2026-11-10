@@ -7,10 +7,11 @@ import (
 
 // UpcomingMainTaskRow contains only the fields needed for a task notification.
 type UpcomingMainTaskRow struct {
-	TaskId     string
-	TaskListId string
-	Title      string
-	DueDate    string
+	TaskId      string
+	TaskListId  string
+	Title       string
+	DueDate     string
+	IsRecurring bool
 }
 
 // ListUpcomingMainTasks returns uncompleted main tasks across all folders with
@@ -18,7 +19,7 @@ type UpcomingMainTaskRow struct {
 // date. Dates in this format sort chronologically without timezone conversion.
 func (d *Database) ListUpcomingMainTasks(ctx context.Context, fromDate string) ([]UpcomingMainTaskRow, error) {
 	sqlRows, err := d.db.QueryContext(ctx, `
-		SELECT id, task_list_id, description, due_date
+		SELECT id, task_list_id, description, due_date, COALESCE(recurrence, '') <> ''
 		FROM tasks
 		WHERE task_list_id IS NOT NULL
 		  AND is_done = 0
@@ -32,7 +33,7 @@ func (d *Database) ListUpcomingMainTasks(ctx context.Context, fromDate string) (
 	rows := make([]UpcomingMainTaskRow, 0)
 	for sqlRows.Next() {
 		var row UpcomingMainTaskRow
-		if err := sqlRows.Scan(&row.TaskId, &row.TaskListId, &row.Title, &row.DueDate); err != nil {
+		if err := sqlRows.Scan(&row.TaskId, &row.TaskListId, &row.Title, &row.DueDate, &row.IsRecurring); err != nil {
 			return nil, fmt.Errorf("scan upcoming main task: %w", err)
 		}
 		rows = append(rows, row)

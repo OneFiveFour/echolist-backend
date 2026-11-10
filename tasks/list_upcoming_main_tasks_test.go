@@ -74,6 +74,7 @@ func TestListUpcomingMainTasks_HttpContract(t *testing.T) {
 	t.Parallel()
 	db := tasks.NewTestDB(t)
 	dueDate := "2026-10-04"
+	recurrence := "FREQ=DAILY"
 	const taskId = "00000000-0000-4000-a000-000000000001"
 	if _, _, err := db.CreateTaskList(database.CreateTaskListParams{
 		Id: "list", Title: "List", ParentDir: "Work/Projects",
@@ -81,6 +82,7 @@ func TestListUpcomingMainTasks_HttpContract(t *testing.T) {
 			{Id: taskId, Description: "Call dentist", DueDate: &dueDate,
 				SubTasks: []database.CreateTaskParams{{Id: "sub", Description: "Find phone number"}}},
 			{Id: "done", Description: "Already completed", IsDone: true, DueDate: &dueDate},
+			{Id: "recurring", Description: "Daily task", DueDate: &dueDate, Recurrence: &recurrence},
 		},
 	}); err != nil {
 		t.Fatal(err)
@@ -143,7 +145,10 @@ func TestListUpcomingMainTasks_HttpContract(t *testing.T) {
 				}
 				return
 			}
-			want := []map[string]any{{"taskId": taskId, "tasklistId": "list", "title": "Call dentist", "dueDate": dueDate}}
+			want := []map[string]any{
+				{"taskId": taskId, "tasklistId": "list", "title": "Call dentist", "dueDate": dueDate, "isRecurring": false},
+				{"taskId": "recurring", "tasklistId": "list", "title": "Daily task", "dueDate": dueDate, "isRecurring": true},
+			}
 			if !reflect.DeepEqual(got.Tasks, want) {
 				t.Fatalf("expected only notification fields %v, got %v", want, got.Tasks)
 			}
@@ -166,10 +171,15 @@ func TestListUpcomingMainTasks_HttpContract(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(response.GetTasks()) != 1 {
-		t.Fatalf("expected one upcoming task, got %v", response.GetTasks())
+	if len(response.GetTasks()) != 2 {
+		t.Fatalf("expected two upcoming tasks, got %v", response.GetTasks())
 	}
 	if got := response.GetTasks()[0]; got.GetTaskId() != taskId || got.GetTasklistId() != "list" {
 		t.Fatalf("unexpected task/list association: %v", got)
+	}
+	for i, want := range []bool{false, true} {
+		if got := response.GetTasks()[i]; got.IsRecurring == nil || got.GetIsRecurring() != want {
+			t.Fatalf("task %d: expected isRecurring=%v, got %v", i, want, got)
+		}
 	}
 }
