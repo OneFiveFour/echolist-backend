@@ -25,7 +25,7 @@ Optional env vars (with defaults):
 |---|---|---|
 | `AUTH_DEFAULT_USER` | `admin` | Initial username |
 | `ACCESS_TOKEN_EXPIRY_MINUTES` | `15` | Access token TTL |
-| `REFRESH_TOKEN_EXPIRY_MINUTES` | `10080` (7 days) | Refresh token TTL |
+| `REFRESH_TOKEN_EXPIRY_MINUTES` | `129600` (90 days) | Refresh token / session inactivity TTL |
 | `MAX_REQUEST_BODY_BYTES` | `4194304` (4 MB) | Max request body size |
 | `SHUTDOWN_TIMEOUT_SECONDS` | `30` | Graceful shutdown timeout |
 
@@ -76,3 +76,5 @@ docker compose down
 ```
 
 Add `-v` to also remove named volumes if applicable.
+
+See [device sessions](session-management.md) for rolling expiry, rollout requirements and terminal-based session revocation.

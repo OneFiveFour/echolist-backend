@@ -144,7 +144,7 @@ func main() {
 	}
 
 	accessTtl := parseDurationMinutesEnv(logger, "ACCESS_TOKEN_EXPIRY_MINUTES", 15)
-	refreshTtl := parseDurationMinutesEnv(logger, "REFRESH_TOKEN_EXPIRY_MINUTES", 10080) // 7 days
+	refreshTtl := parseDurationMinutesEnv(logger, "REFRESH_TOKEN_EXPIRY_MINUTES", 129600) // 90 days of inactivity
 
 	// Initialize auth components — users.json lives outside the data directory
 	userStore := auth.NewUserStore(filepath.Join("auth", "users.json"))
@@ -158,7 +158,7 @@ func main() {
 	}
 
 	tokenService := auth.NewTokenService(jwtSecret, accessTtl, refreshTtl)
-	authInterceptor := auth.NewAuthInterceptor(tokenService, logger)
+	authInterceptor := auth.NewSessionAuthInterceptor(tokenService, db, logger)
 	loggingInterceptor := common.NewRequestLoggingInterceptor(logger)
 	interceptors := connect.WithInterceptors(loggingInterceptor, authInterceptor)
 
@@ -181,7 +181,7 @@ func main() {
 	mux.Handle(notesPath, notesHandler)
 
 	authPath, authHandler := authv1connect.NewAuthServiceHandler(
-		auth.NewAuthServer(userStore, tokenService, logger),
+		auth.NewAuthServer(userStore, tokenService, db, logger),
 		interceptors,
 	)
 	mux.Handle(authPath, authHandler)

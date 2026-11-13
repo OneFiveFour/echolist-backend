@@ -26,7 +26,7 @@ func TestListUpcomingMainTasks_FilterAndOrder(t *testing.T) {
 				{Id: "z-today", Description: "Today Z", DueDate: date("2026-10-04"), SubTasks: []database.CreateTaskParams{
 					{Id: "subtask", Description: "Child"},
 				}},
-				{Id: "future", Description: "Next year", DueDate: date("2027-01-01")},
+				{Id: "future", Description: "Next year", DueDate: date("2027-01-01"), Recurrence: date("")},
 			},
 		},
 		{
@@ -48,7 +48,7 @@ func TestListUpcomingMainTasks_FilterAndOrder(t *testing.T) {
 	want := []database.UpcomingMainTaskRow{
 		{TaskId: "a-today", TaskListId: "nested", Title: "Today A", DueDate: "2026-10-04"},
 		{TaskId: "z-today", TaskListId: "root", Title: "Today Z", DueDate: "2026-10-04"},
-		{TaskId: "recurring", TaskListId: "nested", Title: "Recurring", DueDate: "2026-10-05"},
+		{TaskId: "recurring", TaskListId: "nested", Title: "Recurring", DueDate: "2026-10-05", IsRecurring: true},
 		{TaskId: "future", TaskListId: "root", Title: "Next year", DueDate: "2027-01-01"},
 	}
 	if !reflect.DeepEqual(got, want) {
