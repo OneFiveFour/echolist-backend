@@ -68,7 +68,7 @@ func traversalPathGen() *rapid.Generator[string] {
 // Validates: Requirements 1.1, 8.1
 func TestProperty_TaskCreateThenGetRoundTrip(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
-		dataDir := t.TempDir()
+		dataDir := tasks.ResolvedTempDir(t)
 		srv := tasks.NewTaskServer(dataDir, tasks.NewTestDB(t), tasks.NopLogger())
 		ctx := context.Background()
 
@@ -122,7 +122,7 @@ func TestProperty_TaskCreateThenGetRoundTrip(t *testing.T) {
 // Validates: Requirements 4.1, 4.2
 func TestProperty_AllGeneratedIDsAreValidUUIDv4(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
-		dataDir := t.TempDir()
+		dataDir := tasks.ResolvedTempDir(t)
 		srv := tasks.NewTaskServer(dataDir, tasks.NewTestDB(t), tasks.NopLogger())
 		ctx := context.Background()
 
@@ -174,7 +174,7 @@ func TestProperty_AllGeneratedIDsAreValidUUIDv4(t *testing.T) {
 // Validates: Requirements 4.3, 4.4, 8.2
 func TestProperty_TaskIDStabilityOnUpdate(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
-		dataDir := t.TempDir()
+		dataDir := tasks.ResolvedTempDir(t)
 		srv := tasks.NewTaskServer(dataDir, tasks.NewTestDB(t), tasks.NopLogger())
 		ctx := context.Background()
 
@@ -252,7 +252,7 @@ func TestProperty_TaskIDStabilityOnUpdate(t *testing.T) {
 // Validates: Requirements 8.5
 func TestProperty_PathTraversalPrevention(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
-		dataDir := t.TempDir()
+		dataDir := tasks.ResolvedTempDir(t)
 		srv := tasks.NewTaskServer(dataDir, tasks.NewTestDB(t), tasks.NopLogger())
 		ctx := context.Background()
 
@@ -290,7 +290,7 @@ func TestProperty_PathTraversalPrevention(t *testing.T) {
 // Validates: Requirements 8.6
 func TestProperty_InvalidUUIDRejection(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
-		dataDir := t.TempDir()
+		dataDir := tasks.ResolvedTempDir(t)
 		srv := tasks.NewTaskServer(dataDir, tasks.NewTestDB(t), tasks.NopLogger())
 		ctx := context.Background()
 
@@ -333,7 +333,7 @@ func TestProperty_InvalidUUIDRejection(t *testing.T) {
 // Validates: Requirements 1.4
 func TestProperty_DeleteThenGetReturnsNotFound(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
-		dataDir := t.TempDir()
+		dataDir := tasks.ResolvedTempDir(t)
 		srv := tasks.NewTaskServer(dataDir, tasks.NewTestDB(t), tasks.NopLogger())
 		ctx := context.Background()
 
@@ -372,7 +372,7 @@ func TestProperty_DeleteThenGetReturnsNotFound(t *testing.T) {
 // Validates: Requirements 8.1
 func TestProperty_ListTaskListsParentDirFiltering(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
-		dataDir := t.TempDir()
+		dataDir := tasks.ResolvedTempDir(t)
 		srv := tasks.NewTaskServer(dataDir, tasks.NewTestDB(t), tasks.NopLogger())
 		ctx := context.Background()
 
@@ -447,7 +447,7 @@ func TestProperty_ListTaskListsParentDirFiltering(t *testing.T) {
 // Validates: Requirements 1.1, 4.1, 4.2, 4.3
 func TestProperty_GetMainTaskRoundTrip(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
-		dataDir := t.TempDir()
+		dataDir := tasks.ResolvedTempDir(t)
 		srv := tasks.NewTaskServer(dataDir, tasks.NewTestDB(t), tasks.NopLogger())
 		ctx := context.Background()
 
@@ -514,7 +514,7 @@ func TestProperty_GetMainTaskRoundTrip(t *testing.T) {
 // Validates: Requirements 1.2, 5.2
 func TestProperty_GetMainTaskNotFound(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
-		dataDir := t.TempDir()
+		dataDir := tasks.ResolvedTempDir(t)
 		srv := tasks.NewTaskServer(dataDir, tasks.NewTestDB(t), tasks.NopLogger())
 		ctx := context.Background()
 
@@ -541,7 +541,7 @@ func TestProperty_GetMainTaskNotFound(t *testing.T) {
 // Validates: Requirements 1.3
 func TestProperty_GetMainTaskInvalidUUID(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
-		dataDir := t.TempDir()
+		dataDir := tasks.ResolvedTempDir(t)
 		srv := tasks.NewTaskServer(dataDir, tasks.NewTestDB(t), tasks.NopLogger())
 		ctx := context.Background()
 
@@ -561,7 +561,7 @@ func TestProperty_GetMainTaskInvalidUUID(t *testing.T) {
 // Validates: Requirements 5.1
 func TestProperty_GetMainTaskIsolation(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
-		dataDir := t.TempDir()
+		dataDir := tasks.ResolvedTempDir(t)
 		srv := tasks.NewTaskServer(dataDir, tasks.NewTestDB(t), tasks.NopLogger())
 		ctx := context.Background()
 

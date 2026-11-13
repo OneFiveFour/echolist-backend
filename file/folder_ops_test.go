@@ -18,7 +18,7 @@ import (
 )
 
 func TestCreateFolder_Success(t *testing.T) {
-	dataDir := t.TempDir()
+	dataDir := file.ResolvedTempDir(t)
 	db := file.NewTestDB(t)
 	logger := file.NopLogger()
 	fileSrv := file.NewFileServer(dataDir, db, logger)
@@ -50,7 +50,7 @@ func TestCreateFolder_Success(t *testing.T) {
 }
 
 func TestDeleteFolder_CascadesToNotes(t *testing.T) {
-	dataDir := t.TempDir()
+	dataDir := file.ResolvedTempDir(t)
 	db := file.NewTestDB(t)
 	logger := file.NopLogger()
 	taskSrv := tasks.NewTaskServer(dataDir, db, logger)
@@ -126,7 +126,7 @@ func TestDeleteFolder_CascadesToNotes(t *testing.T) {
 }
 
 func TestDeleteFolder_NestedSubfolders(t *testing.T) {
-	dataDir := t.TempDir()
+	dataDir := file.ResolvedTempDir(t)
 	db := file.NewTestDB(t)
 	logger := file.NopLogger()
 	taskSrv := tasks.NewTaskServer(dataDir, db, logger)
@@ -210,7 +210,7 @@ func TestDeleteFolder_NestedSubfolders(t *testing.T) {
 }
 
 func TestUpdateFolder_RenameUpdatesParentDir(t *testing.T) {
-	dataDir := t.TempDir()
+	dataDir := file.ResolvedTempDir(t)
 	db := file.NewTestDB(t)
 	logger := file.NopLogger()
 	taskSrv := tasks.NewTaskServer(dataDir, db, logger)
@@ -296,7 +296,7 @@ func TestUpdateFolder_RenameUpdatesParentDir(t *testing.T) {
 }
 
 func TestUpdateFolder_NestedSubfoldersRename(t *testing.T) {
-	dataDir := t.TempDir()
+	dataDir := file.ResolvedTempDir(t)
 	db := file.NewTestDB(t)
 	logger := file.NopLogger()
 	noteSrv := notes.NewNotesServer(dataDir, db, logger)
@@ -384,7 +384,7 @@ func TestUpdateFolder_NestedSubfoldersRename(t *testing.T) {
 }
 
 func TestCreateFolder_DuplicateNameRejected(t *testing.T) {
-	dataDir := t.TempDir()
+	dataDir := file.ResolvedTempDir(t)
 	db := file.NewTestDB(t)
 	logger := file.NopLogger()
 	fileSrv := file.NewFileServer(dataDir, db, logger)
@@ -413,7 +413,7 @@ func TestCreateFolder_DuplicateNameRejected(t *testing.T) {
 }
 
 func TestUpdateFolder_DuplicateNameRejected(t *testing.T) {
-	dataDir := t.TempDir()
+	dataDir := file.ResolvedTempDir(t)
 	db := file.NewTestDB(t)
 	logger := file.NopLogger()
 	fileSrv := file.NewFileServer(dataDir, db, logger)
@@ -449,7 +449,7 @@ func TestUpdateFolder_DuplicateNameRejected(t *testing.T) {
 }
 
 func TestDeleteFolder_NonExistentReturnsNotFound(t *testing.T) {
-	dataDir := t.TempDir()
+	dataDir := file.ResolvedTempDir(t)
 	db := file.NewTestDB(t)
 	logger := file.NopLogger()
 	fileSrv := file.NewFileServer(dataDir, db, logger)
@@ -467,7 +467,7 @@ func TestDeleteFolder_NonExistentReturnsNotFound(t *testing.T) {
 }
 
 func TestUpdateFolder_NonExistentReturnsNotFound(t *testing.T) {
-	dataDir := t.TempDir()
+	dataDir := file.ResolvedTempDir(t)
 	db := file.NewTestDB(t)
 	logger := file.NopLogger()
 	fileSrv := file.NewFileServer(dataDir, db, logger)

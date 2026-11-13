@@ -19,7 +19,7 @@ import (
 )
 
 func TestListFiles_ReturnsFolders(t *testing.T) {
-	dataDir := t.TempDir()
+	dataDir := file.ResolvedTempDir(t)
 	db := file.NewTestDB(t)
 	logger := file.NopLogger()
 
@@ -55,7 +55,7 @@ func TestListFiles_ReturnsFolders(t *testing.T) {
 }
 
 func TestListFiles_ReturnsNotesFromSQLite(t *testing.T) {
-	dataDir := t.TempDir()
+	dataDir := file.ResolvedTempDir(t)
 	db := file.NewTestDB(t)
 	logger := file.NopLogger()
 
@@ -102,7 +102,7 @@ func TestListFiles_ReturnsNotesFromSQLite(t *testing.T) {
 }
 
 func TestListFiles_ReturnsTaskListsFromSQLite(t *testing.T) {
-	dataDir := t.TempDir()
+	dataDir := file.ResolvedTempDir(t)
 	db := file.NewTestDB(t)
 	logger := file.NopLogger()
 
@@ -143,7 +143,7 @@ func TestListFiles_ReturnsTaskListsFromSQLite(t *testing.T) {
 }
 
 func TestListFiles_NoteEntryIncludesPreview(t *testing.T) {
-	dataDir := t.TempDir()
+	dataDir := file.ResolvedTempDir(t)
 	db := file.NewTestDB(t)
 	logger := file.NopLogger()
 
@@ -186,7 +186,7 @@ func TestListFiles_NoteEntryIncludesPreview(t *testing.T) {
 }
 
 func TestListFiles_TaskListEntryIncludesCounts(t *testing.T) {
-	dataDir := t.TempDir()
+	dataDir := file.ResolvedTempDir(t)
 	db := file.NewTestDB(t)
 	logger := file.NopLogger()
 
@@ -237,7 +237,7 @@ func TestListFiles_TaskListEntryIncludesCounts(t *testing.T) {
 }
 
 func TestListFiles_NotePathFormat(t *testing.T) {
-	dataDir := t.TempDir()
+	dataDir := file.ResolvedTempDir(t)
 	db := file.NewTestDB(t)
 	logger := file.NopLogger()
 
@@ -283,7 +283,7 @@ func TestListFiles_NotePathFormat(t *testing.T) {
 }
 
 func TestListFiles_OrphanNoteFileNotShown(t *testing.T) {
-	dataDir := t.TempDir()
+	dataDir := file.ResolvedTempDir(t)
 	db := file.NewTestDB(t)
 	logger := file.NopLogger()
 
@@ -309,7 +309,7 @@ func TestListFiles_OrphanNoteFileNotShown(t *testing.T) {
 }
 
 func TestListFiles_OrphanTaskListFileNotShown(t *testing.T) {
-	dataDir := t.TempDir()
+	dataDir := file.ResolvedTempDir(t)
 	db := file.NewTestDB(t)
 	logger := file.NopLogger()
 
@@ -335,7 +335,7 @@ func TestListFiles_OrphanTaskListFileNotShown(t *testing.T) {
 }
 
 func TestListFiles_EmptyDirectory(t *testing.T) {
-	dataDir := t.TempDir()
+	dataDir := file.ResolvedTempDir(t)
 	db := file.NewTestDB(t)
 	logger := file.NopLogger()
 
@@ -359,7 +359,7 @@ func TestListFiles_EmptyDirectory(t *testing.T) {
 }
 
 func TestListFiles_RootSlashRejected(t *testing.T) {
-	dataDir := t.TempDir()
+	dataDir := file.ResolvedTempDir(t)
 	db := file.NewTestDB(t)
 	logger := file.NopLogger()
 

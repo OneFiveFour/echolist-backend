@@ -12,7 +12,7 @@ import (
 )
 
 func TestCreateTaskList_EmptyTitleRejected(t *testing.T) {
-	srv := tasks.NewTaskServer(t.TempDir(), tasks.NewTestDB(t), tasks.NopLogger())
+	srv := tasks.NewTaskServer(tasks.ResolvedTempDir(t), tasks.NewTestDB(t), tasks.NopLogger())
 	ctx := context.Background()
 
 	_, err := srv.CreateTaskList(ctx, &pb.CreateTaskListRequest{
@@ -29,7 +29,7 @@ func TestCreateTaskList_EmptyTitleRejected(t *testing.T) {
 }
 
 func TestCreateTaskList_NullByteTitleRejected(t *testing.T) {
-	srv := tasks.NewTaskServer(t.TempDir(), tasks.NewTestDB(t), tasks.NopLogger())
+	srv := tasks.NewTaskServer(tasks.ResolvedTempDir(t), tasks.NewTestDB(t), tasks.NopLogger())
 	ctx := context.Background()
 
 	_, err := srv.CreateTaskList(ctx, &pb.CreateTaskListRequest{
@@ -46,7 +46,7 @@ func TestCreateTaskList_NullByteTitleRejected(t *testing.T) {
 }
 
 func TestCreateTaskList_PathTraversalRejected(t *testing.T) {
-	srv := tasks.NewTaskServer(t.TempDir(), tasks.NewTestDB(t), tasks.NopLogger())
+	srv := tasks.NewTaskServer(tasks.ResolvedTempDir(t), tasks.NewTestDB(t), tasks.NopLogger())
 	ctx := context.Background()
 
 	_, err := srv.CreateTaskList(ctx, &pb.CreateTaskListRequest{
@@ -64,7 +64,7 @@ func TestCreateTaskList_PathTraversalRejected(t *testing.T) {
 }
 
 func TestGetTaskList_InvalidUUIDRejected(t *testing.T) {
-	srv := tasks.NewTaskServer(t.TempDir(), tasks.NewTestDB(t), tasks.NopLogger())
+	srv := tasks.NewTaskServer(tasks.ResolvedTempDir(t), tasks.NewTestDB(t), tasks.NopLogger())
 	ctx := context.Background()
 
 	_, err := srv.GetTaskList(ctx, &pb.GetTaskListRequest{
@@ -79,7 +79,7 @@ func TestGetTaskList_InvalidUUIDRejected(t *testing.T) {
 }
 
 func TestUpdateTaskList_InvalidUUIDRejected(t *testing.T) {
-	srv := tasks.NewTaskServer(t.TempDir(), tasks.NewTestDB(t), tasks.NopLogger())
+	srv := tasks.NewTaskServer(tasks.ResolvedTempDir(t), tasks.NewTestDB(t), tasks.NopLogger())
 	ctx := context.Background()
 
 	_, err := srv.UpdateTaskList(ctx, &pb.UpdateTaskListRequest{
@@ -96,7 +96,7 @@ func TestUpdateTaskList_InvalidUUIDRejected(t *testing.T) {
 }
 
 func TestDeleteTaskList_InvalidUUIDRejected(t *testing.T) {
-	srv := tasks.NewTaskServer(t.TempDir(), tasks.NewTestDB(t), tasks.NopLogger())
+	srv := tasks.NewTaskServer(tasks.ResolvedTempDir(t), tasks.NewTestDB(t), tasks.NopLogger())
 	ctx := context.Background()
 
 	_, err := srv.DeleteTaskList(ctx, &pb.DeleteTaskListRequest{
@@ -111,7 +111,7 @@ func TestDeleteTaskList_InvalidUUIDRejected(t *testing.T) {
 }
 
 func TestUpdateTaskList_InvalidTaskIDRejected(t *testing.T) {
-	srv := tasks.NewTaskServer(t.TempDir(), tasks.NewTestDB(t), tasks.NopLogger())
+	srv := tasks.NewTaskServer(tasks.ResolvedTempDir(t), tasks.NewTestDB(t), tasks.NopLogger())
 	ctx := context.Background()
 
 	// First create a valid task list
@@ -141,7 +141,7 @@ func TestUpdateTaskList_InvalidTaskIDRejected(t *testing.T) {
 }
 
 func TestCreateTaskList_AutoDeleteFiltersDoneTasks(t *testing.T) {
-	srv := tasks.NewTaskServer(t.TempDir(), tasks.NewTestDB(t), tasks.NopLogger())
+	srv := tasks.NewTaskServer(tasks.ResolvedTempDir(t), tasks.NewTestDB(t), tasks.NopLogger())
 	ctx := context.Background()
 
 	// Create a task list with IsAutoDelete=false and 3 tasks.
@@ -229,7 +229,7 @@ func TestCreateTaskList_AutoDeleteFiltersDoneTasks(t *testing.T) {
 }
 
 func TestUpdateTaskList_RecurringTaskAdvancement(t *testing.T) {
-	srv := tasks.NewTaskServer(t.TempDir(), tasks.NewTestDB(t), tasks.NopLogger())
+	srv := tasks.NewTaskServer(tasks.ResolvedTempDir(t), tasks.NewTestDB(t), tasks.NopLogger())
 	ctx := context.Background()
 
 	// Create a task list with a recurring task (due_date required with recurrence)
@@ -286,7 +286,7 @@ func TestUpdateTaskList_RecurringTaskAdvancement(t *testing.T) {
 }
 
 func TestUpdateTaskList_AutoDeleteFiltersDoneSubtasks(t *testing.T) {
-	srv := tasks.NewTaskServer(t.TempDir(), tasks.NewTestDB(t), tasks.NopLogger())
+	srv := tasks.NewTaskServer(tasks.ResolvedTempDir(t), tasks.NewTestDB(t), tasks.NopLogger())
 	ctx := context.Background()
 
 	// Create a task list with a main task that has done and open subtasks
@@ -362,7 +362,7 @@ func TestUpdateTaskList_AutoDeleteFiltersDoneSubtasks(t *testing.T) {
 }
 
 func TestCreateTaskList_DueDateAndRecurrenceAllowed(t *testing.T) {
-	srv := tasks.NewTaskServer(t.TempDir(), tasks.NewTestDB(t), tasks.NopLogger())
+	srv := tasks.NewTaskServer(tasks.ResolvedTempDir(t), tasks.NewTestDB(t), tasks.NopLogger())
 	ctx := context.Background()
 
 	// Under the new semantics, having both DueDate and Recurrence is the normal
@@ -386,7 +386,7 @@ func TestCreateTaskList_DueDateAndRecurrenceAllowed(t *testing.T) {
 }
 
 func TestCreateTaskList_RecurrenceWithoutDueDateRejected(t *testing.T) {
-	srv := tasks.NewTaskServer(t.TempDir(), tasks.NewTestDB(t), tasks.NopLogger())
+	srv := tasks.NewTaskServer(tasks.ResolvedTempDir(t), tasks.NewTestDB(t), tasks.NopLogger())
 	ctx := context.Background()
 
 	// Recurrence without due_date must be rejected.
@@ -406,7 +406,7 @@ func TestCreateTaskList_RecurrenceWithoutDueDateRejected(t *testing.T) {
 }
 
 func TestCreateTaskList_InvalidRRuleRejected(t *testing.T) {
-	srv := tasks.NewTaskServer(t.TempDir(), tasks.NewTestDB(t), tasks.NopLogger())
+	srv := tasks.NewTaskServer(tasks.ResolvedTempDir(t), tasks.NewTestDB(t), tasks.NopLogger())
 	ctx := context.Background()
 
 	_, err := srv.CreateTaskList(ctx, &pb.CreateTaskListRequest{
@@ -425,7 +425,7 @@ func TestCreateTaskList_InvalidRRuleRejected(t *testing.T) {
 }
 
 func TestCreateTaskList_NonExistentParentDirRejected(t *testing.T) {
-	dataDir := t.TempDir()
+	dataDir := tasks.ResolvedTempDir(t)
 	srv := tasks.NewTaskServer(dataDir, tasks.NewTestDB(t), tasks.NopLogger())
 	ctx := context.Background()
 

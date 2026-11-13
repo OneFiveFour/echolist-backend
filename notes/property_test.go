@@ -57,7 +57,7 @@ func traversalPathGen() *rapid.Generator[string] {
 // Validates: Requirements 2.1, 8.1
 func TestProperty_NoteCreateThenGetRoundTrip(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
-		dataDir := t.TempDir()
+		dataDir := notes.ResolvedTempDir(t)
 		srv := notes.NewNotesServer(dataDir, notes.NewTestDB(t), notes.NopLogger())
 		ctx := context.Background()
 
@@ -103,7 +103,7 @@ func TestProperty_NoteCreateThenGetRoundTrip(t *testing.T) {
 // Validates: Requirements 4.1, 4.2
 func TestProperty_NoteIDsAreValidUUIDv4(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
-		dataDir := t.TempDir()
+		dataDir := notes.ResolvedTempDir(t)
 		srv := notes.NewNotesServer(dataDir, notes.NewTestDB(t), notes.NopLogger())
 		ctx := context.Background()
 
@@ -130,7 +130,7 @@ func TestProperty_NoteIDsAreValidUUIDv4(t *testing.T) {
 // Validates: Requirements 8.5
 func TestProperty_NotePathTraversalPrevention(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
-		dataDir := t.TempDir()
+		dataDir := notes.ResolvedTempDir(t)
 		srv := notes.NewNotesServer(dataDir, notes.NewTestDB(t), notes.NopLogger())
 		ctx := context.Background()
 
@@ -168,7 +168,7 @@ func TestProperty_NotePathTraversalPrevention(t *testing.T) {
 // Validates: Requirements 8.6
 func TestProperty_NoteInvalidUUIDRejection(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
-		dataDir := t.TempDir()
+		dataDir := notes.ResolvedTempDir(t)
 		srv := notes.NewNotesServer(dataDir, notes.NewTestDB(t), notes.NopLogger())
 		ctx := context.Background()
 
@@ -211,7 +211,7 @@ func TestProperty_NoteInvalidUUIDRejection(t *testing.T) {
 // Validates: Requirements 5.1, 5.2, 5.3, 5.4
 func TestProperty_NotePreviewComputation(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
-		dataDir := t.TempDir()
+		dataDir := notes.ResolvedTempDir(t)
 		db := notes.NewTestDB(t)
 		srv := notes.NewNotesServer(dataDir, db, notes.NopLogger())
 		ctx := context.Background()
@@ -252,7 +252,7 @@ func TestProperty_NotePreviewComputation(t *testing.T) {
 // Validates: Requirements 2.4, 12.1, 12.2, 12.3
 func TestProperty_NoteFilePathConvention(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
-		dataDir := t.TempDir()
+		dataDir := notes.ResolvedTempDir(t)
 		srv := notes.NewNotesServer(dataDir, notes.NewTestDB(t), notes.NopLogger())
 		ctx := context.Background()
 
@@ -319,7 +319,7 @@ func TestProperty_NoteFilePathConvention(t *testing.T) {
 // Validates: Requirements 1.4
 func TestProperty_NoteDeleteThenGetReturnsNotFound(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
-		dataDir := t.TempDir()
+		dataDir := notes.ResolvedTempDir(t)
 		srv := notes.NewNotesServer(dataDir, notes.NewTestDB(t), notes.NopLogger())
 		ctx := context.Background()
 
@@ -358,7 +358,7 @@ func TestProperty_NoteDeleteThenGetReturnsNotFound(t *testing.T) {
 // Validates: Requirements 8.1
 func TestProperty_ListNotesParentDirFiltering(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
-		dataDir := t.TempDir()
+		dataDir := notes.ResolvedTempDir(t)
 		srv := notes.NewNotesServer(dataDir, notes.NewTestDB(t), notes.NopLogger())
 		ctx := context.Background()
 

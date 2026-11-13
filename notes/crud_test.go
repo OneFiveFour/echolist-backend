@@ -14,7 +14,7 @@ import (
 )
 
 func TestCreateNote_Success(t *testing.T) {
-	dataDir := t.TempDir()
+	dataDir := notes.ResolvedTempDir(t)
 	srv := notes.NewNotesServer(dataDir, notes.NewTestDB(t), notes.NopLogger())
 	ctx := context.Background()
 
@@ -46,7 +46,7 @@ func TestCreateNote_Success(t *testing.T) {
 }
 
 func TestCreateNote_FileExistsOnDisk(t *testing.T) {
-	dataDir := t.TempDir()
+	dataDir := notes.ResolvedTempDir(t)
 	srv := notes.NewNotesServer(dataDir, notes.NewTestDB(t), notes.NopLogger())
 	ctx := context.Background()
 
@@ -73,7 +73,7 @@ func TestCreateNote_FileExistsOnDisk(t *testing.T) {
 }
 
 func TestGetNote_Success(t *testing.T) {
-	dataDir := t.TempDir()
+	dataDir := notes.ResolvedTempDir(t)
 	srv := notes.NewNotesServer(dataDir, notes.NewTestDB(t), notes.NopLogger())
 	ctx := context.Background()
 
@@ -103,7 +103,7 @@ func TestGetNote_Success(t *testing.T) {
 }
 
 func TestGetNote_NotFound(t *testing.T) {
-	dataDir := t.TempDir()
+	dataDir := notes.ResolvedTempDir(t)
 	srv := notes.NewNotesServer(dataDir, notes.NewTestDB(t), notes.NopLogger())
 	ctx := context.Background()
 
@@ -119,7 +119,7 @@ func TestGetNote_NotFound(t *testing.T) {
 }
 
 func TestUpdateNote_Success(t *testing.T) {
-	dataDir := t.TempDir()
+	dataDir := notes.ResolvedTempDir(t)
 	srv := notes.NewNotesServer(dataDir, notes.NewTestDB(t), notes.NopLogger())
 	ctx := context.Background()
 
@@ -154,7 +154,7 @@ func TestUpdateNote_Success(t *testing.T) {
 }
 
 func TestUpdateNote_FileRenamed(t *testing.T) {
-	dataDir := t.TempDir()
+	dataDir := notes.ResolvedTempDir(t)
 	srv := notes.NewNotesServer(dataDir, notes.NewTestDB(t), notes.NopLogger())
 	ctx := context.Background()
 
@@ -198,7 +198,7 @@ func TestUpdateNote_FileRenamed(t *testing.T) {
 }
 
 func TestDeleteNote_Success(t *testing.T) {
-	dataDir := t.TempDir()
+	dataDir := notes.ResolvedTempDir(t)
 	srv := notes.NewNotesServer(dataDir, notes.NewTestDB(t), notes.NopLogger())
 	ctx := context.Background()
 
@@ -231,7 +231,7 @@ func TestDeleteNote_Success(t *testing.T) {
 }
 
 func TestDeleteNote_FileRemoved(t *testing.T) {
-	dataDir := t.TempDir()
+	dataDir := notes.ResolvedTempDir(t)
 	srv := notes.NewNotesServer(dataDir, notes.NewTestDB(t), notes.NopLogger())
 	ctx := context.Background()
 
@@ -265,7 +265,7 @@ func TestDeleteNote_FileRemoved(t *testing.T) {
 }
 
 func TestListNotes_Success(t *testing.T) {
-	dataDir := t.TempDir()
+	dataDir := notes.ResolvedTempDir(t)
 	srv := notes.NewNotesServer(dataDir, notes.NewTestDB(t), notes.NopLogger())
 	ctx := context.Background()
 
@@ -310,7 +310,7 @@ func TestListNotes_Success(t *testing.T) {
 }
 
 func TestListNotes_FiltersByParentDir(t *testing.T) {
-	dataDir := t.TempDir()
+	dataDir := notes.ResolvedTempDir(t)
 	srv := notes.NewNotesServer(dataDir, notes.NewTestDB(t), notes.NopLogger())
 	ctx := context.Background()
 

@@ -13,7 +13,7 @@ import (
 )
 
 func TestCreateTaskList_Success(t *testing.T) {
-	dataDir := t.TempDir()
+	dataDir := tasks.ResolvedTempDir(t)
 	srv := tasks.NewTaskServer(dataDir, tasks.NewTestDB(t), tasks.NopLogger())
 	ctx := context.Background()
 
@@ -73,7 +73,7 @@ func TestCreateTaskList_Success(t *testing.T) {
 }
 
 func TestGetTaskList_Success(t *testing.T) {
-	dataDir := t.TempDir()
+	dataDir := tasks.ResolvedTempDir(t)
 	srv := tasks.NewTaskServer(dataDir, tasks.NewTestDB(t), tasks.NopLogger())
 	ctx := context.Background()
 
@@ -125,7 +125,7 @@ func TestGetTaskList_Success(t *testing.T) {
 }
 
 func TestGetTaskList_NotFound(t *testing.T) {
-	dataDir := t.TempDir()
+	dataDir := tasks.ResolvedTempDir(t)
 	srv := tasks.NewTaskServer(dataDir, tasks.NewTestDB(t), tasks.NopLogger())
 	ctx := context.Background()
 
@@ -142,7 +142,7 @@ func TestGetTaskList_NotFound(t *testing.T) {
 }
 
 func TestUpdateTaskList_Success(t *testing.T) {
-	dataDir := t.TempDir()
+	dataDir := tasks.ResolvedTempDir(t)
 	srv := tasks.NewTaskServer(dataDir, tasks.NewTestDB(t), tasks.NopLogger())
 	ctx := context.Background()
 
@@ -190,7 +190,7 @@ func TestUpdateTaskList_Success(t *testing.T) {
 }
 
 func TestUpdateTaskList_PreservesExistingIDs(t *testing.T) {
-	dataDir := t.TempDir()
+	dataDir := tasks.ResolvedTempDir(t)
 	srv := tasks.NewTaskServer(dataDir, tasks.NewTestDB(t), tasks.NopLogger())
 	ctx := context.Background()
 
@@ -252,7 +252,7 @@ func TestUpdateTaskList_PreservesExistingIDs(t *testing.T) {
 }
 
 func TestUpdateTaskList_AssignsNewIDs(t *testing.T) {
-	dataDir := t.TempDir()
+	dataDir := tasks.ResolvedTempDir(t)
 	srv := tasks.NewTaskServer(dataDir, tasks.NewTestDB(t), tasks.NopLogger())
 	ctx := context.Background()
 
@@ -311,7 +311,7 @@ func TestUpdateTaskList_AssignsNewIDs(t *testing.T) {
 }
 
 func TestDeleteTaskList_Success(t *testing.T) {
-	dataDir := t.TempDir()
+	dataDir := tasks.ResolvedTempDir(t)
 	srv := tasks.NewTaskServer(dataDir, tasks.NewTestDB(t), tasks.NopLogger())
 	ctx := context.Background()
 
@@ -347,7 +347,7 @@ func TestDeleteTaskList_Success(t *testing.T) {
 }
 
 func TestListTaskLists_Success(t *testing.T) {
-	dataDir := t.TempDir()
+	dataDir := tasks.ResolvedTempDir(t)
 	srv := tasks.NewTaskServer(dataDir, tasks.NewTestDB(t), tasks.NopLogger())
 	ctx := context.Background()
 
@@ -377,7 +377,7 @@ func TestListTaskLists_Success(t *testing.T) {
 }
 
 func TestListTaskLists_FiltersByParentDir(t *testing.T) {
-	dataDir := t.TempDir()
+	dataDir := tasks.ResolvedTempDir(t)
 	srv := tasks.NewTaskServer(dataDir, tasks.NewTestDB(t), tasks.NopLogger())
 	ctx := context.Background()
 
@@ -442,7 +442,7 @@ func TestListTaskLists_FiltersByParentDir(t *testing.T) {
 }
 
 func TestGetMainTask_Success(t *testing.T) {
-	dataDir := t.TempDir()
+	dataDir := tasks.ResolvedTempDir(t)
 	srv := tasks.NewTaskServer(dataDir, tasks.NewTestDB(t), tasks.NopLogger())
 	ctx := context.Background()
 
@@ -506,7 +506,7 @@ func TestGetMainTask_Success(t *testing.T) {
 }
 
 func TestGetMainTask_NotFound(t *testing.T) {
-	dataDir := t.TempDir()
+	dataDir := tasks.ResolvedTempDir(t)
 	srv := tasks.NewTaskServer(dataDir, tasks.NewTestDB(t), tasks.NopLogger())
 	ctx := context.Background()
 
@@ -523,7 +523,7 @@ func TestGetMainTask_NotFound(t *testing.T) {
 }
 
 func TestGetMainTask_SubtaskIdReturnsNotFound(t *testing.T) {
-	dataDir := t.TempDir()
+	dataDir := tasks.ResolvedTempDir(t)
 	srv := tasks.NewTaskServer(dataDir, tasks.NewTestDB(t), tasks.NopLogger())
 	ctx := context.Background()
 

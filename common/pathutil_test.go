@@ -34,7 +34,7 @@ func TestIsSubPath(t *testing.T) {
 }
 
 func TestValidatePath_LegitPaths(t *testing.T) {
-	dataDir := t.TempDir()
+	dataDir := ResolvedTempDir(t)
 
 	sub := filepath.Join(dataDir, "notes")
 	if err := os.MkdirAll(sub, 0o755); err != nil {
@@ -65,7 +65,7 @@ func TestValidatePath_LegitPaths(t *testing.T) {
 }
 
 func TestValidatePath_TraversalRejected(t *testing.T) {
-	dataDir := t.TempDir()
+	dataDir := ResolvedTempDir(t)
 
 	traversals := []string{
 		"../etc/passwd",
@@ -86,7 +86,7 @@ func TestValidatePath_TraversalRejected(t *testing.T) {
 }
 
 func TestValidatePath_SymlinkEscape(t *testing.T) {
-	dataDir := t.TempDir()
+	dataDir := ResolvedTempDir(t)
 	outside := t.TempDir()
 
 	link := filepath.Join(dataDir, "escape")
@@ -101,7 +101,7 @@ func TestValidatePath_SymlinkEscape(t *testing.T) {
 }
 
 func TestValidatePath_SymlinkInsideDataDir(t *testing.T) {
-	dataDir := t.TempDir()
+	dataDir := ResolvedTempDir(t)
 
 	target := filepath.Join(dataDir, "real")
 	if err := os.MkdirAll(target, 0o755); err != nil {
@@ -124,7 +124,7 @@ func TestValidatePath_SymlinkInsideDataDir(t *testing.T) {
 }
 
 func TestValidateParentDir_AllowsRoot(t *testing.T) {
-	dataDir := t.TempDir()
+	dataDir := ResolvedTempDir(t)
 
 	got, err := ValidateParentDir(dataDir, "")
 	if err != nil {
@@ -136,7 +136,7 @@ func TestValidateParentDir_AllowsRoot(t *testing.T) {
 }
 
 func TestValidateParentDir_AllowsChild(t *testing.T) {
-	dataDir := t.TempDir()
+	dataDir := ResolvedTempDir(t)
 	sub := filepath.Join(dataDir, "sub")
 	if err := os.MkdirAll(sub, 0o755); err != nil {
 		t.Fatal(err)
@@ -152,7 +152,7 @@ func TestValidateParentDir_AllowsChild(t *testing.T) {
 }
 
 func TestValidateParentDir_RejectsTraversal(t *testing.T) {
-	dataDir := t.TempDir()
+	dataDir := ResolvedTempDir(t)
 
 	_, err := ValidateParentDir(dataDir, "../other")
 	if err == nil {
@@ -161,7 +161,7 @@ func TestValidateParentDir_RejectsTraversal(t *testing.T) {
 }
 
 func TestValidateParentDir_SymlinkEscape(t *testing.T) {
-	dataDir := t.TempDir()
+	dataDir := ResolvedTempDir(t)
 	outside := t.TempDir()
 
 	link := filepath.Join(dataDir, "escape")
@@ -176,7 +176,7 @@ func TestValidateParentDir_SymlinkEscape(t *testing.T) {
 }
 
 func TestValidatePath_DeepNonExistentPath(t *testing.T) {
-	dataDir := t.TempDir()
+	dataDir := ResolvedTempDir(t)
 
 	got, err := ValidatePath(dataDir, "a/b/c/d/e.md")
 	if err != nil {

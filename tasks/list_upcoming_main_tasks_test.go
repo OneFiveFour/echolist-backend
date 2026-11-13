@@ -21,7 +21,7 @@ import (
 
 func TestListUpcomingMainTasks_DateValidation(t *testing.T) {
 	t.Parallel()
-	srv := tasks.NewTaskServer(t.TempDir(), tasks.NewTestDB(t), tasks.NopLogger())
+	srv := tasks.NewTaskServer(tasks.ResolvedTempDir(t), tasks.NewTestDB(t), tasks.NopLogger())
 	for _, value := range []string{
 		"", "2026-2-03", "2026-02-3", "2026-02-29", "2026-04-31",
 		"2026-13-01", "2026-00-01", "2026-10-00", " 2026-10-04",
@@ -45,7 +45,7 @@ func TestListUpcomingMainTasks_DateValidation(t *testing.T) {
 func TestListUpcomingMainTasks_Errors(t *testing.T) {
 	t.Parallel()
 	db := tasks.NewTestDB(t)
-	srv := tasks.NewTaskServer(t.TempDir(), db, tasks.NopLogger())
+	srv := tasks.NewTaskServer(tasks.ResolvedTempDir(t), db, tasks.NopLogger())
 	req := &pb.ListUpcomingMainTasksRequest{FromDate: "2026-10-04"}
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -96,7 +96,7 @@ func TestListUpcomingMainTasks_HttpContract(t *testing.T) {
 		t.Fatal(err)
 	}
 	path, handler := tasksv1connect.NewTaskListServiceHandler(
-		tasks.NewTaskServer(t.TempDir(), db, logger),
+		tasks.NewTaskServer(tasks.ResolvedTempDir(t), db, logger),
 		connect.WithInterceptors(auth.NewAuthInterceptor(tokens, logger)),
 	)
 	mux := http.NewServeMux()

@@ -39,7 +39,7 @@ func noteContentGen() *rapid.Generator[string] {
 // Validates: Requirements 6.1, 6.2, 6.3, 6.4, 14.3
 func TestProperty_FolderCascadeDeleteRemovesAllDBRows(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
-		dataDir := t.TempDir()
+		dataDir := file.ResolvedTempDir(t)
 		db := file.NewTestDB(t)
 		logger := file.NopLogger()
 		taskSrv := tasks.NewTaskServer(dataDir, db, logger)
@@ -130,7 +130,7 @@ func TestProperty_FolderCascadeDeleteRemovesAllDBRows(t *testing.T) {
 // Validates: Requirements 7.1, 7.2, 7.3, 7.4, 14.4
 func TestProperty_FolderRenameUpdatesParentDir(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
-		dataDir := t.TempDir()
+		dataDir := file.ResolvedTempDir(t)
 		db := file.NewTestDB(t)
 		logger := file.NopLogger()
 		taskSrv := tasks.NewTaskServer(dataDir, db, logger)
@@ -226,7 +226,7 @@ func TestProperty_FolderRenameUpdatesParentDir(t *testing.T) {
 // Validates: Requirements 3.4, 3.5, 11.1, 11.2, 11.3, 11.6, 11.7
 func TestProperty_ListFilesHybridDiscovery(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
-		dataDir := t.TempDir()
+		dataDir := file.ResolvedTempDir(t)
 		db := file.NewTestDB(t)
 		logger := file.NopLogger()
 		taskSrv := tasks.NewTaskServer(dataDir, db, logger)
@@ -346,7 +346,7 @@ func TestProperty_ListFilesHybridDiscovery(t *testing.T) {
 // Validates: Requirements 11.4, 11.5
 func TestProperty_OrphanDiskFilesExcludedFromListFiles(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
-		dataDir := t.TempDir()
+		dataDir := file.ResolvedTempDir(t)
 		db := file.NewTestDB(t)
 		logger := file.NopLogger()
 		fileSrv := file.NewFileServer(dataDir, db, logger)

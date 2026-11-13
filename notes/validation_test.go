@@ -14,7 +14,7 @@ import (
 )
 
 func TestCreateNote_EmptyTitleRejected(t *testing.T) {
-	srv := notes.NewNotesServer(t.TempDir(), notes.NewTestDB(t), notes.NopLogger())
+	srv := notes.NewNotesServer(notes.ResolvedTempDir(t), notes.NewTestDB(t), notes.NopLogger())
 	ctx := context.Background()
 
 	_, err := srv.CreateNote(ctx, &pb.CreateNoteRequest{
@@ -31,7 +31,7 @@ func TestCreateNote_EmptyTitleRejected(t *testing.T) {
 }
 
 func TestCreateNote_NullByteTitleRejected(t *testing.T) {
-	srv := notes.NewNotesServer(t.TempDir(), notes.NewTestDB(t), notes.NopLogger())
+	srv := notes.NewNotesServer(notes.ResolvedTempDir(t), notes.NewTestDB(t), notes.NopLogger())
 	ctx := context.Background()
 
 	_, err := srv.CreateNote(ctx, &pb.CreateNoteRequest{
@@ -48,7 +48,7 @@ func TestCreateNote_NullByteTitleRejected(t *testing.T) {
 }
 
 func TestCreateNote_PathTraversalRejected(t *testing.T) {
-	srv := notes.NewNotesServer(t.TempDir(), notes.NewTestDB(t), notes.NopLogger())
+	srv := notes.NewNotesServer(notes.ResolvedTempDir(t), notes.NewTestDB(t), notes.NopLogger())
 	ctx := context.Background()
 
 	_, err := srv.CreateNote(ctx, &pb.CreateNoteRequest{
@@ -66,7 +66,7 @@ func TestCreateNote_PathTraversalRejected(t *testing.T) {
 }
 
 func TestGetNote_InvalidUUIDRejected(t *testing.T) {
-	srv := notes.NewNotesServer(t.TempDir(), notes.NewTestDB(t), notes.NopLogger())
+	srv := notes.NewNotesServer(notes.ResolvedTempDir(t), notes.NewTestDB(t), notes.NopLogger())
 	ctx := context.Background()
 
 	_, err := srv.GetNote(ctx, &pb.GetNoteRequest{
@@ -81,7 +81,7 @@ func TestGetNote_InvalidUUIDRejected(t *testing.T) {
 }
 
 func TestUpdateNote_InvalidUUIDRejected(t *testing.T) {
-	srv := notes.NewNotesServer(t.TempDir(), notes.NewTestDB(t), notes.NopLogger())
+	srv := notes.NewNotesServer(notes.ResolvedTempDir(t), notes.NewTestDB(t), notes.NopLogger())
 	ctx := context.Background()
 
 	_, err := srv.UpdateNote(ctx, &pb.UpdateNoteRequest{
@@ -98,7 +98,7 @@ func TestUpdateNote_InvalidUUIDRejected(t *testing.T) {
 }
 
 func TestDeleteNote_InvalidUUIDRejected(t *testing.T) {
-	srv := notes.NewNotesServer(t.TempDir(), notes.NewTestDB(t), notes.NopLogger())
+	srv := notes.NewNotesServer(notes.ResolvedTempDir(t), notes.NewTestDB(t), notes.NopLogger())
 	ctx := context.Background()
 
 	_, err := srv.DeleteNote(ctx, &pb.DeleteNoteRequest{
@@ -113,7 +113,7 @@ func TestDeleteNote_InvalidUUIDRejected(t *testing.T) {
 }
 
 func TestCreateNote_ContentExceedsLimitRejected(t *testing.T) {
-	srv := notes.NewNotesServer(t.TempDir(), notes.NewTestDB(t), notes.NopLogger())
+	srv := notes.NewNotesServer(notes.ResolvedTempDir(t), notes.NewTestDB(t), notes.NopLogger())
 	ctx := context.Background()
 
 	// 1 MiB = 1048576 bytes; exceed by 1
@@ -133,7 +133,7 @@ func TestCreateNote_ContentExceedsLimitRejected(t *testing.T) {
 }
 
 func TestCreateNote_TitleWithPathSeparatorRejected(t *testing.T) {
-	srv := notes.NewNotesServer(t.TempDir(), notes.NewTestDB(t), notes.NopLogger())
+	srv := notes.NewNotesServer(notes.ResolvedTempDir(t), notes.NewTestDB(t), notes.NopLogger())
 	ctx := context.Background()
 
 	_, err := srv.CreateNote(ctx, &pb.CreateNoteRequest{
@@ -150,7 +150,7 @@ func TestCreateNote_TitleWithPathSeparatorRejected(t *testing.T) {
 }
 
 func TestCreateNote_NonExistentParentDirRejected(t *testing.T) {
-	dataDir := t.TempDir()
+	dataDir := notes.ResolvedTempDir(t)
 	srv := notes.NewNotesServer(dataDir, notes.NewTestDB(t), notes.NopLogger())
 	ctx := context.Background()
 
@@ -174,7 +174,7 @@ func TestCreateNote_NonExistentParentDirRejected(t *testing.T) {
 }
 
 func TestUpdateNote_NonExistentNoteRejected(t *testing.T) {
-	srv := notes.NewNotesServer(t.TempDir(), notes.NewTestDB(t), notes.NopLogger())
+	srv := notes.NewNotesServer(notes.ResolvedTempDir(t), notes.NewTestDB(t), notes.NopLogger())
 	ctx := context.Background()
 
 	_, err := srv.UpdateNote(ctx, &pb.UpdateNoteRequest{
@@ -191,7 +191,7 @@ func TestUpdateNote_NonExistentNoteRejected(t *testing.T) {
 }
 
 func TestDeleteNote_NonExistentNoteRejected(t *testing.T) {
-	srv := notes.NewNotesServer(t.TempDir(), notes.NewTestDB(t), notes.NopLogger())
+	srv := notes.NewNotesServer(notes.ResolvedTempDir(t), notes.NewTestDB(t), notes.NopLogger())
 	ctx := context.Background()
 
 	_, err := srv.DeleteNote(ctx, &pb.DeleteNoteRequest{
