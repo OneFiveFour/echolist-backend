@@ -17,3 +17,8 @@ func NewTestDB(t *testing.T) *database.Database {
 func NopLogger() *slog.Logger {
 	return common.NopLogger()
 }
+
+// ResolvedTempDir delegates to common.ResolvedTempDir for use in notes_test package tests.
+func ResolvedTempDir(t *testing.T) string {
+	return common.ResolvedTempDir(t)
+}

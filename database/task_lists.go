@@ -182,6 +182,53 @@ func (d *Database) ListTaskLists(parentDir string) ([]TaskListRow, map[string][]
 	return lists, tasksByList, nil
 }
 
+// MainTaskPeekRow is a flattened main-task entry joined with its owning task
+// list, used by ListMainTaskPeek. Subtasks are excluded.
+type MainTaskPeekRow struct {
+	MainTaskId   string
+	Description  string
+	IsDone       bool
+	DueDate      *string // nil when no due date
+	TaskListId   string
+	TaskListName string
+}
+
+// ListMainTaskPeek returns all main tasks across every task list directly in
+// parentDir, in a single query. Subtasks (rows with a parent_task_id) are
+// excluded. Task lists in subdirectories are not included. Rows are grouped per
+// task list and ordered within each list by stored task position. Returns an
+// empty slice when the directory has no task lists or no main tasks.
+func (d *Database) ListMainTaskPeek(parentDir string) ([]MainTaskPeekRow, error) {
+	sqlRows, err := d.db.Query(`
+		SELECT t.id, t.description, t.is_done, t.due_date, tl.id, tl.title
+		FROM task_lists tl
+		JOIN tasks t ON t.task_list_id = tl.id
+		WHERE tl.parent_dir = ?
+		  AND t.task_list_id IS NOT NULL
+		ORDER BY tl.id, t.position, t.id`, parentDir,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("query main task peek: %w", err)
+	}
+	defer sqlRows.Close()
+
+	rows := make([]MainTaskPeekRow, 0)
+	for sqlRows.Next() {
+		var r MainTaskPeekRow
+		var isDone int
+		if err := sqlRows.Scan(&r.MainTaskId, &r.Description, &isDone, &r.DueDate, &r.TaskListId, &r.TaskListName); err != nil {
+			return nil, fmt.Errorf("scan main task peek: %w", err)
+		}
+		r.IsDone = isDone != 0
+		rows = append(rows, r)
+	}
+	if err := sqlRows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate main task peek: %w", err)
+	}
+
+	return rows, nil
+}
+
 // GetMainTask retrieves a single main task by ID along with its subtask rows.
 // Returns ErrNotFound if the ID does not exist or is not a main task.
 func (d *Database) GetMainTask(id string) (TaskRow, []TaskRow, error) {
