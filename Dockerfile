@@ -1,5 +1,9 @@
-# Build stage
-FROM golang:1.25-alpine AS builder
+# Build stage — runs natively on the build host's arch, cross-compiles to the target arch
+FROM --platform=$BUILDPLATFORM golang:1.25-alpine AS builder
+
+# Populated automatically by BuildKit
+ARG TARGETOS
+ARG TARGETARCH
 
 WORKDIR /app
 
@@ -10,8 +14,8 @@ RUN go mod download
 # Copy source code
 COPY . .
 
-# Build the application
-RUN CGO_ENABLED=0 GOOS=linux go build -o echolist-backend .
+# Build the application (cross-compile to the requested target platform; no QEMU needed)
+RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH:-amd64} go build -o echolist-backend .
 
 # Final stage
 FROM alpine:latest

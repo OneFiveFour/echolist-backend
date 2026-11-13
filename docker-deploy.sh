@@ -7,6 +7,9 @@ IMAGE="onefivefour/echolist-backend"
 echo "Loggin into docker"
 docker login
 
+echo "Generating protobuf code (proto/gen is not checked in) ..."
+(cd proto && buf generate)
+
 echo "Building ${IMAGE}:${VERSION} ..."
 docker build -t "${IMAGE}:${VERSION}" -t "${IMAGE}:latest" .
 
