@@ -3,6 +3,7 @@ package database
 import (
 	"database/sql"
 	"fmt"
+	"time"
 )
 
 // CreateTaskList inserts a task list with its tasks (main and sub) in a single
@@ -277,15 +278,27 @@ func (d *Database) GetMainTask(id string) (TaskRow, []TaskRow, error) {
 
 // ListTaskListsWithCounts returns task lists in a parent directory with
 // aggregate task counts populated. Used by FileServer.ListFiles.
-func (d *Database) ListTaskListsWithCounts(parentDir string) ([]TaskListRow, error) {
+// An empty referenceDate skips urgency counts; otherwise it is the client's local
+// today in YYYY-MM-DD format. Only main tasks are counted, as for total/done.
+func (d *Database) ListTaskListsWithCounts(parentDir, referenceDate string) ([]TaskListRow, error) {
+	dueSoonThrough := ""
+	if referenceDate != "" {
+		date, err := time.Parse(time.DateOnly, referenceDate)
+		if err != nil {
+			return nil, fmt.Errorf("parse reference date: %w", err)
+		}
+		dueSoonThrough = date.AddDate(0, 0, 3).Format(time.DateOnly)
+	}
 	sqlRows, err := d.db.Query(`
 		SELECT tl.id, tl.title, tl.parent_dir, tl.is_auto_delete, tl.created_at, tl.updated_at,
 		       COUNT(t.id) AS total_task_count,
-		       SUM(CASE WHEN t.is_done = 1 THEN 1 ELSE 0 END) AS done_task_count
+		       SUM(CASE WHEN t.is_done = 1 THEN 1 ELSE 0 END) AS done_task_count,
+		       SUM(CASE WHEN t.is_done = 0 AND t.due_date != '' AND t.due_date <= ? THEN 1 ELSE 0 END) AS overdue_task_count,
+		       SUM(CASE WHEN t.is_done = 0 AND t.due_date > ? AND t.due_date <= ? THEN 1 ELSE 0 END) AS due_soon_task_count
 		FROM task_lists tl
 		LEFT JOIN tasks t ON t.task_list_id = tl.id
 		WHERE tl.parent_dir = ?
-		GROUP BY tl.id`, parentDir,
+		GROUP BY tl.id`, referenceDate, referenceDate, dueSoonThrough, parentDir,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("query task_lists with counts: %w", err)
@@ -298,7 +311,8 @@ func (d *Database) ListTaskListsWithCounts(parentDir string) ([]TaskListRow, err
 		var isAutoDelete int
 		var doneCount sql.NullInt64
 		if err := sqlRows.Scan(&tl.Id, &tl.Title, &tl.ParentDir, &isAutoDelete,
-			&tl.CreatedAt, &tl.UpdatedAt, &tl.TotalTaskCount, &doneCount); err != nil {
+			&tl.CreatedAt, &tl.UpdatedAt, &tl.TotalTaskCount, &doneCount,
+			&tl.OverdueTaskCount, &tl.DueSoonTaskCount); err != nil {
 			return nil, fmt.Errorf("scan task_lists with counts: %w", err)
 		}
 		tl.IsAutoDelete = isAutoDelete != 0

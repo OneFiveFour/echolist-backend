@@ -2,14 +2,16 @@ package database
 
 // TaskListRow represents a row from the task_lists table.
 type TaskListRow struct {
-	Id             string
-	Title          string
-	ParentDir      string // "" for root
-	IsAutoDelete   bool
-	CreatedAt      int64
-	UpdatedAt      int64
-	TotalTaskCount int // populated by aggregate queries, zero otherwise
-	DoneTaskCount  int // populated by aggregate queries, zero otherwise
+	Id               string
+	Title            string
+	ParentDir        string // "" for root
+	IsAutoDelete     bool
+	CreatedAt        int64
+	UpdatedAt        int64
+	TotalTaskCount   int // populated by aggregate queries, zero otherwise
+	DoneTaskCount    int // populated by aggregate queries, zero otherwise
+	OverdueTaskCount int // open main tasks due on or before the reference date
+	DueSoonTaskCount int // open main tasks due within the next 1-3 calendar days
 }
 
 // TaskRow represents a row from the tasks table.

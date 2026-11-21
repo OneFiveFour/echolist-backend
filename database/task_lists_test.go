@@ -486,7 +486,7 @@ func TestListTaskListsWithCounts(t *testing.T) {
 		t.Fatalf("CreateTaskList: %v", err)
 	}
 
-	lists, err := db.ListTaskListsWithCounts("")
+	lists, err := db.ListTaskListsWithCounts("", "")
 	if err != nil {
 		t.Fatalf("ListTaskListsWithCounts: %v", err)
 	}

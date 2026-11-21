@@ -31,6 +31,9 @@ message ListFilesRequest {
   // Relative path to the parent directory. Empty string for root.
   // Must not start with "/", must not contain ".." segments.
   string parent_dir = 1;
+  // Client's local today in YYYY-MM-DD format (not a UTC timestamp).
+  // When absent, urgency counts are omitted. An invalid or empty value is rejected.
+  optional string reference_date = 2;
 }
 
 enum ItemType {
@@ -55,6 +58,12 @@ message TaskListMetadata {
   int64 updated_at = 2;
   int32 total_task_count = 3;
   int32 done_task_count = 4;
+  // Open main tasks with a due date on or before reference_date (including today).
+  // Absent when the request does not supply reference_date; otherwise includes zero.
+  optional int32 overdue_task_count = 5;
+  // Open main tasks due 1-3 calendar days after reference_date, inclusive.
+  // Absent when the request does not supply reference_date; otherwise includes zero.
+  optional int32 due_soon_task_count = 6;
 }
 
 message FileEntry {

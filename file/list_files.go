@@ -2,9 +2,11 @@ package file
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
 	"connectrpc.com/connect"
 
@@ -71,6 +73,12 @@ func (s *FileServer) ListFiles(
 ) (*filev1.ListFilesResponse, error) {
 
 	requestParentDir := req.GetParentDir()
+	referenceDate := req.GetReferenceDate()
+	if req.ReferenceDate != nil {
+		if _, err := time.Parse(time.DateOnly, referenceDate); err != nil {
+			return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("reference_date must be a valid local date in YYYY-MM-DD format"))
+		}
+	}
 
 	parentDir, err := common.ValidateParentDir(s.dataDir, requestParentDir)
 	if err != nil {
@@ -102,22 +110,29 @@ func (s *FileServer) ListFiles(
 	}
 
 	// Query SQLite for task lists in this directory.
-	taskLists, err := s.db.ListTaskListsWithCounts(requestParentDir)
+	taskLists, err := s.db.ListTaskListsWithCounts(requestParentDir, referenceDate)
 	if err != nil {
 		s.logger.Error("failed to query task lists", "parentDir", requestParentDir, "error", err)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to query task lists: %w", err))
 	}
 	for _, row := range taskLists {
+		var overdueCount, dueSoonCount *int32
+		if req.ReferenceDate != nil {
+			overdue, dueSoon := int32(row.OverdueTaskCount), int32(row.DueSoonTaskCount)
+			overdueCount, dueSoonCount = &overdue, &dueSoon
+		}
 		result = append(result, &filev1.FileEntry{
 			Path:     entryPath(requestParentDir, row.Title),
 			Title:    row.Title,
 			ItemType: filev1.ItemType_ITEM_TYPE_TASK_LIST,
 			Metadata: &filev1.FileEntry_TaskListMetadata{
 				TaskListMetadata: &filev1.TaskListMetadata{
-					Id:             row.Id,
-					UpdatedAt:      row.UpdatedAt,
-					TotalTaskCount: int32(row.TotalTaskCount),
-					DoneTaskCount:  int32(row.DoneTaskCount),
+					Id:               row.Id,
+					UpdatedAt:        row.UpdatedAt,
+					TotalTaskCount:   int32(row.TotalTaskCount),
+					DoneTaskCount:    int32(row.DoneTaskCount),
+					OverdueTaskCount: overdueCount,
+					DueSoonTaskCount: dueSoonCount,
 				},
 			},
 		})

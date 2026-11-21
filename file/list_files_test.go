@@ -6,9 +6,12 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"connectrpc.com/connect"
+	"google.golang.org/protobuf/encoding/protojson"
 
+	"echolist-backend/database"
 	"echolist-backend/file"
 	"echolist-backend/notes"
 	"echolist-backend/tasks"
@@ -233,6 +236,119 @@ func TestListFiles_TaskListEntryIncludesCounts(t *testing.T) {
 	}
 	if tlMeta.DoneTaskCount != 2 {
 		t.Fatalf("expected DoneTaskCount == 2, got %d", tlMeta.DoneTaskCount)
+	}
+}
+
+func TestListFiles_TaskListUrgencyCounts(t *testing.T) {
+	// Calendar arithmetic must also hold across year, leap-day and DST boundaries.
+	for _, referenceDate := range []string{"2026-12-30", "2028-02-28", "2026-03-28", "2026-10-24"} {
+		t.Run(referenceDate, func(t *testing.T) {
+			db := file.NewTestDB(t)
+			srv := file.NewFileServer(t.TempDir(), db, file.NopLogger())
+			today, err := time.Parse(time.DateOnly, referenceDate)
+			if err != nil {
+				t.Fatal(err)
+			}
+			date := func(offset int) *string {
+				value := today.AddDate(0, 0, offset).Format(time.DateOnly)
+				return &value
+			}
+			emptyDate := ""
+			recurrence := "FREQ=DAILY"
+			_, _, err = db.CreateTaskList(database.CreateTaskListParams{
+				Id: "counted", Title: "Counted", Tasks: []database.CreateTaskParams{
+					{Id: "yesterday", DueDate: date(-1)},
+					{Id: "today", DueDate: date(0)},
+					{Id: "tomorrow", DueDate: date(1)},
+					{Id: "two-days", DueDate: date(2)},
+					{Id: "three-days", DueDate: date(3), Recurrence: &emptyDate},
+					{Id: "four-days", DueDate: date(4)},
+					{Id: "done-overdue", IsDone: true, DueDate: date(-2)},
+					{Id: "done-soon", IsDone: true, DueDate: date(1)},
+					{Id: "no-date"},
+					{Id: "empty-date", DueDate: &emptyDate},
+					{Id: "recurring", DueDate: date(2), Recurrence: &recurrence, SubTasks: []database.CreateTaskParams{
+						{Id: "overdue-subtask", DueDate: date(-1)},
+						{Id: "soon-subtask", DueDate: date(1)},
+					}},
+				},
+			})
+			if err != nil {
+				t.Fatal(err)
+			}
+			for _, list := range []database.CreateTaskListParams{
+				{Id: "empty", Title: "Empty"},
+				{Id: "nested", Title: "Nested", ParentDir: "Work", Tasks: []database.CreateTaskParams{{Id: "nested-task", DueDate: date(-1)}}},
+			} {
+				if _, _, err := db.CreateTaskList(list); err != nil {
+					t.Fatal(err)
+				}
+			}
+			for _, check := range []struct {
+				date          *string
+				overdue, soon int32
+			}{
+				{nil, 0, 0},
+				{&referenceDate, 2, 4},
+				{date(1), 3, 4},
+			} {
+				resp, err := srv.ListFiles(context.Background(), &filev1.ListFilesRequest{ReferenceDate: check.date})
+				if err != nil {
+					t.Fatal(err)
+				}
+				if len(resp.Entries) != 2 {
+					t.Fatalf("expected two root lists, got %d", len(resp.Entries))
+				}
+				for _, entry := range resp.Entries {
+					meta := entry.GetTaskListMetadata()
+					if meta == nil {
+						t.Fatal("missing metadata")
+					}
+					if check.date == nil {
+						if meta.OverdueTaskCount != nil || meta.DueSoonTaskCount != nil {
+							t.Fatal("urgency counts must be absent without a reference date")
+						}
+						continue
+					}
+					if meta.OverdueTaskCount == nil || meta.DueSoonTaskCount == nil {
+						t.Fatal("urgency counts must be present, including zero")
+					}
+					overdue, soon := check.overdue, check.soon
+					if meta.Id == "empty" {
+						overdue, soon = 0, 0
+					} else if meta.TotalTaskCount != 11 || meta.DoneTaskCount != 2 {
+						t.Fatalf("unexpected total/done counts: %v", meta)
+					}
+					if meta.GetOverdueTaskCount() != overdue || meta.GetDueSoonTaskCount() != soon {
+						t.Fatalf("got urgency %d/%d, want %d/%d", meta.GetOverdueTaskCount(), meta.GetDueSoonTaskCount(), overdue, soon)
+					}
+					// Optional zero values must survive the JSON transport too.
+					wire, err := protojson.Marshal(meta)
+					if err != nil {
+						t.Fatal(err)
+					}
+					var decoded filev1.TaskListMetadata
+					if err := protojson.Unmarshal(wire, &decoded); err != nil {
+						t.Fatal(err)
+					}
+					if decoded.OverdueTaskCount == nil || decoded.DueSoonTaskCount == nil {
+						t.Fatalf("lost presence over JSON: %s", wire)
+					}
+				}
+			}
+		})
+	}
+}
+
+func TestListFiles_InvalidReferenceDate(t *testing.T) {
+	srv := file.NewFileServer(t.TempDir(), file.NewTestDB(t), file.NopLogger())
+	for _, value := range []string{"", "2026-02-29", "2026-11-31", "2026-1-01", "2026-11-21T00:00:00Z", "garbage"} {
+		t.Run(value, func(t *testing.T) {
+			_, err := srv.ListFiles(context.Background(), &filev1.ListFilesRequest{ReferenceDate: &value})
+			if connect.CodeOf(err) != connect.CodeInvalidArgument {
+				t.Fatalf("expected invalid argument, got %v", err)
+			}
+		})
 	}
 }
 
