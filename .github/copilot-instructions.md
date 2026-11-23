@@ -128,8 +128,8 @@ There is no Makefile, no CI pipeline, and no linter config beyond `buf lint`. Te
 - Use `slog.With("key", "value")` for contextual fields. Service-level loggers add `"service"` key.
 
 ### Authentication & Security
-- The auth interceptor (`auth.NewAuthInterceptor`) protects all RPCs except those in `publicProcedures` (Login, RefreshToken).
-- Tokens carry a `type` claim (`"access"` or `"refresh"`). Only access tokens are accepted for API calls; refresh tokens are only valid at the RefreshToken endpoint.
+- The auth interceptor (`auth.NewAuthInterceptor`) protects all RPCs except those in `publicProcedures` (Login, RefreshToken, Logout).
+- Tokens carry a `type` claim (`"access"` or `"refresh"`). Only access tokens are accepted for API calls; refresh tokens are only valid at the RefreshToken and Logout endpoints.
 - Passwords are hashed with bcrypt (cost 10 in production). The `bcryptCost` variable is intentionally mutable for test performance.
 - User credentials file uses 0600 permissions. The user store directory is created with 0700.
 

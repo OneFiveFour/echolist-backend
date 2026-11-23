@@ -69,6 +69,14 @@ Timestamps are Unix milliseconds (encoded as strings in protobuf JSON).
   `deviceName`, `createdAt`, `lastUsedAt`, `expiresAt`, `isCurrent`.
 - `/auth.v1.AuthService/RevokeSession`: `{"sessionId":"UUID"}` → `{}`.
   Idempotent; unknown or other-account IDs do not reveal session existence.
+- `/auth.v1.AuthService/Logout`: `{"refreshToken":"..."}` → `{}`. Public (no
+  access token needed, so it works after the access token expired). Revokes the
+  session the refresh token belongs to. A `200` means the session is revoked;
+  repeating the call with the same token also returns `200`. Invalid, expired
+  or non-refresh tokens return `Unauthenticated` and revoke nothing. Clients
+  should discard their tokens locally after a `200` or `Unauthenticated`
+  response. After any other error (e.g. a network failure or `Internal`) the
+  session may still be active, so the logout should be retried.
 
 ## Verification
 

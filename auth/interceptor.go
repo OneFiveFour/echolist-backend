@@ -28,6 +28,7 @@ func UsernameFromContext(ctx context.Context) (string, bool) {
 var publicProcedures = map[string]bool{
 	"/auth.v1.AuthService/Login":        true,
 	"/auth.v1.AuthService/RefreshToken": true,
+	"/auth.v1.AuthService/Logout":       true,
 }
 
 // NewAuthInterceptor returns a connect.UnaryInterceptorFunc that validates

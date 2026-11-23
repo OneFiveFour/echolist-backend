@@ -140,7 +140,7 @@ func TestProperty6_InvalidTokensRejected(t *testing.T) {
 }
 
 // Property 7: Public endpoints bypass authentication
-// For any request to a public endpoint procedure (Login, RefreshToken), the
+// For any request to a public endpoint procedure (Login, RefreshToken, Logout), the
 // Auth_Interceptor should allow the request to proceed regardless of whether
 // an Authorization header is present or what value it contains.
 // **Validates: Requirements 3.5**

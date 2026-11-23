@@ -9,6 +9,7 @@ service AuthService {
   rpc RefreshToken (RefreshTokenRequest) returns (RefreshTokenResponse);
   rpc ListSessions (ListSessionsRequest) returns (ListSessionsResponse);
   rpc RevokeSession (RevokeSessionRequest) returns (RevokeSessionResponse);
+  rpc Logout (LogoutRequest) returns (LogoutResponse);
 }
 
 message LoginRequest {
@@ -48,3 +49,7 @@ message RevokeSessionRequest {
   string session_id = 1;
 }
 message RevokeSessionResponse {}
+message LogoutRequest {
+  string refresh_token = 1;
+}
+message LogoutResponse {}

@@ -115,3 +115,17 @@ func (s *AuthServer) RevokeSession(ctx context.Context, req *authv1.RevokeSessio
 	}
 	return &authv1.RevokeSessionResponse{}, nil
 }
+
+// Logout revokes the session identified by the refresh token. It is a public
+// procedure so it also works after the access token has expired. Success means
+// the session is revoked; repeating the call with the same token also succeeds.
+func (s *AuthServer) Logout(ctx context.Context, req *authv1.LogoutRequest) (*authv1.LogoutResponse, error) {
+	claims, err := s.tokenService.ValidateToken(req.GetRefreshToken())
+	if err != nil || claims.TokenType != "refresh" || claims.SessionID == "" {
+		return nil, invalidSession()
+	}
+	if err := s.db.RevokeSession(ctx, claims.SessionID, claims.Username, time.Now().UnixMilli()); err != nil {
+		return nil, s.internal("failed to revoke session", err)
+	}
+	return &authv1.LogoutResponse{}, nil
+}
