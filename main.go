@@ -166,10 +166,15 @@ func main() {
 	mux := http.NewServeMux()
 
 	// Liveness probe — process is up, that's it
-	mux.HandleFunc("/livez", func(w http.ResponseWriter, r *http.Request) {
+	livezHandler := func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("ok"))
-	})
+	}
+	mux.HandleFunc("/livez", livezHandler)
+
+	// Exact "/" only (not a catch-all): lets reverse proxies such as Pangolin
+	// use their default root health check. Unknown paths still return 404.
+	mux.HandleFunc("/{$}", livezHandler)
 
 	// Readiness probe — verify data dir is accessible and user store loaded
 	mux.HandleFunc("/healthz", healthzHandler(dataDir, db, userStore))
