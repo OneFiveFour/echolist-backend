@@ -244,7 +244,7 @@ func TestListFiles_TaskListUrgencyCounts(t *testing.T) {
 	for _, referenceDate := range []string{"2026-12-30", "2028-02-28", "2026-03-28", "2026-10-24"} {
 		t.Run(referenceDate, func(t *testing.T) {
 			db := file.NewTestDB(t)
-			srv := file.NewFileServer(t.TempDir(), db, file.NopLogger())
+			srv := file.NewFileServer(file.ResolvedTempDir(t), db, file.NopLogger())
 			today, err := time.Parse(time.DateOnly, referenceDate)
 			if err != nil {
 				t.Fatal(err)
@@ -341,7 +341,7 @@ func TestListFiles_TaskListUrgencyCounts(t *testing.T) {
 }
 
 func TestListFiles_InvalidReferenceDate(t *testing.T) {
-	srv := file.NewFileServer(t.TempDir(), file.NewTestDB(t), file.NopLogger())
+	srv := file.NewFileServer(file.ResolvedTempDir(t), file.NewTestDB(t), file.NopLogger())
 	for _, value := range []string{"", "2026-02-29", "2026-11-31", "2026-1-01", "2026-11-21T00:00:00Z", "garbage"} {
 		t.Run(value, func(t *testing.T) {
 			_, err := srv.ListFiles(context.Background(), &filev1.ListFilesRequest{ReferenceDate: &value})
